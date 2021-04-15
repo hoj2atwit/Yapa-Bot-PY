@@ -58,6 +58,7 @@ async def on_message(message):
         amnt  = 16000
         if len(command) > 6:
             command = command[6:]
+            command = formatter.removeStartingSpaces(command)
             if command[0].isdigit():
               amntS = ""
               for c in command:
@@ -68,6 +69,7 @@ async def on_message(message):
               amnt = int(amntS)
               if len(command) > len(amntS)+1:
                 command = command[len(amntS)+1:]
+                command = formatter.removeStartingSpaces(command)
             if len(command) > 1:
               id = formatter.getIDFromMention(command)
               if user.doesExist(id):
@@ -88,6 +90,7 @@ async def on_message(message):
 
         if len(command) > 6:
             command = command[6:]
+            command = formatter.removeStartingSpaces(command)
             if command[0].isdigit():
               amntS = ""
               for c in command:
@@ -98,6 +101,7 @@ async def on_message(message):
               amnt = int(amntS)
               if len(command) > len(amntS)+1:
                 command = command[len(amntS)+1:]
+                command = formatter.removeStartingSpaces(command)
             if len(command) > 1:
               id = formatter.getIDFromMention(command)
               if user.doesExist(id):
@@ -195,10 +199,12 @@ async def on_message(message):
         if command.lower().startswith("profile"):
           if len(command) > 8:
             command = command[8:]
+            command = formatter.removeStartingSpaces(command)
             other = True
         else:
           if len(command) > 2:
             command = command[2:]
+            command = formatter.removeStartingSpaces(command)
             other = True
         
         if other:

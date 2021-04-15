@@ -100,3 +100,8 @@ def getIDFromMention(text):
     if c.isdigit():
       id += c
   return id
+
+def removeStartingSpaces(command):
+  while command.startswith(" ") and len(command) > 0:
+    command = command[1:]
+  return command

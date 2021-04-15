@@ -232,6 +232,7 @@ def embedWeapList(u, pg):
   embed.set_footer(text=f"Page {pg}/{len(weaplist)}")
   return embed
 
+#Shows gift of primo to user
 def embedGivePrimo(u, primo):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift", color=discord.Color.blurple())
   u.primogems += primo
@@ -241,6 +242,7 @@ def embedGivePrimo(u, primo):
   saveUser(u)
   return embed, f
   
+#Shows gift of mora to user
 def embedGiveMora(u, mora):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift", color=discord.Color.gold())
   u.mora += mora
@@ -250,6 +252,7 @@ def embedGiveMora(u, mora):
   saveUser(u)
   return embed, f
 
+#Shows user owned character info
 def embedShowCharInfo(u, c):
   color = discord.Color.red()
   if c["element"] == "Anemo":
@@ -280,6 +283,7 @@ def embedShowCharInfo(u, c):
 
   return embed, f
 
+#Show user owned weapon info
 def embedShowWeapInfo(u, w):
   embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.name, cn = w["name"]))
   embed.add_field(name="Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Refinement:** {cu}\n**Total Wished:** {tr}".format(l = w["level"], cu = w["refinement"], tr = w["totalGot"], x = w["xp"], xm = formatter.getXPToNextLevel(w["level"])))
