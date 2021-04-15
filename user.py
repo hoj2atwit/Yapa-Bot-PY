@@ -1,9 +1,10 @@
-import json
 import discord
 import formatter
 import prefix
 import character
 import weapon
+import random
+import error
 from replit import db
 
 class User:
@@ -61,23 +62,85 @@ class User:
     else:
       self.xp += xp
 
+  def giveMora(self, u, amnt):
+    if self.mora < amnt:
+      return 0, False
+    u.mora += amnt
+    self.mora -= amnt
+    saveUser(u)
+    saveUser(self)
+    return amnt, True
+
+  def givePrimo(self, u, amnt):
+    if self.primogems < amnt:
+      return 0, False
+    u.primogems += amnt
+    self.primogems -= amnt
+    saveUser(u)
+    saveUser(self)
+    return amnt, True
+
+  def rob(self, u):
+    if u.mora < 1:
+      return 0, False
+    robbed = random.randint(1, u.mora)
+    u.mora -= robbed
+    self.mora += robbed
+    saveUser(u)
+    saveUser(self)
+    return robbed, True
+
   def levelUp(self):
     self.AR += 1
     if self.AR % 10 == 0:
       self.WL += 1
     self.xp = 0
 
+  def equipWeapon(self, charName, weapName):
+    if not self.doesCharExist(charName):
+      return False, "c"
+    if not self.doesWeapExist(weapName):
+      return False, "w"
+    c = character.getCharFromDict(self.characters, charName)
+    w = weapon.getWeapFromDict(self.weapons, weapName)
+    if c.weaponType.upper() != w.weaponType.upper():
+      return False, "i"
+    c.equipWeap(w)
+    self.saveChar(c)
+    saveUser(self)
+    return True, "g"
+
+  def saveChar(self, c):
+    if c.urlName in self.characters.keys():
+      self.characters[c.urlName] = c.getDict()
+
+  def updateEquippedWeaps(self):
+    for w in self.weapons.keys():
+      for c in self.characters.keys():
+        if len(self.characters[c]["w"]) >= 1:
+          if self.characters[c]["w"][0]["urlName"] == w:
+            self.characters[c]["w"][0] = self.weapons[w]
+            break
+
   def changeNickname(self, nickname):
     self.nickname = nickname
+    saveUser(self)
     
   def changeDescription(self, description):
     self.description = description
+    saveUser(self)
 
-  def changeFavoriteChar(self, char):
-    if char.urlName in self.characters.keys():
-        self.favoriteChar = char.name
-        return True
-    return False
+  def changeFavoriteChar(self, name):
+    if formatter.nameUnformatter(name) in self.characters.keys():
+      self.favoriteChar = formatter.nameFormatter(formatter.nameUnformatter(name))
+      saveUser(self)
+      return True
+    elif name.lower() == "none":
+      self.favoriteChar = "None"
+      saveUser(self)
+      return True
+    else:
+      return False
 
   def doesCharExist(self, charName):
     if formatter.nameUnformatter(charName) in self.characters.keys():
@@ -241,6 +304,16 @@ def embedGivePrimo(u, primo):
   embed.set_thumbnail(url="attachment://Primogem.png")
   saveUser(u)
   return embed, f
+
+#Shows donation of primo to user
+def embedDonatePrimo(giver, u, primo):
+  embed = discord.Embed(title=f"{u.nickname}\'s Gift from {giver.nickname}", color=discord.Color.blurple())
+  amnt, given = giver.givePrimo(u, primo)
+  if given:
+    embed.add_field(name = f"Primogems x{primo}", value = "_ _")
+  else:
+    embed = error.embedFailedDonationPrimo()
+  return embed
   
 #Shows gift of mora to user
 def embedGiveMora(u, mora):
@@ -251,6 +324,17 @@ def embedGiveMora(u, mora):
   embed.set_thumbnail(url="attachment://Mora.png")
   saveUser(u)
   return embed, f
+
+#Shows donation of mora to user
+def embedDonateMora(giver, u, mora):
+  embed = discord.Embed(title=f"{u.nickname}\'s Gift from {giver.nickname}", color=discord.Color.gold())
+  amnt, given = giver.giveMora(u, mora)
+  if given:
+    embed.add_field(name = f"Mora x{mora}", value = "_ _")
+  else:
+    embed = error.embedFailedDonationMora()
+  saveUser(u)
+  return embed
 
 #Shows user owned character info
 def embedShowCharInfo(u, c):
@@ -273,7 +357,7 @@ def embedShowCharInfo(u, c):
   if len(c["w"]) == 0:
     text = "None"
   else:
-    text = c["w"]["name"]
+    text = c["w"][0]["name"]
   embed.add_field(name="Equipped Weapon", value=text)
 
   embed.add_field(name="General Info", value="**Element:** {e}\n**Constellation:** {c}".format(e = c["element"], c = c["constName"]))

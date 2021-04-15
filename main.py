@@ -50,6 +50,27 @@ async def on_message(message):
             e = error.embedUserDoesNotExist()
             await message.channel.send(embed=e)
             return
+      
+      elif command.lower().startswith("rob"):
+        if len(command) > 4:
+          command = command[4:]
+          u = user.getUser(str(message.author.id))
+          id = formatter.getIDFromMention(command)
+          if user.doesExist(id) and str(id) != str(message.author.id):
+            robbedAmnt, robbed = u.rob(user.getUser(id))
+            if robbed:
+              e=discord.Embed(title=f"{user.getUser(id).nickname} has been Robbed!",color=discord.Color.red())
+              e.add_field(name="_ _", value=f"{u.nickname} stole **{robbedAmnt}** Mora from your account.")
+              await message.channel.send(f"<@{id}>",embed=e)
+              return
+            else:
+              e=error.embedFailedRobbery()
+              await message.channel.send(embed=e)
+              return
+          else:
+            e = error.embedUserDoesNotExist()
+            await message.channel.send(embed=e)
+            return
 
       #Give Primo for Free
       elif command.lower().startswith("giftp"):
@@ -58,7 +79,7 @@ async def on_message(message):
         amnt  = 16000
         if len(command) > 6:
             command = command[6:]
-            command = formatter.removeStartingSpaces(command)
+            command = formatter.removeExtraSpaces(command)
             if command[0].isdigit():
               amntS = ""
               for c in command:
@@ -69,7 +90,7 @@ async def on_message(message):
               amnt = int(amntS)
               if len(command) > len(amntS)+1:
                 command = command[len(amntS)+1:]
-                command = formatter.removeStartingSpaces(command)
+                command = formatter.removeExtraSpaces(command)
             if len(command) > 1:
               id = formatter.getIDFromMention(command)
               if user.doesExist(id):
@@ -90,7 +111,7 @@ async def on_message(message):
 
         if len(command) > 6:
             command = command[6:]
-            command = formatter.removeStartingSpaces(command)
+            command = formatter.removeExtraSpaces(command)
             if command[0].isdigit():
               amntS = ""
               for c in command:
@@ -101,7 +122,7 @@ async def on_message(message):
               amnt = int(amntS)
               if len(command) > len(amntS)+1:
                 command = command[len(amntS)+1:]
-                command = formatter.removeStartingSpaces(command)
+                command = formatter.removeExtraSpaces(command)
             if len(command) > 1:
               id = formatter.getIDFromMention(command)
               if user.doesExist(id):
@@ -195,19 +216,52 @@ async def on_message(message):
       #Show profile
       elif command.lower().startswith("profile") or command.lower().startswith("p"):
         url = message.author.avatar_url
-        other = False
+        mention = False
         if command.lower().startswith("profile"):
           if len(command) > 8:
             command = command[8:]
-            command = formatter.removeStartingSpaces(command)
-            other = True
+            command = formatter.removeExtraSpaces(command)
+            mention = True
         else:
           if len(command) > 2:
             command = command[2:]
-            command = formatter.removeStartingSpaces(command)
-            other = True
-        
-        if other:
+            command = formatter.removeExtraSpaces(command)
+            mention = True
+        if command.startswith("description"):
+          mention = False
+          if len(command) > 12:
+            command = command[12:]
+            command = formatter.removeExtraSpaces(command)
+            if command != "":
+              u.changeDescription(command)
+            else:
+              u.changeDescription("No Description")
+            await message.channel.send(f"{message.author.mention}\'s description has been changed.")
+            return
+        if command.startswith("nickname"):
+          mention = False
+          if len(command) > 9:
+            command = command[9:]
+            command = formatter.removeExtraSpaces(command)
+            if command != "":
+              u.changeNickname(command)
+            else:
+              u.changeNickname(u.name)
+            await message.channel.send(f"{message.author.mention}\'s nickname has been changed.")
+            return
+        if command.startswith("favorite"):
+          mention = False
+          if len(command) > 9:
+            command = command[9:]
+            command = formatter.removeExtraSpaces(command)
+            if command != "":
+              have = u.changeFavoriteChar(command)
+              if have:
+                await message.channel.send(f"{message.author.mention}\'s favorite Character has been set to: {formatter.nameFormatter(formatter.nameUnformatter(command))}")
+              else:
+                await message.channel.sent(embed=error.embedCharIsNotOwned())
+            return
+        if mention:
           id = formatter.getIDFromMention(command)
           if user.doesExist(id):
             member = await message.channel.guild.fetch_member(int(id))
@@ -271,6 +325,90 @@ async def on_message(message):
               return
         e = user.embedWeapList(u, pg)
         await message.channel.send(embed=e)
+      
+      elif command.lower().startswith("equip") or command.lower().startswith("e"):
+        info = []
+        if len(command) > 6:
+            command = command[6:]
+            command = formatter.removeExtraSpaces(command)
+            info = formatter.splitInformation(command)
+        else:
+          if len(command) > 2:
+            command = command[2:]
+            command = formatter.removeExtraSpaces(command)
+            info = formatter.splitInformation(command)
+        if len(info) == 2:
+          worked, reason = u.equipWeapon(info[0], info[1])
+          if not worked:
+            if reason == "c":
+              e = error.embedCharIsNotOwned()
+              await message.channel.send(embed=e)
+            elif reason == "i":
+              e = error.embedWeapIsNotCompatible()
+              await message.channel.send(embed=e)
+            else:
+              e = error.embedWeapIsNotOwned()
+              await message.channel.send(embed=e)
+          else:
+            await message.channel.send("Weapon has been equipped.")
+
+      #donate Mora for Free
+      elif command.lower().startswith("givem"):
+        giver = user.getUser(str(message.author.id))
+
+        if len(command) > 6:
+            command = command[6:]
+            command = formatter.removeExtraSpaces(command)
+            if command[0].isdigit():
+              amntS = ""
+              for c in command:
+                if c.isdigit():
+                  amntS += c
+                else:
+                  break
+              amnt = int(amntS)
+              if len(command) > len(amntS)+1:
+                command = command[len(amntS)+1:]
+                command = formatter.removeExtraSpaces(command)
+                if len(command) > 1:
+                  id = formatter.getIDFromMention(command)
+                  if user.doesExist(id) and str(id) != giver.ID:
+                    member = await message.channel.guild.fetch_member(int(id))
+                    getter = user.getUser(id)
+                    e = user.embedDonateMora(giver, getter, amnt)
+                    await message.channel.send(member.mention, embed=e)
+                  else:
+                    e = error.embedUserDoesNotExist()
+                    await message.channel.send(embed=e)
+
+      #Give Primo for Free
+      elif command.lower().startswith("givep"):
+        giver = user.getUser(str(message.author.id))
+
+        if len(command) > 6:
+            command = command[6:]
+            command = formatter.removeExtraSpaces(command)
+            if command[0].isdigit():
+              amntS = ""
+              for c in command:
+                if c.isdigit():
+                  amntS += c
+                else:
+                  break
+              amnt = int(amntS)
+              if len(command) > len(amntS)+1:
+                command = command[len(amntS)+1:]
+                command = formatter.removeExtraSpaces(command)
+                if len(command) > 1:
+                  id = formatter.getIDFromMention(command)
+                  if user.doesExist(id) and str(id) != giver.ID:
+                    member = await message.channel.guild.fetch_member(int(id))
+                    getter = user.getUser(id)
+                    e = user.embedDonatePrimo(giver, getter, amnt)
+                    await message.channel.send(member.mention, embed=e)
+                  else:
+                    e = error.embedUserDoesNotExist()
+                    await message.channel.send(embed=e)
 
       #Lists all commands
       elif command.lower().startswith("help"):

@@ -55,6 +55,12 @@ class Weapon:
 apiURL = "https://api.genshin.dev/"
 weapIconURL = "https://raw.github.com/genshindev/api/master/assets/images/weapons/{}/icon"
 
+def getWeapFromDict(weapDict, name):
+  n = formatter.nameUnformatter(name)
+  if n in weapDict.keys():
+    w = weapDict[n]
+    return Weapon(w["name"], w["urlName"], w["iconURL"], w["weaponType"], w["totalGot"], w["rarity"], w["refinement"], w["attack"], w["substat"], w["substatVal"], w["level"], w["xp"])
+
 def getWeap(name):
   if name in db["Weapons"].keys():
     w = db["Weapons"][name]

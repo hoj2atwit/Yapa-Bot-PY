@@ -207,6 +207,7 @@ def embedSinglePull(u):
     embed = discord.Embed(title=text, color=color)
     embed.set_image(url=f"attachment://{p.urlName}-icon.png")
   u.primogems -= 160
+  u.updateEquippedWeaps()
   user.saveUser(u)
   return embed, file, p.rarity
 
@@ -290,5 +291,6 @@ def embedTenPull(u):
     text += i.name + "\n"
   embed.add_field(name = "_ _", value = text, inline=False)
   u.primogems -= 1600
+  u.updateEquippedWeaps()
   user.saveUser(u)
   return embed, file, pulls[0].rarity

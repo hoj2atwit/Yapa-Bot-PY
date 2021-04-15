@@ -28,6 +28,10 @@ def embedWeapIsNotOwned():
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Weapon not found", value = "You do not own this weapon or this weapon does not exist.")
   return embed
+def embedWeapIsNotCompatible():
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Incompatible", value = "That weapon is incompatible.")
+  return embed
 def embedWeapDoesNotExist():
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Character not found", value = "This weapon does not exist.")
@@ -43,4 +47,16 @@ def embedArtDoesNotExist():
 def embedUserDoesNotExist():
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "User not found", value = "This User does not exist or has not begun their adventure.")
+  return embed
+def embedFailedRobbery():
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Mora not found", value = "This User does not have enough mora to steal.")
+  return embed
+def embedFailedDonationMora():
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Mora not found", value = "This User does not have enough mora to give away.")
+  return embed
+def embedFailedDonationPrimo():
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Primo not found", value = "This User does not have enough primogems to give away.")
   return embed

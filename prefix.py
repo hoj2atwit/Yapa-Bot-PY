@@ -10,4 +10,4 @@ threeStarPrefix = ":star2: "
 twoStarPrefix = ":star1: "
 oneStarPrefix = ":sparkles: "
 
-commandPrefix = "y"
+commandPrefix = "?"

@@ -52,6 +52,12 @@ class Character:
   def copy(self):
     return Character(self.name, self.urlName, self.iconURL, self.portraitURL, self.description, self.rarity, self.element, self.w, self.weaponType, self.constName, self.constellations, self.artifacts, self.level, self.xp, self.unlockedC, self.totalGot, self.attack, self.critRate, self.critDmg, self.elementMastery)
 
+  def equipWeap(self, weapon):
+    if len(self.w) >= 1:
+      self.w[0] = weapon.getDict()
+    else:
+      self.w.append(weapon.getDict())
+
   def getXPToNextLevel(self):
     return ((30)*(2**(self.level-1)) * (2**int(math.floor(self.level/10))))/2
 
@@ -61,12 +67,19 @@ class Character:
     self.totalGot += 1
   def getConst(self, index):
     return self.constellations[index]
+
   def getDict(self):
     return self.__dict__
 
 apiURL = "https://api.genshin.dev/"
 charImgURL = "https://github.com/genshindev/api/raw/master/assets/images/characters/{}/portrait"
 charIconURL = "https://github.com/genshindev/api/raw/master/assets/images/characters/{}/icon"
+
+def getCharFromDict(charDict, name):
+  n = formatter.nameUnformatter(name)
+  if n in charDict.keys():
+    c = charDict[n]
+    return Character(c["name"], c["urlName"], c["iconURL"], c["portraitURL"], c["description"], c["rarity"], c["element"], c["w"], c["weaponType"], c["constName"], c["constellations"], c["artifacts"], c["level"], c["xp"], c["unlockedC"], c["totalGot"], c["attack"], c["critRate"], c["critDmg"], c["elementMastery"])
 
 def getChar(name):
   if name in db["Characters"].keys():

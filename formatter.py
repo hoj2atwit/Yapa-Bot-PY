@@ -1,5 +1,6 @@
 import math
 import discord
+import prefix
 
 def getAvatar(avamember : discord.Member=None):
   return avamember.avatar_url
@@ -101,7 +102,22 @@ def getIDFromMention(text):
       id += c
   return id
 
-def removeStartingSpaces(command):
-  while command.startswith(" ") and len(command) > 0:
-    command = command[1:]
+def removeExtraSpaces(command):
+  for i in range(2):
+    while command.startswith(" ") and len(command) > 0:
+      command = command[1:]
+    command = command[::-1]
   return command
+
+def splitInformation(command):
+  info = []
+  text = ""
+  for c in command:
+    if c != prefix.commandPrefix:
+      text += c
+    else:
+      info.append(removeExtraSpaces(text))
+      text = ""
+  if text != "":
+    info.append(removeExtraSpaces(text))
+  return info
