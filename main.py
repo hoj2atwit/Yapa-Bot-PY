@@ -52,20 +52,62 @@ async def on_message(message):
             return
 
       #Give Primo for Free
-      elif command.lower().startswith("gift"):
+      elif command.lower().startswith("giftp"):
         u = user.getUser(str(message.author.id))
         member = await message.channel.guild.fetch_member(message.author.id)
-        if len(command) > 5:
-            command = command[5:]
-            id = formatter.getIDFromMention(command)
-            if user.doesExist(id):
-              member = await message.channel.guild.fetch_member(int(id))
-              u = user.getUser(id)
-            else:
-              e = error.embedUserDoesNotExist()
-              await message.channel.send(embed=e)
-              return
-        e, f = user.embedGivePrimo(u, 16000)
+        amnt  = 16000
+        if len(command) > 6:
+            command = command[6:]
+            if command[0].isdigit():
+              amntS = ""
+              for c in command:
+                if c.isdigit():
+                  amntS += c
+                else:
+                  break
+              amnt = int(amntS)
+              if len(command) > len(amntS)+1:
+                command = command[len(amntS)+1:]
+            if len(command) > 1:
+              id = formatter.getIDFromMention(command)
+              if user.doesExist(id):
+                member = await message.channel.guild.fetch_member(int(id))
+                u = user.getUser(id)
+              else:
+                e = error.embedUserDoesNotExist()
+                await message.channel.send(embed=e)
+                return
+        e, f = user.embedGivePrimo(u, amnt)
+        await message.channel.send(member.mention, embed=e, file=f)
+
+      #Give Mora for Free
+      elif command.lower().startswith("giftm"):
+        u = user.getUser(str(message.author.id))
+        member = await message.channel.guild.fetch_member(message.author.id)
+        amnt = 1000000
+
+        if len(command) > 6:
+            command = command[6:]
+            if command[0].isdigit():
+              amntS = ""
+              for c in command:
+                if c.isdigit():
+                  amntS += c
+                else:
+                  break
+              amnt = int(amntS)
+              if len(command) > len(amntS)+1:
+                command = command[len(amntS)+1:]
+            if len(command) > 1:
+              id = formatter.getIDFromMention(command)
+              if user.doesExist(id):
+                member = await message.channel.guild.fetch_member(int(id))
+                u = user.getUser(id)
+              else:
+                e = error.embedUserDoesNotExist()
+                await message.channel.send(embed=e)
+                return
+        e, f = user.embedGiveMora(u, amnt)
         await message.channel.send(member.mention, embed=e, file=f)
 
   if message.content.lower().startswith(pre):
