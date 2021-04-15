@@ -14,6 +14,7 @@ threeStarWishGifSingle = "Images/Gifs/SingleThreeStar.gif"
 fiveStarWishGifTen = "Images/Gifs/TenFiveStar.gif"
 fourStarWishGifTen = "Images/Gifs/TenFourStar.gif"
 
+
 pre = prefix.commandPrefix
 client = discord.Client()
 
