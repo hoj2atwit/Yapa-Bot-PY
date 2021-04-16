@@ -56,6 +56,9 @@ class User:
     self.bag = bag
     self.gear = gear
 
+  def saveSelf(self):
+    saveUser(self)
+
   def canDaily(self):
     now = datetime.now()
     if self.lastDaily == "":
@@ -132,19 +135,19 @@ class User:
     return int((30 + 10**(2**(self.AR-1))) * (2**(self.WL)))
   
   def getResinCap(self):
-    return 120 + (20 * self.WL)
+    return int(120 + (20 * self.WL))
 
   def getResinRecharge(self):
-    return 20 + (5 * self.WL)
+    return int(20 + (5 * self.WL))
 
-  def addXP(self, xp):
+  async def addXP(self, xp, ctx):
     maxXP = self.getMaxXP()
-    if xp + self.xp >= maxXP:
-      xpLeftOver = -1*(maxXP - self.xp - xp)
-      self.levelUp()
-      self.addXP(xpLeftOver)
+    if xp + self.XP >= maxXP:
+      xpLeftOver = int(-1*(maxXP - self.XP - xp))
+      await self.levelUp(ctx)
+      await self.addXP(xpLeftOver, ctx)
     else:
-      self.xp += xp
+      self.XP += int(xp)
 
   def giveMora(self, u, amnt):
     if self.mora < amnt:
@@ -174,12 +177,18 @@ class User:
     saveUser(self)
     return robbed, True
 
-  def levelUp(self):
+  async def levelUp(self, ctx):
     self.AR += 1
+    await embedAdventureRankUp(ctx, self)
     if self.AR % 10 == 0:
       self.WL += 1
-    self.xp = 0
+      await embedWorldLevelUp(ctx, self)
+    self.XP = 0
 
+  def getChar(self, charName):
+    c = character.getCharFromDict(self.characters, formatter.nameUnformatter(charName))
+    return c
+      
   def equipWeapon(self, charName, weapName):
     if not self.doesCharExist(charName):
       return False, "c"
@@ -324,7 +333,7 @@ def embedProfile(u):
   embed.add_field(name="Adventure Rank", value=f"{u.AR}", inline=True)
   embed.add_field(name="World Level", value=f"{u.WL}", inline=True)
   embed.add_field(name="Current XP:", value=f"{u.XP}/{u.getMaxXP()}", inline=False)
-  embed.add_field(name="Pity:", value=f"{u.pity}/90\n{u.lastFour}/10", inline=False)
+  embed.add_field(name="Pity:", value=f"{u.pity}/90 | 5:star:\n{u.lastFour}/10 | 4:star:", inline=False)
   embed.add_field(name="Currency:", value=f"Primogems: {u.primogems}\nMora: {u.mora}\nStar Glitter: {u.starGlitter}\nStar Dust: {u.starDust}", inline=True)
   embed.add_field(name="Resin", value = f"{u.resin}/{u.getResinCap()}\nCondensed: {u.condensed}")
   can, dailyString = u.canDaily()
@@ -527,6 +536,14 @@ def rechargeAllResin():
     u = getUser(id)
     u.rechargeResin()
     saveUser(u)
+
+async def embedAdventureRankUp(ctx, u):
+  embed = discord.Embed(title="Adventure Rank Up", color=discord.Color.green(), description=f"{u.nickname}\'s Adventure Rank has increased to {u.AR}")
+  await ctx.send(embed=embed)
+
+async def embedWorldLevelUp(ctx, u):
+  embed = discord.Embed(title="World Level Increase", color=discord.Color.green(), description=f"{u.nickname}\'s World Level has increased to {u.WL}\n Your adventuring rewards will increase.")
+  await ctx.send(embed=embed)
 
 def clearUserData():
   print("Clearing User Data")

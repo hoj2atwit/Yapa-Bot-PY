@@ -72,3 +72,7 @@ def embedNotEnoughCondensed():
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Resin Not Found", value = "You do not have sufficient Condensed Resin.")
   return embed
+def embedTooManyCharacters():
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Character Error", value = "You have given too many characters.")
+  return embed

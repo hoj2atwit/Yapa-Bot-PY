@@ -3,6 +3,7 @@ import json
 import requests
 import formatter
 import math
+import discord
 from replit import db
 
 class Character:
@@ -52,6 +53,20 @@ class Character:
   def copy(self):
     return Character(self.name, self.urlName, self.iconURL, self.portraitURL, self.description, self.rarity, self.element, self.w, self.weaponType, self.constName, self.constellations, self.artifacts, self.level, self.xp, self.unlockedC, self.totalGot, self.attack, self.critRate, self.critDmg, self.elementMastery)
 
+  async def addXP(self, xp, ctx):
+    maxXP = self.getXPToNextLevel()
+    if xp + self.xp >= maxXP:
+      xpLeftOver = int(-1*(maxXP - self.xp - xp))
+      await self.levelUp(ctx)
+      await self.addXP(xpLeftOver, ctx)
+    else:
+      self.xp += int(xp)
+
+  async def levelUp(self, ctx):
+    self.level += 1
+    await embedLevelUpChar(ctx, self)
+    self.xp = 0
+
   def equipWeap(self, weapon):
     if len(self.w) >= 1:
       self.w[0] = weapon.getDict()
@@ -77,9 +92,8 @@ charIconURL = "https://github.com/genshindev/api/raw/master/assets/images/charac
 
 def getCharFromDict(charDict, name):
   n = formatter.nameUnformatter(name)
-  if n in charDict.keys():
-    c = charDict[n]
-    return Character(c["name"], c["urlName"], c["iconURL"], c["portraitURL"], c["description"], c["rarity"], c["element"], c["w"], c["weaponType"], c["constName"], c["constellations"], c["artifacts"], c["level"], c["xp"], c["unlockedC"], c["totalGot"], c["attack"], c["critRate"], c["critDmg"], c["elementMastery"])
+  c = charDict[n]
+  return Character(c["name"], c["urlName"], c["iconURL"], c["portraitURL"], c["description"], c["rarity"], c["element"], c["w"], c["weaponType"], c["constName"], c["constellations"], c["artifacts"], c["level"], c["xp"], c["unlockedC"], c["totalGot"], c["attack"], c["critRate"], c["critDmg"], c["elementMastery"])
 
 def getChar(name):
   if name in db["Characters"].keys():
@@ -157,6 +171,12 @@ def getFourStarChars():
     if c.rarity == 4:
       chars.append(c)
   return chars
+
+async def embedLevelUpChar(ctx, char):
+  embed = discord.Embed(title="Character Level Up!", color=discord.Color.gold(),description = f"{char.name} has leveled up to {char.level}")
+  f = discord.File(char.iconURL, f"{char.urlName}-icon.png")
+  embed.set_thumbnail(url=f"attachment://{char.urlName}-icon.png")
+  await ctx.send(embed=embed,file=f)
 
 #updateCharactersDB()
 #getAllCharImages()

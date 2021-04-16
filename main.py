@@ -6,6 +6,7 @@ import asyncio
 import error
 import prefix
 import formatter
+import adventure
 import threading, time
 from replit import db
 from keep_alive import keep_alive
@@ -476,6 +477,21 @@ async def on_message(message):
         else:
           await user.embedCondensed(message.channel, u, 1)
 
+      #Condeses Extra Resin
+      elif command.lower().startswith("adventure") or command.lower().startswith("a"):
+        cont = False
+        if command.lower().startswith("adventure"):
+          if len(command) > 10:
+            command = formatter.removeExtraSpaces(command[10:])
+            cont = True
+        else:
+          if len(command) > 2:
+            command = formatter.removeExtraSpaces(command[2:])
+            cont = True
+        if cont:
+          charList = formatter.splitInformation(command)
+          if len(charList) > 0:
+            await adventure.embedAdventure(message.channel, u, charList)
 
       #Lists all commands
       elif command.lower().startswith("help"):
