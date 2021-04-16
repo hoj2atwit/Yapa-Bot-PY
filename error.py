@@ -62,7 +62,7 @@ def embedFailedDonationPrimo():
   return embed
 def embedTooEarly(waitTime):
   embed = discord.Embed(color=discord.Color.red())
-  embed.add_field(name = "Too Early", value = f"You cannot use that command for {waitTime}.")
+  embed.add_field(name = "Too Early", value = f"You cannot use that command for **{waitTime}**.")
   return embed
 def embedNotEnoughResin():
   embed = discord.Embed(color=discord.Color.red())

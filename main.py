@@ -36,7 +36,7 @@ async def on_message(message):
   if message.author == client.user:
     return
   
-  #Commands for OWNER OF BOT ONLY
+  #OWNER COMMANDS
   if str(message.author.id) == os.getenv('OWNER_ID'):
     if message.content.lower().startswith(pre):
       command = message.content[len(pre):]
@@ -61,6 +61,7 @@ async def on_message(message):
             await message.channel.send(embed=e)
             return
       
+      #Rob random amount of mora from user
       elif command.lower().startswith("rob"):
         if len(command) > 4:
           command = command[4:]
@@ -145,6 +146,12 @@ async def on_message(message):
         e, f = user.embedGiveMora(u, amnt)
         await message.channel.send(member.mention, embed=e, file=f)
 
+
+
+
+
+
+  #REGULAR USER COMMANDS
   if message.content.lower().startswith(pre):
     command = message.content[len(pre):]
     if user.doesExist(str(message.author.id)):
@@ -446,18 +453,34 @@ async def on_message(message):
       elif command.lower().startswith("help"):
         embed = discord.Embed(title = "Yapa Bot Commands", color=discord.Color.dark_red())
         text = f"**[{pre}start]** Allows you to start your Yappa Experience.\n"
-        text += f"**[{pre}wish] | [10]** Allows you to pull for your favorite genshin wishes at the cost of 160 primogems per wish.\n"
-        text += f"**[{pre}free] | [10]** Allows you to pull for your favorite genshin wishes for free. These wishes will not be added to your collection.\n"
-        text += f"**[{pre}profile] | [@user]** Allows you to look at your personal user data.\n"
-        text += f"**[{pre}balance]** Allows you to look at your collected currencies.\n"
+        text += f"**[{pre}daily]** Allows you to claim daily rewards.\n"
+        text += f"**[{pre}weekly]** Allows you to claim weekly rewards.\n"
         text += f"**[{pre}resin]** Allows you to look at your current resin.\n"
-        text += f"**[{pre}listc] | [pg#, character]** Allows you to look at your personal character collection.\n"
-        text += f"**[{pre}listw] | [pg#, weapon]** Allows you to look at your personal weapon collection.\n"
+        text += f"**[{pre}condense] | [use, amnt#]** Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
+        text += f"**[{pre}listc] | [pg#, char_name]** Allows you to look at your personal character collection.\n"
+        text += f"**[{pre}listw] | [pg#, weap_name]** Allows you to look at your personal weapon collection.\n"
         embed.add_field(name="Basic Commands", value = text, inline=False)
+
+        text = f"**[{pre}wish] | [10]** Allows you to pull for your favorite genshin wishes at the cost of 160 primogems per wish.\n"
+        text += f"**[{pre}free] | [10]** Allows you to pull for your favorite genshin wishes for free. These wishes will not be added to your collection.\n"
+        embed.add_field(name="Wishing Commands", value = text, inline=False)
+
+        text = f"**[{pre}balance]** Allows you to look at your collected currencies.\n"
+        text += f"**[{pre}givem] | [amnt#] | [@user]** Allows you to donate mora to another user.\n"
+        text += f"**[{pre}givep] | [amnt#] | [@user]** Allows you to donate primogems to another user.\n"
+        embed.add_field(name="Economic Commands", value = text, inline=False)
+
+        text = f"**[{pre}equip] | [char_name] | [{pre}weap_name, {pre}none]** Allows you to equip a weapon to a chracter. You can only equip things you own.\n"
+        embed.add_field(name="Character Commands", value = text, inline=False)
+        
+        text = f"**[{pre}profile] | [@user]** Allows you to look at your or other user data.\n"
+        text += f"**[{pre}profile] | [favorite] | [char_name]** Allows you to set your favorite character. Character must be owned before favoriting.\n"
+        text += f"**[{pre}profile] | [description] | [desc...]** Allows you set your profile description.\n"
+        text += f"**[{pre}profile] | [nickname] | [nick...]** Allows you set your profile description.\n"
+        embed.add_field(name="Profile Commands", value = text, inline=False)
         await message.channel.send(embed=embed)
 
     else:
-
       #Makes user data for new user
       if command.lower().startswith("start"):
         user.createUser(str(message.author.name), str(message.author.id))

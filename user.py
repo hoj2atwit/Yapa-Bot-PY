@@ -523,7 +523,7 @@ async def embedUseCondensed(ctx, u):
     await ctx.send(embed=embed)
 
 def rechargeAllResin():
-  for id in db["Users"].keys():
+  for id in db["User"].keys():
     u = getUser(id)
     u.rechargeResin()
     saveUser(u)
