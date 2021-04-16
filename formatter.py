@@ -1,6 +1,7 @@
 import math
 import discord
 import prefix
+import datetime
 
 def getAvatar(avamember : discord.Member=None):
   return avamember.avatar_url
@@ -121,3 +122,16 @@ def splitInformation(command):
   if text != "":
     info.append(removeExtraSpaces(text))
   return info
+
+def getDateTime(timeString):
+  t = []
+  text = ""
+  for c in timeString:
+    if c.isdigit():
+      text += c
+    else:
+      t.append(text)
+      text = ""
+  if t != "":
+    t.append(text)
+  return datetime.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]), int(t[5]))

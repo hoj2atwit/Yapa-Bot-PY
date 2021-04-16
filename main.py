@@ -6,6 +6,7 @@ import asyncio
 import error
 import prefix
 import formatter
+import threading, time
 from keep_alive import keep_alive
 
 fiveStarWishGifSingle = "Images/Gifs/SingleFiveStar.gif"
@@ -16,6 +17,15 @@ fourStarWishGifTen = "Images/Gifs/TenFourStar.gif"
 
 pre = prefix.commandPrefix
 client = discord.Client()
+
+def updateCounter():
+  resinCounter = 0
+  while True:
+    resinCounter += 1
+    if resinCounter % 20 == 0 and resinCounter != 0:
+      user.rechargeAllResin()
+      resinCounter = 0
+    time.sleep(60)
 
 @client.event
 async def on_ready():
@@ -410,6 +420,28 @@ async def on_message(message):
                     e = error.embedUserDoesNotExist()
                     await message.channel.send(embed=e)
 
+      #Get Daily
+      elif command.lower().startswith("daily") or command.lower() == "d":
+        await user.embedDaily(message.channel, u)
+      
+      #Get Weekly
+      elif command.lower().startswith("weekly"):
+        await user.embedWeekly(message.channel, u)
+      
+      #Condeses Extra Resin
+      elif command.lower().startswith("condense"):
+        if len(command) > 9:
+          command = formatter.removeExtraSpaces(command[9:])
+          if command.isdigit():
+            await user.embedCondensed(message.channel, u, int(command))
+          elif command.startswith("use"):
+            await user.embedUseCondensed(message.channel, u)
+          else:
+            await user.embedCondensed(message.channel, u, 1)
+        else:
+          await user.embedCondensed(message.channel, u, 1)
+
+
       #Lists all commands
       elif command.lower().startswith("help"):
         embed = discord.Embed(title = "Yapa Bot Commands", color=discord.Color.dark_red())
@@ -438,5 +470,6 @@ async def on_message(message):
       else:
         await message.channel.send(f"{message.author.mention}, Use **[{pre}start]** to begin your adventure")
 
+threading.Thread(target=updateCounter).start()
 keep_alive()
 client.run(os.getenv('TOKEN'))

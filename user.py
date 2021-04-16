@@ -6,6 +6,7 @@ import weapon
 import random
 import error
 from replit import db
+import datetime
 
 class User:
   name = ""
@@ -26,8 +27,11 @@ class User:
   primogems = 0
   starGlitter = 0
   starDust = 0
+  condensed = 0
+  lastDaily = ""
+  lastWeekly = ""
 
-  def __init__(self, name, ID, nickname, description, favoriteChar, AR, XP, WL, resin, pity, lastFour, characters, weapons, artifacts, mora, primogems, starGlitter, starDust):
+  def __init__(self, name, ID, nickname, description, favoriteChar, AR, XP, WL, resin, pity, lastFour, characters, weapons, artifacts, mora, primogems, starGlitter, starDust, condensed, lastDaily, lastWeekly, bag, gear):
     self.name = str(name)
     self.ID = str(ID)
     self.nickname = str(nickname)
@@ -46,12 +50,92 @@ class User:
     self.primogems = int(primogems)
     self.starGlitter = int(starGlitter)
     self.starDust = int(starDust)
+    self.condensed = condensed
+    self.lastDaily = lastDaily
+    self.lastWeekly = lastWeekly
+    self.bag = bag
+    self.gear = gear
+
+  def canDaily(self):
+    now = datetime.datetime.now()
+    if self.lastDaily == "":
+      return True, "Now"
+    old = formatter.getDateTime(self.lastDaily)
+    difference = now-old
+    if difference.days >= 1:
+      return True, "Now"
+    else:
+      differenceDate = datetime.datetime(old.year, old.month, old.day+1, old.hour, old.minute, old.second)
+      difference = differenceDate-now
+      minutes, seconds = divmod(difference.seconds, 60)
+      hours, minutes = divmod(minutes, 60)
+      return False, f"{hours}H:{minutes}M:{seconds}S"
+
+  def updateDaily(self):
+    now = datetime.datetime.now()
+    self.lastDaily = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
+
+  def updateWeekly(self):
+    now = datetime.datetime.now()
+    self.lastWeekly = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
+
+  def canWeekly(self):
+    now = datetime.datetime.now()
+    if self.lastWeekly == "":
+      return True, "Now"
+    old = formatter.getDateTime(self.lastWeekly)
+    difference = now-old
+    if difference.days >= 7:
+      return True, "Now"
+    else:
+      differenceDate = datetime.datetime(old.year, old.month, old.day+7, old.hour, old.minute, old.second)
+      difference = differenceDate-now
+      minutes, seconds = divmod(difference.seconds, 60)
+      hours, minutes = divmod(minutes, 60)
+      return False, f"{difference.days}D:{hours}H:{minutes}M:{seconds}S"
+  
+  def rechargeResin(self):
+    if self.resin < self.getResinCap():
+      if self.resin + self.getResinRecharge() > self.getResinCap:
+        self.resin = self.getResinCap
+      else:
+        self.resin += self.getResinRecharge()
+
+  def useCondensed(self):
+    if self.condensed > 0:
+      self.condensed -= 1
+      self.resin += 40
+      saveUser(self)
+      return True
+    else:
+      return False
+
+  def condenseResin(self, amnt):
+    amntMade = 0
+    reason = ""
+    for i in range(amnt):
+      if self.resin > 40:
+        if self.condensed < 10:
+          self.condensed += 1
+          self.resin -= 40
+          saveUser(self)
+          amntMade += 1
+        else:
+          reason = "t" #for too many
+          break
+      else:
+        reason = "n" #for not enough
+        break
+    return amntMade, reason
 
   def getMaxXP(self):
     return int((30 + 10**(2**(self.AR-1))) * (2**(self.WL)))
   
   def getResinCap(self):
     return 120 + (20 * self.WL)
+
+  def getResinRecharge(self):
+    return 20 + (5 * self.WL)
 
   def addXP(self, xp):
     maxXP = self.getMaxXP()
@@ -208,10 +292,10 @@ def saveUser(user):
 def getUser(ID):
   if ID in db["User"].keys():
     u = db["User"][ID]
-    return User(u["name"], u["ID"], u["nickname"], u["description"], u["favoriteChar"], u["AR"], u["XP"], u["WL"], u["resin"], u["pity"], u["lastFour"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["starGlitter"], u["starDust"])
+    return User(u["name"], u["ID"], u["nickname"], u["description"], u["favoriteChar"], u["AR"], u["XP"], u["WL"], u["resin"], u["pity"], u["lastFour"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["starGlitter"], u["starDust"], u["condensed"], u["lastDaily"], u["lastWeekly"], u["bag"], u["gear"])
 
 def createUser(name, ID):
-  newU = User(name, ID, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 1600, 0, 0)
+  newU = User(name, ID, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 1600, 0, 0, 0, "", "", {}, {})
   if "User" not in db.keys():
     db["User"] = {}
   if ID not in db["User"].keys():
@@ -229,7 +313,7 @@ def embedBal(u):
 
 def embedResin(u):
   embed = discord.Embed(title=f"{u.nickname}\'s Resin", color=discord.Color.blue())
-  embed.add_field(name="_ _", value=f"**{u.resin}/{u.getResinCap()}**")
+  embed.add_field(name="_ _", value=f"**{u.resin}/{u.getResinCap()}**\nCondensed: {u.condensed}")
   f = discord.File("Images/Other/Resin.png", "Resin.png")
   embed.set_thumbnail(url="attachment://Resin.png")
   return embed, f
@@ -242,7 +326,10 @@ def embedProfile(u):
   embed.add_field(name="Current XP:", value=f"{u.XP}/{u.getMaxXP()}", inline=False)
   embed.add_field(name="Pity:", value=f"{u.pity}/90\n{u.lastFour}/10", inline=False)
   embed.add_field(name="Currency:", value=f"Primogems: {u.primogems}\nMora: {u.mora}\nStar Glitter: {u.starGlitter}\nStar Dust: {u.starDust}", inline=True)
-  embed.add_field(name="Resin", value = f"{u.resin}/{u.getResinCap()}")
+  embed.add_field(name="Resin", value = f"{u.resin}/{u.getResinCap()}\nCondensed: {u.condensed}")
+  can, dailyString = u.canDaily()
+  can, weeklyString = u.canWeekly()
+  embed.add_field(name="Recharge Times", value=f"Daily: {dailyString}\nWeekly: {weeklyString}", inline=False)
   return embed
 
 def embedCharList(u, pg):
@@ -376,6 +463,70 @@ def embedShowWeapInfo(u, w):
   embed.set_thumbnail(url="attachment://{}-icon.png".format(w["urlName"]))
 
   return embed, f
+
+async def embedDaily(ctx, u):
+  can, timeLeft = u.canDaily()
+  embed = discord.Embed(title=f"{u.nickname}\'s Daily Claim")
+  if can:
+    u.primogems += 800
+    u.mora += 10000
+    u.updateDaily()
+    embed.add_field(name="Reward", value="**800** Primogems\n**10,000** Mora")
+    f = discord.File("Images/Other/Gift.png", "Gift.png")
+    embed.set_thumbnail(url="attachment://Gift.png")
+    saveUser(u)
+    await ctx.send(embed=embed, file=f)
+  else:
+    embed = error.embedTooEarly(timeLeft)
+    await ctx.send(embed=embed)
+
+async def embedWeekly(ctx, u):
+  can, timeLeft = u.canWeekly()
+  embed = discord.Embed(title=f"{u.nickname}\'s Weekly Claim")
+  if can:
+    u.primogems += 1600
+    u.mora += 500000
+    u.updateWeekly()
+    embed.add_field(name="Reward", value="**1600** Primogems\n**500,000** Mora")
+    f = discord.File("Images/Other/Gift.png", "Gift.png")
+    embed.set_thumbnail(url="attachment://Gift.png")
+    saveUser(u)
+    await ctx.send(embed=embed, file=f)
+  else:
+    embed = error.embedTooEarly(timeLeft)
+    await ctx.send(embed=embed)
+
+async def embedCondensed(ctx, u, amnt):
+  amntSucc, reason = u.condenseResin(amnt)
+  if amntSucc > 0:
+    embed = discord.Embed(title="Condensing Resin", color=discord.Color.blue())
+    embed.add_field(name="Condensed Successfully Crafted:", value=f"{amntSucc}")
+    saveUser(u)
+    f = discord.File("Images/Other/Condensed_Resin.png", "Condensed_Resin.png")
+    embed.set_thumbnail(url="attachment://Condensed_Resin.png")
+    await ctx.send(embed=embed, file=f)
+  else:
+    if reason == "n":
+      embed = error.embedNotEnoughResin()
+      await ctx.send(embed=embed)
+
+async def embedUseCondensed(ctx, u):
+  can = u.useCondensed()
+  if can:
+    embed = discord.Embed(title="Using Condensed", color=discord.Color.blue())
+    embed.add_field(name="Condensed Resin Used", value=f"You now have {u.condensed} remaining.")
+    f = discord.File("Images/Other/Condensed_Resin.png", "Condensed_Resin.png")
+    embed.set_thumbnail(url="attachment://Condensed_Resin.png")
+    await ctx.send(embed=embed, file=f)
+  else:
+    embed = error.embedNotEnoughCondensed()
+    await ctx.send(embed=embed)
+
+def rechargeAllResin():
+  for id in db["Users"].keys():
+    u = getUser(id)
+    u.rechargeResin()
+    saveUser(u)
 
 def clearUserData():
   print("Clearing User Data")

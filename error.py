@@ -60,3 +60,15 @@ def embedFailedDonationPrimo():
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Primo not found", value = "This User does not have enough primogems to give away.")
   return embed
+def embedTooEarly(waitTime):
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Too Early", value = f"You cannot use that command for {waitTime}.")
+  return embed
+def embedNotEnoughResin():
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Resin Not Found", value = "You do not have sufficient Resin.")
+  return embed
+def embedNotEnoughCondensed():
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Resin Not Found", value = "You do not have sufficient Condensed Resin.")
+  return embed
