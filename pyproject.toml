@@ -10,6 +10,7 @@ discord = "^1.0.1"
 replit = "^3.0.0"
 db = "^0.1.1"
 flask = "^1.1.2"
+timedelta = "^2020.12.3"
 
 [tool.poetry.dev-dependencies]
 

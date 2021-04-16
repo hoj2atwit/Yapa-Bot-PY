@@ -6,7 +6,7 @@ import weapon
 import random
 import error
 from replit import db
-import datetime
+from datetime import datetime, timedelta
 
 class User:
   name = ""
@@ -57,7 +57,7 @@ class User:
     self.gear = gear
 
   def canDaily(self):
-    now = datetime.datetime.now()
+    now = datetime.now()
     if self.lastDaily == "":
       return True, "Now"
     old = formatter.getDateTime(self.lastDaily)
@@ -65,22 +65,22 @@ class User:
     if difference.days >= 1:
       return True, "Now"
     else:
-      differenceDate = datetime.datetime(old.year, old.month, old.day+1, old.hour, old.minute, old.second)
+      differenceDate = datetime(old.year, old.month, old.day, old.hour, old.minute, old.second) + timedelta(days=1)
       difference = differenceDate-now
       minutes, seconds = divmod(difference.seconds, 60)
       hours, minutes = divmod(minutes, 60)
       return False, f"{hours}H:{minutes}M:{seconds}S"
 
   def updateDaily(self):
-    now = datetime.datetime.now()
+    now = datetime.now()
     self.lastDaily = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
 
   def updateWeekly(self):
-    now = datetime.datetime.now()
+    now = datetime.now()
     self.lastWeekly = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
 
   def canWeekly(self):
-    now = datetime.datetime.now()
+    now = datetime.now()
     if self.lastWeekly == "":
       return True, "Now"
     old = formatter.getDateTime(self.lastWeekly)
@@ -88,7 +88,7 @@ class User:
     if difference.days >= 7:
       return True, "Now"
     else:
-      differenceDate = datetime.datetime(old.year, old.month, old.day+7, old.hour, old.minute, old.second)
+      differenceDate = datetime(old.year, old.month, old.day, old.hour, old.minute, old.second) + timedelta(days=7)
       difference = differenceDate-now
       minutes, seconds = divmod(difference.seconds, 60)
       hours, minutes = divmod(minutes, 60)
@@ -96,8 +96,8 @@ class User:
   
   def rechargeResin(self):
     if self.resin < self.getResinCap():
-      if self.resin + self.getResinRecharge() > self.getResinCap:
-        self.resin = self.getResinCap
+      if self.resin + self.getResinRecharge() > self.getResinCap():
+        self.resin = self.getResinCap()
       else:
         self.resin += self.getResinRecharge()
 

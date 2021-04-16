@@ -7,7 +7,9 @@ import error
 import prefix
 import formatter
 import threading, time
+from replit import db
 from keep_alive import keep_alive
+from datetime import datetime, timedelta
 
 fiveStarWishGifSingle = "Images/Gifs/SingleFiveStar.gif"
 fourStarWishGifSingle = "Images/Gifs/SingleThreeStar.gif"
@@ -19,13 +21,39 @@ pre = prefix.commandPrefix
 client = discord.Client()
 
 def updateCounter():
-  resinCounter = 0
   while True:
-    resinCounter += 1
-    if resinCounter % 20 == 0 and resinCounter != 0:
+    now = datetime.now()
+    if db["LastResinTime"] == "":
+      updateLastResinTime()
       user.rechargeAllResin()
-      resinCounter = 0
-    time.sleep(60)
+    old = formatter.getDateTime(db["LastResinTime"])
+    difference = now-old
+    minutes, seconds = divmod(difference.seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    minutes += (hours * 60) + (difference.days*24*60)
+    if minutes >= 20:
+      updateLastResinTime()
+      user.rechargeAllResin()
+      time.sleep(1200)
+    else:
+      differenceDate = datetime(old.year, old.month, old.day, old.hour, old.minute, old.second) + timedelta(minutes=20)
+      difference = differenceDate-now
+      minutes, seconds = divmod(difference.seconds, 60)
+      hours, minutes = divmod(minutes, 60)
+      time.sleep((60*minutes)+seconds)
+
+def getNextResinTime():
+  now = datetime.now()
+  old = formatter.getDateTime(db["LastResinTime"])
+  differenceDate = datetime(old.year, old.month, old.day, old.hour, old.minute, old.second) + timedelta(minutes=20)
+  difference = differenceDate-now
+  minutes, seconds = divmod(difference.seconds, 60)
+  hours, minutes = divmod(minutes, 60)
+  return f"{minutes}M:{seconds}S"
+
+def updateLastResinTime():
+  now = datetime.now()
+  db["LastResinTime"] = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
 
 @client.event
 async def on_ready():
@@ -302,7 +330,7 @@ async def on_message(message):
       #Show resin
       elif command.lower().startswith("resin") or command.lower() == "r":
         e, f = user.embedResin(u)
-        e.set_footer(text=f"{message.author.mention}")
+        e.set_footer(text=f"Only {getNextResinTime()} till your next {u.getResinRecharge()} Resin.")
         await message.channel.send(embed=e, file=f)
       
       #Show Character List
