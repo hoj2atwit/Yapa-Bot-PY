@@ -114,7 +114,7 @@ class User:
     amntMade = 0
     reason = ""
     for i in range(amnt):
-      if self.resin > 40:
+      if self.resin >= 40:
         if self.condensed < 10:
           self.condensed += 1
           self.resin -= 40
