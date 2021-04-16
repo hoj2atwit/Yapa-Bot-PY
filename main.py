@@ -499,6 +499,7 @@ async def on_message(message):
         text = f"**[{pre}start]** Allows you to start your Yappa Experience.\n"
         text += f"**[{pre}daily]** Allows you to claim daily rewards.\n"
         text += f"**[{pre}weekly]** Allows you to claim weekly rewards.\n"
+        text += f"**[{pre}adventure] | [char_name] | [{pre}char_name]** Allows you to go on an adventure with up to 4 of your characters. You must have atleast 1 character to adventure.\n"
         text += f"**[{pre}resin]** Allows you to look at your current resin.\n"
         text += f"**[{pre}condense] | [use, amnt#]** Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
         text += f"**[{pre}listc] | [pg#, char_name]** Allows you to look at your personal character collection.\n"

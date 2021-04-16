@@ -333,7 +333,7 @@ def embedProfile(u):
   embed.add_field(name="Adventure Rank", value=f"{u.AR}", inline=True)
   embed.add_field(name="World Level", value=f"{u.WL}", inline=True)
   embed.add_field(name="Current XP:", value=f"{u.XP}/{u.getMaxXP()}", inline=False)
-  embed.add_field(name="Pity:", value=f"{u.pity}/90 | 5:star:\n{u.lastFour}/10 | 4:star:", inline=False)
+  embed.add_field(name="Pity:", value=f"5:star: | **{u.pity}/90**\n4:star: **{u.lastFour}/10**", inline=False)
   embed.add_field(name="Currency:", value=f"Primogems: {u.primogems}\nMora: {u.mora}\nStar Glitter: {u.starGlitter}\nStar Dust: {u.starDust}", inline=True)
   embed.add_field(name="Resin", value = f"{u.resin}/{u.getResinCap()}\nCondensed: {u.condensed}")
   can, dailyString = u.canDaily()
