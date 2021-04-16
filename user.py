@@ -333,7 +333,7 @@ def embedProfile(u):
   embed.add_field(name="Adventure Rank", value=f"{u.AR}", inline=True)
   embed.add_field(name="World Level", value=f"{u.WL}", inline=True)
   embed.add_field(name="Current XP:", value=f"{u.XP}/{u.getMaxXP()}", inline=False)
-  embed.add_field(name="Pity:", value=f"5:star: | **{u.pity}/90**\n4:star: **{u.lastFour}/10**", inline=False)
+  embed.add_field(name="Pity:", value=f"5:star: | **{u.pity}/90**\n4:star: | **{u.lastFour}/10**", inline=False)
   embed.add_field(name="Currency:", value=f"Primogems: {u.primogems}\nMora: {u.mora}\nStar Glitter: {u.starGlitter}\nStar Dust: {u.starDust}", inline=True)
   embed.add_field(name="Resin", value = f"{u.resin}/{u.getResinCap()}\nCondensed: {u.condensed}")
   can, dailyString = u.canDaily()
@@ -374,8 +374,14 @@ def embedWeapList(u, pg):
     weap = allWeaps[i]
     if weap["rarity"] == 5:
       text += prefix.fiveStarPrefix
-    else:
+    elif weap["rarity"] == 4:
       text += prefix.fourStarPrefix
+    elif weap["rarity"] == 3:
+      text += prefix.threeStarPrefix
+    elif weap["rarity"] == 2:
+      text += prefix.twoStarPrefix
+    else:
+      text += prefix.oneStarPrefix
     text += "{n} **R{r}** x{c}\n".format(n = weap["name"], r=weap["refinement"] ,c = weap["totalGot"])
     if i % 10 == 0 and i != 0:
       weaplist.append(text)
