@@ -560,7 +560,7 @@ async def on_message(message):
 
       #Lists all commands
       elif command.lower().startswith("help"):
-        embed = discord.Embed(title = "Yapa Bot Commands", color=discord.Color.dark_red())
+        embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())
         text = f"**[{pre}start]** Allows you to start your Yappa Experience.\n"
         text += f"**[{pre}daily]** Allows you to claim daily rewards.\n"
         text += f"**[{pre}weekly]** Allows you to claim weekly rewards.\n"
@@ -568,25 +568,41 @@ async def on_message(message):
         text += f"**[{pre}resin]** Allows you to look at your current resin.\n"
         text += f"**[{pre}condense] | [use, amnt#]** Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
         text += f"**[{pre}listc] | [pg#, char_name]** Allows you to look at your personal character collection.\n"
-        text += f"**[{pre}listw] | [pg#, weap_name]** Allows you to look at your personal weapon collection.\n"
+        text += f"**[{pre}listw] | [pg#, weap_name]** Allows you to look at your personal weapon collection.\n\n"
         embed.add_field(name="Basic Commands", value = text, inline=False)
 
+
+
         text = f"**[{pre}wish] | [10]** Allows you to pull for your favorite genshin wishes at the cost of 160 primogems per wish.\n"
-        text += f"**[{pre}free] | [10]** Allows you to pull for your favorite genshin wishes for free. These wishes will not be added to your collection.\n"
+        text += f"**[{pre}free] | [10]** Allows you to pull for your favorite genshin wishes for free. These wishes will not be added to your collection.\n\n"
         embed.add_field(name="Wishing Commands", value = text, inline=False)
+
+
 
         text = f"**[{pre}balance]** Allows you to look at your collected currencies.\n"
         text += f"**[{pre}givem] | [amnt#] | [@user]** Allows you to donate mora to another user.\n"
-        text += f"**[{pre}givep] | [amnt#] | [@user]** Allows you to donate primogems to another user.\n"
+        text += f"**[{pre}givep] | [amnt#] | [@user]** Allows you to donate primogems to another user.\n\n"
         embed.add_field(name="Economic Commands", value = text, inline=False)
 
-        text = f"**[{pre}equip] | [char_name] | [{pre}weap_name, {pre}none]** Allows you to equip a weapon to a chracter. You can only equip things you own.\n"
+
+
+        text = f"**[{pre}equip] | [char_name] | [{pre}weap_name, {pre}none]** Allows you to equip a weapon to a chracter. You can only equip things you own.\n\n"
         embed.add_field(name="Character Commands", value = text, inline=False)
         text = f"**[{pre}profile] | [@user]** Allows you to look at your or other user data.\n"
         text += f"**[{pre}profile] | [favorite] | [char_name]** Allows you to set your favorite character. Character must be owned before favoriting.\n"
         text += f"**[{pre}profile] | [description] | [desc...]** Allows you set your profile description.\n"
-        text += f"**[{pre}profile] | [nickname] | [nick...]** Allows you set your profile description.\n"
+        text += f"**[{pre}profile] | [nickname] | [nick...]** Allows you set your profile description.\n\n"
         embed.add_field(name="Profile Commands", value = text, inline=False)
+
+
+        await message.channel.send(embed=embed)
+
+
+        embed = discord.Embed(title = "Yapa Bot Commands 2", color=discord.Color.dark_red())
+        text = f"**[{pre}commission]** Allows you to look at your commissions and their descriptions.\n"
+        text += f"**[{pre}trivia] | [triviaID] | [answer]** Allows you to answer your trivia commissions. Trivia id can be found in the () before every trivia commission.\n\n"
+        embed.add_field(name="Commission Commands", value = text, inline=False)
+        
         await message.channel.send(embed=embed)
 
     else:
