@@ -86,6 +86,7 @@ user.rechargeAllResin()
 @client.event
 async def on_ready():
   print('We have logged in as {0.user}'.format(client))
+  await client.change_presence(activity=discord.Game(name=f"{pre}help"))
 
 @client.event
 async def on_message(message):
@@ -572,18 +573,15 @@ async def on_message(message):
         embed.add_field(name="Basic Commands", value = text, inline=False)
 
 
-
         text = f"**[{pre}wish] | [10]** Allows you to pull for your favorite genshin wishes at the cost of 160 primogems per wish.\n"
         text += f"**[{pre}free] | [10]** Allows you to pull for your favorite genshin wishes for free. These wishes will not be added to your collection.\n_ _\n_ _"
         embed.add_field(name="Wishing Commands", value = text, inline=False)
-
 
 
         text = f"**[{pre}balance]** Allows you to look at your collected currencies.\n"
         text += f"**[{pre}givem] | [amnt#] | [@user]** Allows you to donate mora to another user.\n"
         text += f"**[{pre}givep] | [amnt#] | [@user]** Allows you to donate primogems to another user.\n_ _\n_ _"
         embed.add_field(name="Economic Commands", value = text, inline=False)
-
 
 
         text = f"**[{pre}equip] | [char_name] | [{pre}weap_name, {pre}none]** Allows you to equip a weapon to a chracter. You can only equip things you own.\n_ _\n_ _"
