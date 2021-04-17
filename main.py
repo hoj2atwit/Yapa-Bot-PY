@@ -83,11 +83,14 @@ def updateLastResinTime():
 updateLastResinTime()
 user.rechargeAllResin()
 
+#When bot turns on
 @client.event
 async def on_ready():
   print('We have logged in as {0.user}'.format(client))
   await client.change_presence(activity=discord.Game(name=f"{pre}help"))
 
+
+#Detects Message from any channel bot can see.
 @client.event
 async def on_message(message):
   if message.author == client.user:
