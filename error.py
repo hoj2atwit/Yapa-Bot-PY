@@ -76,3 +76,11 @@ def embedTooManyCharacters():
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Character Error", value = "You have given too many characters.")
   return embed
+def embedWrongAnswer():
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Answer Error", value = "Your answer is incorrect.")
+  return embed
+def embedTooMuchCondensed():
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Maximum Hit", value = "You already have 10 or more condensed resin.")
+  return embed

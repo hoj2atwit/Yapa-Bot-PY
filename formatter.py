@@ -2,14 +2,13 @@ import math
 import discord
 import prefix
 import datetime
-
 def getAvatar(avamember : discord.Member=None):
   return avamember.avatar_url
 
 def nameUnformatter(name):
   map_dict = {' ':'-', '\'':'-'}
   uFormName = ''.join(i if i not in map_dict else map_dict[i] for i in name)
-  return uFormName
+  return uFormName.lower()
 
 def nameFormatter(name):
     currentPart = ""
@@ -82,10 +81,11 @@ def rewardListOrganizer(ar):
   return orgAr[::-1]
 
 def organizeByRarity(d):
+  sortedKeys = sorted(d)[::-1]
   orgAr = []
   changedItems = 0
   for i in range(6):
-    for x in d.keys():
+    for x in sortedKeys:
       if d[x]["rarity"] == i:
         orgAr.append(d[x])
         changedItems += 1
@@ -134,4 +134,14 @@ def getDateTime(timeString):
       text = ""
   if t != "":
     t.append(text)
+  
   return datetime.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]), int(t[5]))
+  
+def getCommissionID(command):
+  id = command[:1].upper()
+  for c in command[1:]:
+    if c == " ":
+      break
+    elif c.isdigit():
+      id += c
+  return id

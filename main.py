@@ -10,6 +10,7 @@ import adventure
 import threading, time
 from replit import db
 from keep_alive import keep_alive
+import pytz
 from datetime import datetime, timedelta
 
 fiveStarWishGifSingle = "Images/Gifs/SingleFiveStar.gif"
@@ -18,43 +19,69 @@ threeStarWishGifSingle = "Images/Gifs/SingleThreeStar.gif"
 fiveStarWishGifTen = "Images/Gifs/TenFiveStar.gif"
 fourStarWishGifTen = "Images/Gifs/TenFourStar.gif"
 
+tz = pytz.timezone("America/New_York")
+
 pre = prefix.commandPrefix
 client = discord.Client()
 
+def updateCommissionsCheck():
+  # This function runs periodically every 1 second
+  threading.Timer(1, updateCommissionsCheck).start()
+
+  utc_now = pytz.utc.localize(datetime.utcnow())
+  now = utc_now.astimezone(tz)
+
+  current_time = now.strftime("%H:%M:%S")
+
+  if(current_time == '00:00:00'):
+    print("Updating Commissions")
+    user.generateAllUserCommissions()
+
 def updateCounter():
   while True:
-    now = datetime.now()
+    utc_now = pytz.utc.localize(datetime.utcnow())
+    now = utc_now.astimezone(tz)
     if db["LastResinTime"] == "":
       updateLastResinTime()
       user.rechargeAllResin()
-    old = formatter.getDateTime(db["LastResinTime"])
+    old = tz.localize(formatter.getDateTime(db["LastResinTime"]), is_dst=None)
     difference = now-old
     minutes, seconds = divmod(difference.seconds, 60)
     hours, minutes = divmod(minutes, 60)
     minutes += (hours * 60) + (difference.days*24*60)
-    if minutes >= 20:
+    if minutes >= 100:
+      updateLastResinTime()
+      for x in range(5):
+        user.rechargeAllResin()
+      time.sleep(1200)
+    elif minutes >= 20:
       updateLastResinTime()
       user.rechargeAllResin()
       time.sleep(1200)
     else:
-      differenceDate = datetime(old.year, old.month, old.day, old.hour, old.minute, old.second) + timedelta(minutes=20)
+      differenceDate = old + timedelta(minutes=20)
       difference = differenceDate-now
       minutes, seconds = divmod(difference.seconds, 60)
       hours, minutes = divmod(minutes, 60)
       time.sleep((60*minutes)+seconds)
 
 def getNextResinTime():
-  now = datetime.now()
-  old = formatter.getDateTime(db["LastResinTime"])
-  differenceDate = datetime(old.year, old.month, old.day, old.hour, old.minute, old.second) + timedelta(minutes=20)
+  utc_now = pytz.utc.localize(datetime.utcnow())
+  now = utc_now.astimezone(tz)
+  old = tz.localize(formatter.getDateTime(db["LastResinTime"]), is_dst=None)
+  differenceDate = old + timedelta(minutes=20)
   difference = differenceDate-now
   minutes, seconds = divmod(difference.seconds, 60)
   hours, minutes = divmod(minutes, 60)
   return f"{minutes}M:{seconds}S"
 
 def updateLastResinTime():
-  now = datetime.now()
+  utc_now = pytz.utc.localize(datetime.utcnow())
+  now = utc_now.astimezone(tz)
   db["LastResinTime"] = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
+
+updateLastResinTime()
+user.rechargeAllResin()
 
 @client.event
 async def on_ready():
@@ -70,8 +97,35 @@ async def on_message(message):
     if message.content.lower().startswith(pre):
       command = message.content[len(pre):]
 
+      #Resets all user timers
+      if command.lower().startswith("reset timers"):
+        if len(command) > 13:
+          command = command[13:]
+          id = formatter.getIDFromMention(command)
+          if user.doesExist(id):
+            user.resetTimers(id)
+            await message.channel.send(f"<@{id}>\'s User timers reset.")
+            return
+          else:
+            e = error.embedUserDoesNotExist()
+            await message.channel.send(embed=e)
+            return
+
+      if command.lower().startswith("reset commissions"):
+        if len(command) > 18:
+          command = command[18:]
+          id = formatter.getIDFromMention(command)
+          if user.doesExist(id):
+            user.resetDailyCommissions(id)
+            await message.channel.send(f"<@{id}>\'s commissions reset.")
+            return
+          else:
+            e = error.embedUserDoesNotExist()
+            await message.channel.send(embed=e)
+            return
+
       #Clear All User Data
-      if command.lower().startswith("clear"):
+      elif command.lower().startswith("clear"):
         user.clearUserData()
         await message.channel.send("All User Data Cleared")
         return
@@ -224,7 +278,7 @@ async def on_message(message):
           e = error.embedNotEnoughPrimo()
           await message.channel.send(message.author.mention, embed=e)
           return
-        embed, f, rarity = pull.embedTenPull(u)
+        embed, f, rarity = await pull.embedTenPull(message.channel, u)
         e = discord.Embed()
         if rarity == 5:
           file = discord.File(fiveStarWishGifTen, "TenFiveStar.gif")
@@ -243,7 +297,7 @@ async def on_message(message):
           e = error.embedNotEnoughPrimo()
           await message.channel.send(message.author.mention, embed=e)
           return
-        embed, f, rarity = pull.embedSinglePull(u)
+        embed, f, rarity = await pull.embedSinglePull(message.channel, u)
         e = discord.Embed()
         if rarity == 5:
           file = discord.File(fiveStarWishGifSingle, "SingleFiveStar.gif")
@@ -322,6 +376,9 @@ async def on_message(message):
         e.set_footer(text=f"{message.author.mention}")
         await message.channel.send(embed=e)
 
+      elif command.lower().startswith("commissions") or command.lower() == "c":
+        await adventure.showCommissions(message.channel, u)
+        
       #Show balance
       elif command.lower().startswith("balance") or command.lower() == "bal" or command.lower() == "b":
         e, f = user.embedBal(u)
@@ -493,6 +550,14 @@ async def on_message(message):
           if len(charList) > 0:
             await adventure.embedAdventure(message.channel, u, charList)
 
+      elif command.lower().startswith("trivia"):
+        if len(command) > 7:
+          command = formatter.removeExtraSpaces(command[7:])
+          cid = formatter.getCommissionID(command)
+          if len(command) > len(cid):
+            command = formatter.removeExtraSpaces(command[len(cid):])
+            await adventure.answerTrivia(message.channel, u, cid, command)
+
       #Lists all commands
       elif command.lower().startswith("help"):
         embed = discord.Embed(title = "Yapa Bot Commands", color=discord.Color.dark_red())
@@ -517,7 +582,6 @@ async def on_message(message):
 
         text = f"**[{pre}equip] | [char_name] | [{pre}weap_name, {pre}none]** Allows you to equip a weapon to a chracter. You can only equip things you own.\n"
         embed.add_field(name="Character Commands", value = text, inline=False)
-        
         text = f"**[{pre}profile] | [@user]** Allows you to look at your or other user data.\n"
         text += f"**[{pre}profile] | [favorite] | [char_name]** Allows you to set your favorite character. Character must be owned before favoriting.\n"
         text += f"**[{pre}profile] | [description] | [desc...]** Allows you set your profile description.\n"
@@ -539,5 +603,6 @@ async def on_message(message):
         await message.channel.send(f"{message.author.mention}, Use **[{pre}start]** to begin your adventure")
 
 threading.Thread(target=updateCounter).start()
+updateCommissionsCheck()
 keep_alive()
 client.run(os.getenv('TOKEN'))

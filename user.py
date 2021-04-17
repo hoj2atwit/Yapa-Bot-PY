@@ -5,8 +5,12 @@ import character
 import weapon
 import random
 import error
+import adventure
+import pytz
 from replit import db
 from datetime import datetime, timedelta
+
+tz = pytz.timezone("America/New_York")
 
 class User:
   name = ""
@@ -30,8 +34,9 @@ class User:
   condensed = 0
   lastDaily = ""
   lastWeekly = ""
+  Commissions = {}
 
-  def __init__(self, name, ID, nickname, description, favoriteChar, AR, XP, WL, resin, pity, lastFour, characters, weapons, artifacts, mora, primogems, starGlitter, starDust, condensed, lastDaily, lastWeekly, bag, gear):
+  def __init__(self, name, ID, nickname, description, favoriteChar, AR, XP, WL, resin, pity, lastFour, characters, weapons, artifacts, mora, primogems, starGlitter, starDust, condensed, lastDaily, lastWeekly, bag, gear, Commissions):
     self.name = str(name)
     self.ID = str(ID)
     self.nickname = str(nickname)
@@ -55,43 +60,48 @@ class User:
     self.lastWeekly = lastWeekly
     self.bag = bag
     self.gear = gear
+    self.Commissions = Commissions
 
   def saveSelf(self):
     saveUser(self)
 
   def canDaily(self):
-    now = datetime.now()
+    utc_now = pytz.utc.localize(datetime.utcnow())
+    now = utc_now.astimezone(tz)
     if self.lastDaily == "":
       return True, "Now"
-    old = formatter.getDateTime(self.lastDaily)
+    old = tz.localize(formatter.getDateTime(self.lastDaily), is_dst=None)
     difference = now-old
     if difference.days >= 1:
       return True, "Now"
     else:
-      differenceDate = datetime(old.year, old.month, old.day, old.hour, old.minute, old.second) + timedelta(days=1)
+      differenceDate = old + timedelta(days=1)
       difference = differenceDate-now
       minutes, seconds = divmod(difference.seconds, 60)
       hours, minutes = divmod(minutes, 60)
       return False, f"{hours}H:{minutes}M:{seconds}S"
 
   def updateDaily(self):
-    now = datetime.now()
+    utc_now = pytz.utc.localize(datetime.utcnow())
+    now = utc_now.astimezone(tz)
     self.lastDaily = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
 
   def updateWeekly(self):
-    now = datetime.now()
+    utc_now = pytz.utc.localize(datetime.utcnow())
+    now = utc_now.astimezone(tz)
     self.lastWeekly = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
 
   def canWeekly(self):
-    now = datetime.now()
+    utc_now = pytz.utc.localize(datetime.utcnow())
+    now = utc_now.astimezone(tz)
     if self.lastWeekly == "":
       return True, "Now"
-    old = formatter.getDateTime(self.lastWeekly)
+    old = tz.localize(formatter.getDateTime(self.lastWeekly), is_dst=None)
     difference = now-old
     if difference.days >= 7:
       return True, "Now"
     else:
-      differenceDate = datetime(old.year, old.month, old.day, old.hour, old.minute, old.second) + timedelta(days=7)
+      differenceDate = old + timedelta(days=7)
       difference = differenceDate-now
       minutes, seconds = divmod(difference.seconds, 60)
       hours, minutes = divmod(minutes, 60)
@@ -132,7 +142,7 @@ class User:
     return amntMade, reason
 
   def getMaxXP(self):
-    return int((30 + 10**(2**(self.AR-1))) * (2**(self.WL)))
+    return int((30 + (10*(self.AR-1)*(10**self.WL))))
   
   def getResinCap(self):
     return int(120 + (20 * self.WL))
@@ -301,10 +311,10 @@ def saveUser(user):
 def getUser(ID):
   if ID in db["User"].keys():
     u = db["User"][ID]
-    return User(u["name"], u["ID"], u["nickname"], u["description"], u["favoriteChar"], u["AR"], u["XP"], u["WL"], u["resin"], u["pity"], u["lastFour"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["starGlitter"], u["starDust"], u["condensed"], u["lastDaily"], u["lastWeekly"], u["bag"], u["gear"])
+    return User(u["name"], u["ID"], u["nickname"], u["description"], u["favoriteChar"], u["AR"], u["XP"], u["WL"], u["resin"], u["pity"], u["lastFour"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["starGlitter"], u["starDust"], u["condensed"], u["lastDaily"], u["lastWeekly"], u["bag"], u["gear"], u["Commissions"])
 
 def createUser(name, ID):
-  newU = User(name, ID, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 1600, 0, 0, 0, "", "", {}, {})
+  newU = User(name, ID, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 8000, 0, 0, 0, "", "", {}, {}, adventure.makeUserCommissions())
   if "User" not in db.keys():
     db["User"] = {}
   if ID not in db["User"].keys():
@@ -336,9 +346,18 @@ def embedProfile(u):
   embed.add_field(name="Pity:", value=f"5:star: | **{u.pity}/90**\n4:star: | **{u.lastFour}/10**", inline=False)
   embed.add_field(name="Currency:", value=f"Primogems: {u.primogems}\nMora: {u.mora}\nStar Glitter: {u.starGlitter}\nStar Dust: {u.starDust}", inline=True)
   embed.add_field(name="Resin", value = f"{u.resin}/{u.getResinCap()}\nCondensed: {u.condensed}")
+  text = ""
+  for comID in u.Commissions.keys():
+    commissionName = u.Commissions[comID]["commission"]["title"]
+    if u.Commissions[comID]["commission"]["completed"]:
+      text += f"~~{commissionName}~~ - **Completed**\n"
+    else:
+      text += f"{commissionName}\n"
+  embed.add_field(name="Commissions", value = text, inline=False)
   can, dailyString = u.canDaily()
   can, weeklyString = u.canWeekly()
   embed.add_field(name="Recharge Times", value=f"Daily: {dailyString}\nWeekly: {weeklyString}", inline=False)
+
   return embed
 
 def embedCharList(u, pg):
@@ -485,8 +504,9 @@ async def embedDaily(ctx, u):
   if can:
     u.primogems += 800
     u.mora += 10000
+    u.condensed += 3
     u.updateDaily()
-    embed.add_field(name="Reward", value="**800** Primogems\n**10,000** Mora")
+    embed.add_field(name="Reward", value="**800** Primogems\n**10,000** Mora\n**3** Condensed Resin")
     f = discord.File("Images/Other/Gift.png", "Gift.png")
     embed.set_thumbnail(url="attachment://Gift.png")
     saveUser(u)
@@ -501,8 +521,9 @@ async def embedWeekly(ctx, u):
   if can:
     u.primogems += 1600
     u.mora += 500000
+    u.condensed += 10
     u.updateWeekly()
-    embed.add_field(name="Reward", value="**1600** Primogems\n**500,000** Mora")
+    embed.add_field(name="Reward", value="**1600** Primogems\n**500,000** Mora\n**10** Condensed Resin")
     f = discord.File("Images/Other/Gift.png", "Gift.png")
     embed.set_thumbnail(url="attachment://Gift.png")
     saveUser(u)
@@ -524,6 +545,9 @@ async def embedCondensed(ctx, u, amnt):
     if reason == "n":
       embed = error.embedNotEnoughResin()
       await ctx.send(embed=embed)
+    else:
+      embed = error.embedTooMuchCondensed()
+      await ctx.send(embed=embed)
 
 async def embedUseCondensed(ctx, u):
   can = u.useCondensed()
@@ -538,8 +562,8 @@ async def embedUseCondensed(ctx, u):
     await ctx.send(embed=embed)
 
 def rechargeAllResin():
-  for id in db["User"].keys():
-    u = getUser(id)
+  for i in db["User"].keys():
+    u = getUser(i)
     u.rechargeResin()
     saveUser(u)
 
@@ -556,4 +580,23 @@ def clearUserData():
   db["User"] = {}
   print("User Data Cleared")
 
-#clearUserData()
+def resetTimers(i):
+  if i in db["User"].keys():
+    u = getUser(i)
+    u.lastDaily = ""
+    u.lastWeekly = ""
+    saveUser(u)
+
+def resetDailyCommissions(i):
+  if i in db["User"].keys():
+    u = getUser(i)
+    u.Commissions = {}
+    u.Commissions = adventure.makeUserCommissions()
+    saveUser(u)
+
+def generateAllUserCommissions():
+  for i in db["User"].keys():
+    u = getUser(i)
+    u.Commissions = {}
+    u.Commissions = adventure.makeUserCommissions()
+    saveUser(u)

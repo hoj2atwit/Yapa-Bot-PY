@@ -6,6 +6,7 @@ import user
 import formatter
 import discord
 import prefix
+import adventure
 
 fiveStarChars = character.getFiveStarChars()
 fourStarChars = character.getFourStarChars()
@@ -174,7 +175,7 @@ def tenPull(u):
   arr = formatter.rewardListOrganizer(arr)
   return (arr, fiveStar)
 
-def embedSinglePull(u):
+async def embedSinglePull(ctx, u):
   if u.pity >= 89:
     (p, t), five, four = pull(False, True, u)
   elif u.lastFour >= 9:
@@ -208,6 +209,7 @@ def embedSinglePull(u):
     embed.set_image(url=f"attachment://{p.urlName}-icon.png")
   u.primogems -= 160
   u.updateEquippedWeaps()
+  await adventure.checkWishComplete(ctx, u, 1)
   user.saveUser(u)
   return embed, file, p.rarity
 
@@ -270,7 +272,7 @@ def embedFreeTenPull(name):
   embed.add_field(name = "_ _", value = text, inline=False)
   return embed, file, pulls[0].rarity
 
-def embedTenPull(u):
+async def embedTenPull(ctx, u):
   pulls, five = tenPull(u)
   if five:
     color = discord.Color.gold()
@@ -292,5 +294,6 @@ def embedTenPull(u):
   embed.add_field(name = "_ _", value = text, inline=False)
   u.primogems -= 1600
   u.updateEquippedWeaps()
+  await adventure.checkWishComplete(ctx, u, 10)
   user.saveUser(u)
   return embed, file, pulls[0].rarity
