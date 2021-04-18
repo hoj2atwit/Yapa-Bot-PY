@@ -173,7 +173,7 @@ def makeAdventureCommission(ID, amnt):
   return Quest(ID, f"The Adventure Continues - A{amnt}", f"Go on an adventure {amnt} times.", targets, int(60*amnt), int(3000*amnt), int(45*amnt), False)
 
 async def showCommissions(ctx, u):
-  embed = discord.Embed(title = f"{u.nickname}\'s Commissions", color=discord.Color.green())
+  embed = discord.Embed(title = f"{u.nickname}\'s Commissions", color=discord.Color.green(),description="Resets everyday at midnight EST.")
   for k in u.Commissions.keys():
     c = u.Commissions[k]
     if c["t"] == "T":

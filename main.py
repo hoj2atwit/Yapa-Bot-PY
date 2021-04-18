@@ -109,7 +109,7 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(f'This command is on cooldown, you can use it in {round(error.retry_after, 2)} seconds.')
+        await ctx.send(f"{ctx.author.mention}This command is on cooldown, you can use it in {round(error.retry_after, 2)} seconds.")
 
 #Resets a users timers or commissions
 @bot.command(name="reset")
