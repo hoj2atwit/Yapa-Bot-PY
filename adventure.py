@@ -432,4 +432,4 @@ async def embedAdventure(ctx, u, characterList):
     e = error.embedTooManyCharacters()
     await ctx.send(embed=e)
 
-generateAllCommissions()
+#generateAllCommissions()

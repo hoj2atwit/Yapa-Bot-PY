@@ -117,8 +117,9 @@ def splitInformation(command):
     if c != prefix.commandPrefix:
       text += c
     else:
-      info.append(removeExtraSpaces(text))
-      text = ""
+      if text != "":
+        info.append(removeExtraSpaces(text))
+        text = ""
   if text != "":
     info.append(removeExtraSpaces(text))
   return info
@@ -136,7 +137,24 @@ def getDateTime(timeString):
     t.append(text)
   
   return datetime.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]), int(t[5]))
-  
+
+def separate_commands(commandsPointer):
+  commands = []
+  text = ""
+  for x in commandsPointer:
+    if x.startswith(prefix.commandPrefix):
+      if text != "":
+        commands.append(removeExtraSpaces(text))
+        text = x
+    else:
+      if text == "":
+        text += x
+      else:
+        text += f" {x}"
+  if text != "":
+    commands.append(text)
+  return commands
+
 def getCommissionID(command):
   id = command[:1].upper()
   for c in command[1:]:
