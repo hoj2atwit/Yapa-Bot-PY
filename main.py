@@ -39,7 +39,6 @@ def user_already_exists(ctx):
   return not user.doesExist(str(ctx.author.id))
 
 def user_is_me(ctx):
-  print(f"checking id: {ctx.author.id}")
   return str(ctx.author.id) == os.getenv('OWNER_ID')
 
 def updateCommissionsCheck():
@@ -340,9 +339,7 @@ async def wish(ctx, arg=None):
 @commands.cooldown(1, 6, commands.BucketType.user)
 async def free(ctx, arg=None):
   u = user.getUser(str(ctx.author.id))
-  print(arg)
   if arg == None:
-    print("Pulling")
     embed, f, rarity = await pull.embedFreeSinglePull(u.name)
     e = discord.Embed()
     if rarity == 5:
@@ -354,15 +351,12 @@ async def free(ctx, arg=None):
     else:
       file = discord.File(threeStarWishGifSingle, "SingleThreeStar.gif")
       e.set_image(url="attachment://SingleThreeStar.gif")
-    print("Sending Wish Gif")
     msg = await ctx.send(embed=e, file=file)
     await asyncio.sleep(7)
     await msg.delete()
-    print("Sending Wish List")
     await ctx.send(ctx.author.mention, embed=embed, file=f)
   else:
     if arg == "10":
-      print("Pulling 10")
       embed, f, rarity = await pull.embedFreeTenPull(u.name)
       e = discord.Embed()
       if rarity == 5:
@@ -371,11 +365,9 @@ async def free(ctx, arg=None):
       else:
         file = discord.File(fourStarWishGifTen, "TenFourStar.gif")
         e.set_image(url="attachment://TenFourStar.gif")
-      print("Sending Wish Gif")
       msg = await ctx.send(embed=e, file=file)
       await asyncio.sleep(7)
       await msg.delete()
-      print("Sending Wish List")
       await ctx.send(ctx.author.mention, embed=embed, file=f)
 
 @bot.command(name="resin", aliases=["r", "res"])
@@ -398,7 +390,6 @@ async def listc(ctx, *args):
     else:
       #show specific character info
       name = formatter.separate_commands(args)[0]
-      print(name)
       if u.doesCharExist(name):
         e, f = user.embedShowCharInfo(u, u.characters[formatter.nameUnformatter(name)])
         await ctx.send(embed=e, file=f)
@@ -421,7 +412,6 @@ async def listw(ctx, *args):
     else:
       #show specific character info
       name = formatter.separate_commands(args)[0]
-      print(name)
       if u.doesWeapExist(name):
         e, f = user.embedShowWeapInfo(u, u.weapons[formatter.nameUnformatter(name)])
         await ctx.send(embed=e, file=f)
@@ -520,7 +510,6 @@ async def trivia(ctx, TID, *answer):
 
 @bot.command(name="help", aliases=["h"])
 async def help(ctx):
-  print("Calling help")
   embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())
   text = f"**[{pre}start]** Allows you to start your Yappa Experience.\n"
   text += f"**[{pre}daily]** Allows you to claim daily rewards.\n"
