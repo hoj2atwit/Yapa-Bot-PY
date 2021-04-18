@@ -308,15 +308,15 @@ async def completedCommission(ctx, u, c):
   if c.xp > 0:
     realXP = int(c.xp * (u.WL+1))
     await u.addXP(realXP, ctx)
-    text += f"**{realXP}** Adventurer\'s Experience\n"
+    text += f"**{formatter.numberFormat(realXP)}** Adventurer\'s Experience\n"
   if c.moraReward > 0:
     realMora = int(c.moraReward * (u.WL + 1))
     u.mora += realMora
-    text += f"**{realMora}x** Mora\n"
+    text += f"**{formatter.numberFormat(realMora)}x** Mora\n"
   if c.primoReward > 0:
     realPrimo = int(c.primoReward * (u.WL + 1))
     u.primogems += realPrimo
-    text += f"**{realPrimo}x** Primogems\n"
+    text += f"**{formatter.numberFormat(realPrimo)}x** Primogems\n"
   e.add_field(name=f"{c.title} Reward", value=text)
   f = discord.File("Images/Other/Commission.png", "Commission.png")
   e.set_thumbnail(url="attachment://Commission.png")
@@ -349,9 +349,9 @@ async def allCommissionsCompleted(ctx, u):
   u.saveSelf()
   e = discord.Embed(title="All Commissions Complete!", color=discord.Color.blurple(), description=f"{u.nickname} has completed all of their daily commissions.")
   text = ""
-  text += f"**{realXP}** Adventurer\'s Experience\n"
-  text += f"**{realMora}x** Mora\n"
-  text += f"**{realPrimo}x** Primogems\n"
+  text += f"**{formatter.numberFormat(realXP)}** Adventurer\'s Experience\n"
+  text += f"**{formatter.numberFormat(realMora)}x** Mora\n"
+  text += f"**{formatter.numberFormat(realPrimo)}x** Primogems\n"
   e.add_field(name=f"Daily Commissions Reward", value=text)
   f = discord.File("Images/Other/Commission.png", "Commission.png")
   e.set_thumbnail(url="attachment://Commission.png")
@@ -411,17 +411,17 @@ async def embedAdventure(ctx, u, characterList):
     userXPReward = int(random.randint(12,30)*int(2**u.WL))
     e = discord.Embed(title=f"{u.nickname}\'s Adventuring Rewards", color=discord.Color.green())
     u.mora += moraReward
-    e.add_field(name="Drops", value=f"{moraReward}x Mora", inline=False)
+    e.add_field(name="Drops", value=f"{formatter.numberFormat(moraReward)}x Mora", inline=False)
     text = ""
     for c in characters:
       await c.addXP(charXPReward, ctx)
       u.saveChar(c)
-      text += f"{c.name} gained **{charXPReward} exp**\n"
+      text += f"{c.name} gained **{formatter.numberFormat(charXPReward)} exp**\n"
     await u.addXP(userXPReward, ctx)
-    text += f"{u.nickname} gained **{userXPReward} ARxp**\n"
+    text += f"{u.nickname} gained **{formatter.numberFormat(userXPReward)} ARxp**\n"
     e.add_field(name="Experience", value=text, inline=False)
     u.primogems += primoReward
-    e.add_field(name="Primogems", value=f"{primoReward}x Primogems", inline=False)
+    e.add_field(name="Primogems", value=f"{formatter.numberFormat(primoReward)}x Primogems", inline=False)
     u.resin -= 20
     await checkTargetComplete(ctx, u, "adventure", 1)
     u.saveSelf()

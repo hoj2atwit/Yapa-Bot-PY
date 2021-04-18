@@ -163,3 +163,13 @@ def getCommissionID(command):
     elif c.isdigit():
       id += c
   return id
+
+def numberFormat(num):
+  numString = str(num)[::-1]
+  finalString = ""
+  for i in range(len(numString)):
+    if (i) % 3 == 0 and i != 0:
+      finalString += ","
+    finalString += numString[i]
+  return finalString[::-1]
+    

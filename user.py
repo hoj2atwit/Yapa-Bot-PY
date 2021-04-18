@@ -322,17 +322,17 @@ def createUser(name, ID):
 
 def embedBal(u):
   embed = discord.Embed(title=f"{u.nickname}\'s Balance", color=discord.Color.dark_orange())
-  embed.add_field(name="Primogems", value=u.primogems)
-  embed.add_field(name="Mora", value=u.mora)
-  embed.add_field(name="Star Glitter", value=u.starGlitter)
-  embed.add_field(name="Star Dust", value=u.starDust)
+  embed.add_field(name="Primogems", value=formatter.numberFormat(u.primogems))
+  embed.add_field(name="Mora", value=formatter.numberFormat(u.mora))
+  embed.add_field(name="Star Glitter", value=formatter.numberFormat(u.starGlitter))
+  embed.add_field(name="Star Dust", value=formatter.numberFormat(u.starDust))
   f = discord.File("Images/Other/Balance.png", "Balance.png")
   embed.set_thumbnail(url="attachment://Balance.png")
   return embed, f
 
 def embedResin(u):
   embed = discord.Embed(title=f"{u.nickname}\'s Resin", color=discord.Color.blue())
-  embed.add_field(name="_ _", value=f"**{u.resin}/{u.getResinCap()}**\nCondensed: {u.condensed}")
+  embed.add_field(name="_ _", value=f"**{formatter.numberFormat(u.resin)}/{formatter.numberFormat(u.getResinCap())}**\nCondensed: {formatter.numberFormat(u.condensed)}")
   f = discord.File("Images/Other/Resin.png", "Resin.png")
   embed.set_thumbnail(url="attachment://Resin.png")
   return embed, f
@@ -340,12 +340,12 @@ def embedResin(u):
 def embedProfile(u):
   embed = discord.Embed(title=f"{u.nickname}\'s Profile", color=discord.Color.dark_gold(), description=u.description)
   embed.add_field(name="Favorite Character", value=f"{u.favoriteChar}", inline=False)
-  embed.add_field(name="Adventure Rank", value=f"{u.AR}", inline=True)
-  embed.add_field(name="World Level", value=f"{u.WL}", inline=True)
-  embed.add_field(name="Current XP:", value=f"{u.XP}/{u.getMaxXP()}", inline=False)
+  embed.add_field(name="Adventure Rank", value=f"{formatter.numberFormat(u.AR)}", inline=True)
+  embed.add_field(name="World Level", value=f"{formatter.numberFormat(u.WL)}", inline=True)
+  embed.add_field(name="Current XP:", value=f"{formatter.numberFormat(u.XP)}/{formatter.numberFormat(u.getMaxXP())}", inline=False)
   embed.add_field(name="Pity:", value=f"5:star: | **{u.pity}/90**\n4:star: | **{u.lastFour}/10**", inline=False)
-  embed.add_field(name="Currency:", value=f"Primogems: {u.primogems}\nMora: {u.mora}\nStar Glitter: {u.starGlitter}\nStar Dust: {u.starDust}", inline=True)
-  embed.add_field(name="Resin", value = f"{u.resin}/{u.getResinCap()}\nCondensed: {u.condensed}")
+  embed.add_field(name="Currency:", value=f"Primogems: {formatter.numberFormat(u.primogems)}\nMora: {formatter.numberFormat(u.mora)}\nStar Glitter: {formatter.numberFormat(u.starGlitter)}\nStar Dust: {formatter.numberFormat(u.starDust)}", inline=True)
+  embed.add_field(name="Resin", value = f"{formatter.numberFormat(u.resin)}/{formatter.numberFormat(u.getResinCap())}\nCondensed: {formatter.numberFormat(u.condensed)}")
   text = ""
   for comID in u.Commissions.keys():
     commissionName = u.Commissions[comID]["commission"]["title"]
@@ -440,7 +440,7 @@ def embedDonatePrimo(giver, u, primo):
 def embedGiveMora(u, mora):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift", color=discord.Color.gold())
   u.mora += mora
-  embed.add_field(name = f"Mora x{mora}", value = "_ _")
+  embed.add_field(name = f"Mora x{formatter.numberFormat(mora)}", value = "_ _")
   f = discord.File("Images/Other/Mora.png", "Mora.png")
   embed.set_thumbnail(url="attachment://Mora.png")
   saveUser(u)
@@ -451,7 +451,7 @@ def embedDonateMora(giver, u, mora):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift from {giver.nickname}", color=discord.Color.gold())
   amnt, given = giver.giveMora(u, mora)
   if given:
-    embed.add_field(name = f"Mora x{mora}", value = "_ _")
+    embed.add_field(name = f"Mora x{formatter.numberFormat(mora)}", value = "_ _")
   else:
     embed = error.embedFailedDonationMora()
   saveUser(u)
@@ -474,7 +474,7 @@ def embedShowCharInfo(u, c):
     color = discord.Color.blue()
 
   embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = c["name"]), color=color, description=c["description"])
-  embed.add_field(name="Unique Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Constellations Unlocked:** {cu}\n **Total Wished:** {tr}".format(l = c["level"], cu = c["unlockedC"], tr = c["totalGot"], x = c["xp"], xm = formatter.getXPToNextLevel(c["level"])))
+  embed.add_field(name="Unique Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Constellations Unlocked:** {cu}\n **Total Wished:** {tr}".format(l = formatter.numberFormat(c["level"]), cu = c["unlockedC"], tr = formatter.numberFormat(c["totalGot"]), x = formatter.numberFormat(c["xp"]), xm = formatter.numberFormat(formatter.getXPToNextLevel(c["level"]))))
   if len(c["w"]) == 0:
     text = "None"
   else:
@@ -491,7 +491,7 @@ def embedShowCharInfo(u, c):
 #Show user owned weapon info
 def embedShowWeapInfo(u, w):
   embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = w["name"]))
-  embed.add_field(name="Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Refinement:** {cu}\n**Total Wished:** {tr}".format(l = w["level"], cu = w["refinement"], tr = w["totalGot"], x = w["xp"], xm = formatter.getXPToNextLevel(w["level"])))
+  embed.add_field(name="Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Refinement:** {cu}\n**Total Wished:** {tr}".format(l = formatter.numberFormat(w["level"]), cu = w["refinement"], tr = formatter.numberFormat(w["totalGot"]), x = formatter.numberFormat(w["xp"]), xm = formatter.numberFormat(formatter.getXPToNextLevel(w["level"]))))
 
   f = discord.File(w["iconURL"], "{}-icon.png".format(w["urlName"]))
   embed.set_thumbnail(url="attachment://{}-icon.png".format(w["urlName"]))
@@ -523,7 +523,7 @@ async def embedWeekly(ctx, u):
     u.mora += 500000
     u.condensed += 10
     u.updateWeekly()
-    embed.add_field(name="Reward", value="**1600** Primogems\n**500,000** Mora\n**10** Condensed Resin")
+    embed.add_field(name="Reward", value="**1,600** Primogems\n**500,000** Mora\n**10** Condensed Resin")
     f = discord.File("Images/Other/Gift.png", "Gift.png")
     embed.set_thumbnail(url="attachment://Gift.png")
     saveUser(u)
