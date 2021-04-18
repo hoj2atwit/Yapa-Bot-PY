@@ -94,7 +94,7 @@ def organizeByRarity(d):
   return orgAr[::-1]
 
 def getXPToNextLevel(level):
-    return int(math.floor(((30 + 10**(2**(level-1))) * (2**(math.floor(level/10))))/2))
+    return int((30 + (10*(level-1)*(10**math.floor(level/10))))/2)
 
 def getIDFromMention(text):
   id = ""

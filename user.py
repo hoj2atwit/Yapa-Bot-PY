@@ -458,7 +458,7 @@ def embedDonateMora(giver, u, mora):
   return embed
 
 #Shows user owned character info
-def embedShowCharInfo(u, c):
+async def embedShowCharInfo(ctx, u, c):
   color = discord.Color.red()
   if c["element"] == "Anemo":
     color = discord.Color.green()
@@ -474,19 +474,24 @@ def embedShowCharInfo(u, c):
     color = discord.Color.blue()
 
   embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = c["name"]), color=color, description=c["description"])
-  embed.add_field(name="Unique Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Constellations Unlocked:** {cu}\n **Total Wished:** {tr}".format(l = formatter.numberFormat(c["level"]), cu = c["unlockedC"], tr = formatter.numberFormat(c["totalGot"]), x = formatter.numberFormat(c["xp"]), xm = formatter.numberFormat(formatter.getXPToNextLevel(c["level"]))))
+  level = formatter.numberFormat(c["level"])
+  currXP = formatter.numberFormat(c["xp"])
+  maxXP = formatter.numberFormat(formatter.getXPToNextLevel(c["level"]))
+  embed.add_field(name="Level {l}".format(l = level), value = "**XP:** {x}/{xm}".format(x=currXP, xm=maxXP))
+  embed.add_field(name="Amount Info", value="**Constellations Unlocked:** {cu}\n**Total Wished:** {tr}".format(cu = c["unlockedC"], tr = formatter.numberFormat(c["totalGot"])))
   if len(c["w"]) == 0:
     text = "None"
   else:
     text = c["w"][0]["name"]
   embed.add_field(name="Equipped Weapon", value=text)
-
-  embed.add_field(name="General Info", value="**Element:** {e}\n**Constellation:** {c}".format(e = c["element"], c = c["constName"]))
-
-  f = discord.File(c["iconURL"], "{}-icon.png".format(c["urlName"]))
+  embed.add_field(name="Trivia Info", value="**Element:** {e}\n**Constellation:** {c}".format(e = c["element"], c = c["constName"]))
+  f = []
+  f.append(discord.File(c["iconURL"], "{}-icon.png".format(c["urlName"])))
+  f.append(discord.File(c["portraitURL"], "{}-portrait.png".format(c["urlName"])))
+  embed.set_image(url="attachment://{}-portrait.png".format(c["urlName"]))
   embed.set_thumbnail(url="attachment://{}-icon.png".format(c["urlName"]))
 
-  return embed, f
+  await ctx.send(embed=embed, files=f)
 
 #Show user owned weapon info
 def embedShowWeapInfo(u, w):

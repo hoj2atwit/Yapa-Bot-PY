@@ -389,10 +389,9 @@ async def listc(ctx, *args):
       pg = int(args)
     else:
       #show specific character info
-      name = formatter.separate_commands(args)[0]
+      name = formatter.separate_commands(args)[0].lower()
       if u.doesCharExist(name):
-        e, f = user.embedShowCharInfo(u, u.characters[formatter.nameUnformatter(name)])
-        await ctx.send(embed=e, file=f)
+        await user.embedShowCharInfo(ctx, u, u.characters[formatter.nameUnformatter(name)])
         return
       else:
         await ctx.send(embed=error.embedCharIsNotOwned())
