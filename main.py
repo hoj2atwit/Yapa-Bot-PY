@@ -26,6 +26,7 @@ pre = prefix.commandPrefix
 bot = commands.Bot(f"{pre}")
 bot.remove_command("help") # Removing the default help command
 bot.remove_command("reset") # Removing the default reset command
+bot.remove_command("free") # Removing the default reset command
 
 async def user_exists(ctx):
   if user.doesExist(str(ctx.author.id)):
@@ -339,7 +340,9 @@ async def wish(ctx, arg=None):
 @commands.cooldown(1, 6, commands.BucketType.user)
 async def free(ctx, arg=None):
   u = user.getUser(str(ctx.author.id))
+  print(arg)
   if arg == None:
+    print("Pulling")
     embed, f, rarity = await pull.embedFreeSinglePull(u.name)
     e = discord.Embed()
     if rarity == 5:
@@ -351,12 +354,15 @@ async def free(ctx, arg=None):
     else:
       file = discord.File(threeStarWishGifSingle, "SingleThreeStar.gif")
       e.set_image(url="attachment://SingleThreeStar.gif")
+    print("Sending Wish Gif")
     msg = await ctx.send(embed=e, file=file)
     await asyncio.sleep(7)
     await msg.delete()
+    print("Sending Wish List")
     await ctx.send(ctx.author.mention, embed=embed, file=f)
   else:
     if arg == "10":
+      print("Pulling 10")
       embed, f, rarity = await pull.embedFreeTenPull(u.name)
       e = discord.Embed()
       if rarity == 5:
@@ -365,9 +371,11 @@ async def free(ctx, arg=None):
       else:
         file = discord.File(fourStarWishGifTen, "TenFourStar.gif")
         e.set_image(url="attachment://TenFourStar.gif")
+      print("Sending Wish Gif")
       msg = await ctx.send(embed=e, file=file)
       await asyncio.sleep(7)
       await msg.delete()
+      print("Sending Wish List")
       await ctx.send(ctx.author.mention, embed=embed, file=f)
 
 @bot.command(name="resin", aliases=["r", "res"])

@@ -213,8 +213,8 @@ async def embedSinglePull(ctx, u):
   user.saveUser(u)
   return embed, file, p.rarity
 
-def embedFreeSinglePull(name):
-  u = user.User(name,"","","",0,0,0,0,0,0,0,{},{},{},0,0,0,0)
+async def embedFreeSinglePull(name):
+  u = user.User(name,"","","","",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","",{},{},{})
   if u.pity >= 89:
     (p, t), five, four = pull(False, True, u)
   elif u.lastFour >= 9:
@@ -246,11 +246,10 @@ def embedFreeSinglePull(name):
     file = discord.File(p.iconURL, f"{p.urlName}-icon.png")
     embed = discord.Embed(title=text, color=color, description="Free pulls will not be added to your collection.")
     embed.set_image(url=f"attachment://{p.urlName}-icon.png")
-  user.saveUser(u)
   return embed, file, p.rarity
 
-def embedFreeTenPull(name):
-  u = user.User(name,"","","",0,0,0,0,0,0,0,{},{},{},0,0,0,0)
+async def embedFreeTenPull(name):
+  u = user.User(name,"","","","",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","",{},{},{})
   pulls, five = tenPull(u)
   if five:
     color = discord.Color.gold()
