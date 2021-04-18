@@ -473,7 +473,7 @@ def embedShowCharInfo(u, c):
   elif c["element"] == "Cryo":
     color = discord.Color.blue()
 
-  embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.name, cn = c["name"]), color=color, description=c["description"])
+  embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = c["name"]), color=color, description=c["description"])
   embed.add_field(name="Unique Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Constellations Unlocked:** {cu}\n **Total Wished:** {tr}".format(l = c["level"], cu = c["unlockedC"], tr = c["totalGot"], x = c["xp"], xm = formatter.getXPToNextLevel(c["level"])))
   if len(c["w"]) == 0:
     text = "None"
@@ -490,7 +490,7 @@ def embedShowCharInfo(u, c):
 
 #Show user owned weapon info
 def embedShowWeapInfo(u, w):
-  embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.name, cn = w["name"]))
+  embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = w["name"]))
   embed.add_field(name="Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Refinement:** {cu}\n**Total Wished:** {tr}".format(l = w["level"], cu = w["refinement"], tr = w["totalGot"], x = w["xp"], xm = formatter.getXPToNextLevel(w["level"])))
 
   f = discord.File(w["iconURL"], "{}-icon.png".format(w["urlName"]))

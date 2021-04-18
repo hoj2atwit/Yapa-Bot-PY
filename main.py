@@ -23,7 +23,7 @@ fourStarWishGifTen = "Images/Gifs/TenFourStar.gif"
 tz = pytz.timezone("America/New_York")
 pre = prefix.commandPrefix
 
-bot = commands.Bot(f"{pre}")
+bot = commands.Bot(f"{pre}", case_insensitive=True)
 bot.remove_command("help") # Removing the default help command
 bot.remove_command("reset") # Removing the default reset command
 bot.remove_command("free") # Removing the default reset command
@@ -492,13 +492,13 @@ async def condense(ctx, arg=None):
 @bot.command(name="adventure", aliases=["adv", "a"])
 @commands.check(user_exists)
 @commands.cooldown(1, 5.0, commands.BucketType.user)
-async def adv(ctx, *args):
+async def _adventure(ctx, *args):
   u = user.getUser(str(ctx.author.id))
   commands = formatter.separate_commands(args)
   if len(commands) > 0 and len(commands) <= 4:
     charList = []
     for i in range(len(commands)):
-      charList.append(formatter.splitInformation(commands[i])[0])
+      charList.append(formatter.splitInformation(commands[i])[0].lower())
     await adventure.embedAdventure(ctx, u, charList)
     
 @bot.command(name="trivia", aliases=["triv","t"])

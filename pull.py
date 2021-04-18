@@ -279,7 +279,7 @@ async def embedTenPull(ctx, u):
     color = discord.Color.purple()
 
   file = discord.File(pulls[0].iconURL, f"{pulls[0].urlName}-icon.png")
-  embed = discord.Embed(title=f"{u.name}\'s 10x Wish", color=color)
+  embed = discord.Embed(title=f"{u.nickname}\'s 10x Wish", color=color)
   embed.set_thumbnail(url=f"attachment://{pulls[0].urlName}-icon.png")
   text = ""
   for i in pulls:
