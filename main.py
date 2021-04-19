@@ -25,8 +25,6 @@ pre = prefix.commandPrefix
 
 bot = commands.Bot(f"{pre}", case_insensitive=True)
 bot.remove_command("help") # Removing the default help command
-bot.remove_command("reset") # Removing the default reset command
-bot.remove_command("free") # Removing the default reset command
 
 async def user_exists(ctx):
   if user.doesExist(str(ctx.author.id)):
@@ -386,7 +384,7 @@ async def listc(ctx, *args):
   pg = 1
   if len(args) > 0:
     if args[0].isdigit():
-      pg = int(args)
+      pg = int(args[0])
     else:
       #show specific character info
       name = formatter.separate_commands(args)[0].lower()
@@ -505,7 +503,7 @@ async def _adventure(ctx, *args):
 async def trivia(ctx, TID, *answer):
   u = user.getUser(str(ctx.author.id))  
   answerString = formatter.separate_commands(answer)[0]
-  await adventure.answerTrivia(ctx, u, TID, answerString)
+  await adventure.answerTrivia(ctx, u, TID.upper(), answerString)
 
 @bot.command(name="help", aliases=["h"])
 async def help(ctx):
