@@ -435,7 +435,7 @@ async def embed_show_char_info(ctx, u, c):
   else:
     text = c["weapon_equiped"]["name"]
   embed.add_field(name="Equiped Weapon", value=text)
-  embed.add_field(name="Trivia Info", value="**Element:** {e}\n**Constellation:** {c}".format(e = c["element"], c = c["constellation_name"]))
+  embed.add_field(name="Trivia Info", value="**Element:** {e}\n**Constellation:** {c}\n**Weapon Type:** {w}".format(e = c["element"], c = c["constellation_name"], w=formatter.name_unformatter(formatter.name_formatter(c["weapon_type"]))))
   f = []
   f.append(discord.File(c["URL_icon"], "{}-icon.png".format(c["URL_name"])))
   f.append(discord.File(c["URL_portrait"], "{}-portrait.png".format(c["URL_name"])))
@@ -448,7 +448,7 @@ async def embed_show_char_info(ctx, u, c):
 async def embed_show_weap_info(ctx, u, w):
   embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = w["name"]))
   embed.add_field(name="Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Refinement:** {cu}\n**Total Wished:** {tr}".format(l = formatter.number_format(w["level"]), cu = w["refinement"], tr = formatter.number_format(w["total"]), x = formatter.number_format(w["xp"]), xm = formatter.number_format(formatter.get_xp_to_next_level(w["level"]))))
-
+  embed.add_field(name="Type", value = "{}".format(w["weapon_type"]))
   f = discord.File(w["URL_icon"], "{}-icon.png".format(w["URL_name"]))
   embed.set_thumbnail(url="attachment://{}-icon.png".format(w["URL_name"]))
 

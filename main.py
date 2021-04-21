@@ -265,7 +265,7 @@ async def profile(ctx, arg2=None, *arg3):
           await ctx.send(f"{ctx.author.mention}\'s favorite Character has been set to: {formatter.name_unformatter(formatter.name_formatter(char[0]))}")
           database_mongo.save_user(u)
         else:
-          await error.embed_char_is_not_owned(ctx)
+          await error.embed_get_character_suggestions(ctx, u, char[0])
     else:
       mention_id = formatter.get_id_from_mention(str(arg2))
       if user.does_exist(mention_id):
