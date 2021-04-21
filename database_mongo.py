@@ -1,41 +1,6 @@
 import pymongo
 from pymongo import MongoClient
-from replit import db
 import formatter
-
-
-#OBSOLITE
-def transfer_user_data_to_mongo_from_replit():
-  user_collection = get_user_collection()
-  userList = []
-  for uID in db["User"]:
-    u = db["User"][uID]
-    user_post = {"_id" : int(u["ID"]), "name" : u["name"],"nickname" : u["nickname"], "description" : u["description"], "favorite_character" : u["favoriteChar"], "adventure_rank" : u["AR"], "experience" : u["XP"], "world_level" : u["WL"], "resin" : u["resin"], "five_pity" : u["pity"], "four_pity" : u["lastFour"], "characters" : u["characters"], "weapons" : u["weapons"], "artifacts" : u["artifacts"], "mora" : u["mora"], "primogems" : u["primogems"], "star_glitter" : u["starGlitter"], "star_dust" : u["starDust"], "condensed" : u["condensed"], "last_daily" : u["lastDaily"], "last_weekly" : u["lastWeekly"], "bag" : u["bag"], "gear" : u["gear"], "commissions" : u["Commissions"]}
-    userList.append(user_post)
-  user_collection.insert_many(userList)
-
-#OBSOLITE
-def transfer_char_data_to_mongo_from_replit():
-  character_collection = get_character_collection()
-  characterList = []
-  for name in db["Characters"]:
-    c = db["Characters"][name]
-    character_post = {"name" : c["name"], "URL_name" : c["urlName"], "URL_icon" : c["iconURL"], "URL_portrait" : c["portraitURL"], "description" : c["description"], "rarity" : c["rarity"], "element" : c["element"], "weapon_equiped" : c["w"], "weapon_type" : c["weaponType"], "constellation_name" : c["constName"], "constellations" : c["constellations"], "artifacts_equiped" : c["artifacts"], "level"  : c["level"], "xp" : c["xp"], "const_amnt" : c["unlockedC"], "total" : c["totalGot"], "attack" : c["attack"], "crit_rate" : c["critRate"], "crit_dmg" : c["critDmg"], "elemental_mastery" : c["elementMastery"]}
-    characterList.append(character_post)
-  character_collection.insert_many(characterList)
-
-#OBSOLITE
-def transfer_weap_data_to_mongo_from_replit():
-  weapon_collection = get_weapon_collection()
-  weaponList = []
-  for name in db["Weapons"]:
-    w = db["Weapons"][name]
-    weapon_post = {"name" : w["name"], "URL_name" : w["urlName"], "URL_icon" : w["iconURL"], "weapon_type" : w["weaponType"], "total" : w["totalGot"], "rarity" : w["rarity"], "refinement" : w["refinement"], "attack" : w["attack"], "substat" : w["substat"], "substat_value" : w["substatVal"], "level" : w["level"], "xp" : w["xp"]}
-    weaponList.append(weapon_post)
-  weapon_collection.insert_many(weaponList)
-
-
-
 
 ###DELETING###
 def wipe_character_collection():
