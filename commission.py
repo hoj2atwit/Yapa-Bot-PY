@@ -394,4 +394,4 @@ async def answer_trivia(ctx, u, cid, answer):
           u.commissions = coms
           await all_commissions_completed(ctx, u)
         else:
-          await ctx.send(embed=error.embed_wrong_answer())
+          await error.embed_wrong_answer(ctx)
