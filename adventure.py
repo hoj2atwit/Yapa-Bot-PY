@@ -15,7 +15,7 @@ async def embed_adventure(ctx, u, characterList):
     if u.does_character_exist(c):
       characters.append(u.get_character(c))
     else:
-      await error.embed_char_is_not_owned(ctx)
+      await error.embed_get_character_suggestions(ctx, u, c)
       return
       
   if len(characters) > 0 and len(characters) <= 4:

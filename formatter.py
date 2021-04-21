@@ -173,3 +173,35 @@ def number_format(num):
     finalString += numString[i]
   return finalString[::-1]
     
+
+def get_suggestions(_dict, attempt):
+  name_list = []
+  for l in range(len(attempt)-1):
+    for name in _dict.keys():
+      if name.find(attempt[:len(attempt)-l]) != -1:
+        name_list.append(_dict[name]["name"])
+    if len(name_list) > 0:
+      break
+  if len(name_list) == 0:
+    attempt_backward = attempt[::-1]
+    for x in range(len(attempt)-1):
+      for name in _dict.keys():
+        if name[::-1].find(attempt_backward[:len(attempt_backward)-x]) != -1:
+          name_list.append(_dict[name]["name"])
+      if len(name_list) > 0:
+        break
+  if len(name_list) == 0:
+    for name in _dict.keys():
+      if name.startswith(attempt[:1]):
+        name_list.append(_dict[name]["name"])
+
+  name_list_string = ""
+  for i in range(len(name_list)):
+    if name_list_string == "":
+      name_list_string += f"**[{name_list[i]}]**"
+    elif i == len(name_list)-1:
+      name_list_string += f" or **[{name_list[i]}]**"
+    else:
+      name_list_string += f", **[{name_list[i]}]**"
+  return name_list_string
+

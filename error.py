@@ -1,4 +1,5 @@
 import discord
+import formatter
 
 async def embed_not_enough_primo(ctx):
   embed = discord.Embed(color=discord.Color.red())
@@ -84,3 +85,19 @@ async def embed_too_much_condensed(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Maximum Hit", value = "You already have 10 or more condensed resin.")
   await ctx.send(ctx.author.mention, embed=embed)
+async def embed_get_character_suggestions(ctx, u, attempt):
+  name_list_string = formatter.get_suggestions(u.characters, attempt)
+  if name_list_string != "":
+    embed = discord.Embed()
+    embed.add_field(name="Suggestions", value=f"Did you mean: {name_list_string}?")
+    await ctx.send(ctx.author.mention, embed=embed)
+  else:
+    await embed_char_is_not_owned(ctx)
+async def embed_get_weapon_suggestions(ctx, u, attempt):
+  name_list_string = formatter.get_suggestions(u.weapons, attempt)
+  if name_list_string != "":
+    embed = discord.Embed()
+    embed.add_field(name="Suggestions", value=f"Did you mean: {name_list_string}?")
+    await ctx.send(ctx.author.mention, embed=embed)
+  else:
+    await embed_weap_is_not_owned(ctx)

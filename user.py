@@ -510,40 +510,6 @@ async def embed_use_condensed(ctx, u):
   else:
     await error.embed_not_enough_condensed(ctx)
 
-async def embed_get_character_suggestions(ctx, u, attempt):
-  first_letter = attempt[:1].lower()
-  chars = u.characters
-  name_list_string = ""
-  for name in chars.keys():
-    if name.startswith(first_letter):
-      if name_list_string == "":
-        name_list_string += chars[name]["name"]
-      else:
-        name_list_string += ", {}".format(chars[name]["name"])
-  if name_list_string != "":
-    embed = discord.Embed()
-    embed.add_field(name="Suggestions", value=f"Did you mean: {name_list_string}")
-    await ctx.send(ctx.author.mention, embed=embed)
-  else:
-    await error.embed_char_is_not_owned(ctx)
-
-async def embed_get_weapon_suggestions(ctx, u, attempt):
-  first_letter = attempt[:1].lower()
-  weaps = u.weapons
-  name_list_string = ""
-  for name in weaps.keys():
-    if name.startswith(first_letter):
-      if name_list_string == "":
-        name_list_string += weaps[name]["name"]
-      else:
-        name_list_string += ", {}".format(weaps[name]["name"])
-  if name_list_string != "":
-    embed = discord.Embed()
-    embed.add_field(name="Suggestions", value=f"Did you mean: {name_list_string}")
-    await ctx.send(ctx.author.mention, embed=embed)
-  else:
-    await error.embed_weap_is_not_owned(ctx)
-
 def recharge_all_resin():
   users_ids = database_mongo.get_all_users_list_ids()
   for i in range(len(users_ids)):
