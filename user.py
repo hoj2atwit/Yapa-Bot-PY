@@ -5,72 +5,46 @@ import character
 import weapon
 import random
 import error
-import adventure
+import commission
 import pytz
-from replit import db
+import database_mongo
 from datetime import datetime, timedelta
 
 tz = pytz.timezone("America/New_York")
 
 class User:
-  name = ""
-  ID = ""
-  nickname = ""
-  description = ""
-  favoriteChar = ""
-  AR = 1
-  XP = 0
-  WL = 0
-  resin = 0
-  pity = 0
-  lastFour = 0
-  characters = {}
-  weapons = {}
-  artifacts = {}
-  mora = 0
-  primogems = 0
-  starGlitter = 0
-  starDust = 0
-  condensed = 0
-  lastDaily = ""
-  lastWeekly = ""
-  Commissions = {}
-
-  def __init__(self, name, ID, nickname, description, favoriteChar, AR, XP, WL, resin, pity, lastFour, characters, weapons, artifacts, mora, primogems, starGlitter, starDust, condensed, lastDaily, lastWeekly, bag, gear, Commissions):
+  def __init__(self, _id, name, nickname, description, favorite_character, adventure_rank, experience, world_level, resin, five_pity, four_pity, characters, weapons, artifacts, mora, primogems, star_glitter, star_dust, condensed, last_daily, last_weekly, bag, gear, commissions):
+    self._id = int(_id)
     self.name = str(name)
-    self.ID = str(ID)
     self.nickname = str(nickname)
     self.description = str(description)
-    self.favoriteChar = str(favoriteChar)
-    self.AR = int(AR)
-    self.XP = int(XP)
-    self.WL = int(WL)
+    self.favorite_character = str(favorite_character)
+    self.adventure_rank = int(adventure_rank)
+    self.experience = int(experience)
+    self.world_level = int(world_level)
     self.resin = int(resin)
-    self.pity = int(pity)
-    self.lastFour = int(lastFour)
+    self.five_pity = int(five_pity)
+    self.four_pity = int(four_pity)
     self.characters = characters
     self.weapons = weapons
     self.artifacts = artifacts
     self.mora = int(mora)
     self.primogems = int(primogems)
-    self.starGlitter = int(starGlitter)
-    self.starDust = int(starDust)
-    self.condensed = condensed
-    self.lastDaily = lastDaily
-    self.lastWeekly = lastWeekly
+    self.star_glitter = int(star_glitter)
+    self.star_dust = int(star_dust)
+    self.condensed = int(condensed) 
+    self.last_daily = str(last_daily)
+    self.last_weekly = str(last_weekly)
     self.bag = bag
     self.gear = gear
-    self.Commissions = Commissions
+    self.commissions = commissions
 
-  def saveSelf(self):
-    saveUser(self)
-
-  def canDaily(self):
+  def can_daily(self):
     utc_now = pytz.utc.localize(datetime.utcnow())
     now = utc_now.astimezone(tz)
-    if self.lastDaily == "":
+    if self.last_daily == "":
       return True, "Now"
-    old = tz.localize(formatter.getDateTime(self.lastDaily), is_dst=None)
+    old = tz.localize(formatter.get_DateTime(self.last_daily), is_dst=None)
     difference = now-old
     if difference.days >= 1:
       return True, "Now"
@@ -81,22 +55,22 @@ class User:
       hours, minutes = divmod(minutes, 60)
       return False, f"{hours}H:{minutes}M:{seconds}S"
 
-  def updateDaily(self):
+  def update_daily(self):
     utc_now = pytz.utc.localize(datetime.utcnow())
     now = utc_now.astimezone(tz)
-    self.lastDaily = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
+    self.last_daily = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
 
-  def updateWeekly(self):
+  def update_weekly(self):
     utc_now = pytz.utc.localize(datetime.utcnow())
     now = utc_now.astimezone(tz)
-    self.lastWeekly = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
+    self.last_weekly = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
 
-  def canWeekly(self):
+  def can_weekly(self):
     utc_now = pytz.utc.localize(datetime.utcnow())
     now = utc_now.astimezone(tz)
-    if self.lastWeekly == "":
+    if self.last_weekly == "":
       return True, "Now"
-    old = tz.localize(formatter.getDateTime(self.lastWeekly), is_dst=None)
+    old = tz.localize(formatter.get_DateTime(self.last_weekly), is_dst=None)
     difference = now-old
     if difference.days >= 7:
       return True, "Now"
@@ -107,261 +81,241 @@ class User:
       hours, minutes = divmod(minutes, 60)
       return False, f"{difference.days}D:{hours}H:{minutes}M:{seconds}S"
   
-  def rechargeResin(self):
-    if self.resin < self.getResinCap():
-      if self.resin + self.getResinRecharge() > self.getResinCap():
-        self.resin = self.getResinCap()
+  def recharge_resin(self):
+    if self.resin < self.get_resin_cap():
+      if self.resin + self.get_resin_recharge() > self.get_resin_cap():
+        self.resin = self.get_resin_cap()
       else:
-        self.resin += self.getResinRecharge()
+        self.resin += self.get_resin_recharge()
 
-  def useCondensed(self):
+  def use_condensed(self):
     if self.condensed > 0:
       self.condensed -= 1
       self.resin += 40
-      saveUser(self)
       return True
     else:
       return False
 
-  def condenseResin(self, amnt):
-    amntMade = 0
+  def condense_resin(self, amnt):
+    amnt_made = 0
     reason = ""
     for i in range(amnt):
       if self.resin >= 40:
         if self.condensed < 10:
           self.condensed += 1
           self.resin -= 40
-          saveUser(self)
-          amntMade += 1
+          amnt_made += 1
         else:
           reason = "t" #for too many
           break
       else:
         reason = "n" #for not enough
         break
-    return amntMade, reason
+    return amnt_made, reason
 
-  def getMaxXP(self):
-    return int((30 + (10*(self.AR-1)*(10**self.WL))))
+  def get_max_experience(self):
+    return int((30 + (10*(self.adventure_rank-1)*(10**self.world_level))))
   
-  def getResinCap(self):
-    return int(120 + (20 * self.WL))
+  def get_resin_cap(self):
+    return int(120 + (20 * self.world_level))
 
-  def getResinRecharge(self):
-    return int(20 + (5 * self.WL))
+  def get_resin_recharge(self):
+    return int(20 + (5 * self.world_level))
 
-  async def addXP(self, xp, ctx):
-    maxXP = self.getMaxXP()
-    if xp + self.XP >= maxXP:
-      xpLeftOver = int(-1*(maxXP - self.XP - xp))
-      await self.levelUp(ctx)
-      await self.addXP(xpLeftOver, ctx)
+  async def add_experience(self, xp, ctx):
+    maxXP = self.get_max_experience()
+    if xp + self.experience >= maxXP:
+      xpLeftOver = int(-1*(maxXP - self.experience - xp))
+      await self.level_up(ctx)
+      await self.add_experience(xpLeftOver, ctx)
     else:
-      self.XP += int(xp)
+      self.experience += int(xp)
 
-  def giveMora(self, u, amnt):
+  def give_mora(self, u, amnt):
     if self.mora < amnt:
       return 0, False
     u.mora += amnt
     self.mora -= amnt
-    saveUser(u)
-    saveUser(self)
     return amnt, True
 
-  def givePrimo(self, u, amnt):
+  def give_primo(self, u, amnt):
     if self.primogems < amnt:
       return 0, False
     u.primogems += amnt
     self.primogems -= amnt
-    saveUser(u)
-    saveUser(self)
     return amnt, True
 
   def rob(self, u):
-    if u.mora < 1:
+    if u.mora < 5000:
       return 0, False
-    robbed = random.randint(1, u.mora)
+    robbed = random.randint(1, int(u.mora/2))
     u.mora -= robbed
     self.mora += robbed
-    saveUser(u)
-    saveUser(self)
     return robbed, True
 
-  async def levelUp(self, ctx):
-    self.AR += 1
-    await embedAdventureRankUp(ctx, self)
-    if self.AR % 10 == 0:
-      self.WL += 1
-      await embedWorldLevelUp(ctx, self)
-    self.XP = 0
+  async def level_up(self, ctx):
+    self.adventure_rank += 1
+    await embed_adventure_rank_up(ctx, self)
+    if self.adventure_rank % 10 == 0:
+      self.world_level += 1
+      await embed_world_level_up(ctx, self)
+    self.experience = 0
 
-  def getChar(self, charName):
-    c = character.getCharFromDict(self.characters, formatter.nameUnformatter(charName))
+  def get_character(self, charName):
+    c = character.get_character_from_dict(self.characters, formatter.name_formatter(charName))
     return c
       
-  def equipWeapon(self, charName, weapName):
-    if not self.doesCharExist(charName):
+  def equip_weapon(self, charName, weapName):
+    if not self.does_character_exist(charName):
       return False, "c"
-    if not self.doesWeapExist(weapName):
+    if not self.does_weapon_exist(weapName):
       return False, "w"
-    c = character.getCharFromDict(self.characters, charName)
-    w = weapon.getWeapFromDict(self.weapons, weapName)
-    if c.weaponType.upper() != w.weaponType.upper():
+    c = character.get_character_from_dict(self.characters, charName)
+    w = weapon.get_weapon_from_dict(self.weapons, weapName)
+    if c.weapon_type.upper() != w.weapon_type.upper():
       return False, "i"
-    c.equipWeap(w)
-    self.saveChar(c)
-    saveUser(self)
+    c.equip_weapon(w)
+    self.save_character(c)
     return True, "g"
 
-  def saveChar(self, c):
-    if c.urlName in self.characters.keys():
-      self.characters[c.urlName] = c.getDict()
+  def save_character(self, c):
+    if c.URL_name in self.characters.keys():
+      self.characters[c.URL_name] = c.get_dict()
 
-  def updateEquippedWeaps(self):
+  def update_equiped_weapons(self):
     for w in self.weapons.keys():
       for c in self.characters.keys():
-        if len(self.characters[c]["w"]) >= 1:
-          if self.characters[c]["w"][0]["urlName"] == w:
-            self.characters[c]["w"][0] = self.weapons[w]
+        if len(self.characters[c]["weapon_equiped"]) > 0:
+          if self.characters[c]["weapon_equiped"]["URL_name"] == w:
+            self.characters[c]["weapon_equiped"] = self.weapons[w]
             break
 
-  def changeNickname(self, nickname):
+  def change_nickname(self, nickname):
     self.nickname = nickname
-    saveUser(self)
     
-  def changeDescription(self, description):
+  def change_description(self, description):
     self.description = description
-    saveUser(self)
 
-  def changeFavoriteChar(self, name):
-    if formatter.nameUnformatter(name) in self.characters.keys():
-      self.favoriteChar = formatter.nameFormatter(formatter.nameUnformatter(name))
-      saveUser(self)
+  def change_favorite_character(self, name):
+    if formatter.name_formatter(name) in self.characters.keys():
+      self.favorite_character = formatter.name_unformatter(formatter.name_formatter(name))
       return True
     elif name.lower() == "none":
-      self.favoriteChar = "None"
-      saveUser(self)
+      self.favorite_character = "None"
       return True
     else:
       return False
 
-  def doesCharExist(self, charName):
-    if formatter.nameUnformatter(charName) in self.characters.keys():
+  def does_character_exist(self, charName):
+    if formatter.name_formatter(charName) in self.characters.keys():
       return True
     else:
       return False
 
-  def doesWeapExist(self, weapName):
-    if formatter.nameUnformatter(weapName) in self.weapons.keys():
+  def does_weapon_exist(self, weapName):
+    if formatter.name_formatter(weapName) in self.weapons.keys():
       return True
     else:
       return False
 
-  def addChar(self, char):
-    if char.urlName in self.characters.keys():
-      if self.characters[char.urlName]["unlockedC"] < 6:
-        self.characters[char.urlName]["unlockedC"] += 1
-        if self.characters[char.urlName]["rarity"] == 5:
-          self.starGlitter += 5
+  def add_character(self, char):
+    if char.URL_name in self.characters.keys():
+      if self.characters[char.URL_name]["const_amnt"] < 6:
+        self.characters[char.URL_name]["const_amnt"] += 1
+        if self.characters[char.URL_name]["rarity"] == 5:
+          self.star_glitter += 5
         else:
-          self.starGlitter += 3
+          self.star_glitter += 3
       else:
-        if self.characters[char.urlName]["rarity"] == 5:
-          self.starGlitter += 10
+        if self.characters[char.URL_name]["rarity"] == 5:
+          self.star_glitter += 10
         else:
-          self.starGlitter += 5
+          self.star_glitter += 5
     else:
-      self.characters[char.urlName] = char.getDict()
-    self.characters[char.urlName]["totalGot"] += 1
+      self.characters[char.URL_name] = char.get_dict()
+    self.characters[char.URL_name]["total"] += 1
       
-  def addWeap(self, weap):
-    if weap.urlName in self.weapons.keys():
-      if self.weapons[weap.urlName]["refinement"] < 5:
-        self.weapons[weap.urlName]["refinement"] += 1
-        if self.weapons[weap.urlName]["rarity"] == 5:
-          self.starGlitter += 5
+  def add_weapon(self, weap):
+    if weap.URL_name in self.weapons.keys():
+      if self.weapons[weap.URL_name]["refinement"] < 5:
+        self.weapons[weap.URL_name]["refinement"] += 1
+        if self.weapons[weap.URL_name]["rarity"] == 5:
+          self.star_glitter += 5
         else:
-          self.starDust += 10
+          self.star_dust += 10
       else:
-        if self.weapons[weap.urlName]["rarity"] == 5:
-          self.starGlitter += 10
+        if self.weapons[weap.URL_name]["rarity"] == 5:
+          self.star_glitter += 10
         else:
-          self.starDust += 20
+          self.star_dust += 20
     else:
-      self.weapons[weap.urlName] = weap.getDict()
-    self.weapons[weap.urlName]["totalGot"] += 1
+      self.weapons[weap.URL_name] = weap.get_dict()
+    self.weapons[weap.URL_name]["total"] += 1
 
-  def getDict(self):
+  def get_dict(self):
     return self.__dict__
-
-def doesExist(ID):
-  if ID in db["User"].keys():
-    return True
-  else:
-    return False
-
-def deleteUser(ID):
-    if ID in db["User"].keys():
-      del db["User"][ID]
-
-def saveUser(user):
-  if user.ID in db["User"].keys():
-    db["User"][user.ID] = user.getDict()
       
-def getUser(ID):
-  if ID in db["User"].keys():
-    u = db["User"][ID]
-    return User(u["name"], u["ID"], u["nickname"], u["description"], u["favoriteChar"], u["AR"], u["XP"], u["WL"], u["resin"], u["pity"], u["lastFour"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["starGlitter"], u["starDust"], u["condensed"], u["lastDaily"], u["lastWeekly"], u["bag"], u["gear"], u["Commissions"])
+def get_user(_id):
+  u = database_mongo.get_user_dict(_id)
+  return User(u["_id"], u["name"], u["nickname"], u["description"], u["favorite_character"], u["adventure_rank"], u["experience"], u["world_level"], u["resin"], u["five_pity"], u["four_pity"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["star_glitter"], u["star_dust"], u["condensed"], u["last_daily"], u["last_weekly"], u["bag"], u["gear"], u["commissions"])
 
-def createUser(name, ID):
-  newU = User(name, ID, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 8000, 0, 0, 0, "", "", {}, {}, adventure.makeUserCommissions())
-  if "User" not in db.keys():
-    db["User"] = {}
-  if ID not in db["User"].keys():
-    db["User"][ID] = newU.getDict()
+def does_exist(_id):
+  u = database_mongo.get_user_dict(_id)
+  if u == None:
+    return False
+  else:
+    return True
 
-def embedBal(u):
+def create_user(name, ID):
+  newU = User(ID, name, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 8000, 0, 0, 0, "", "", {}, {}, commission.make_user_commissions())
+  database_mongo.save_user(newU)
+
+async def embed_balance(ctx, u):
   embed = discord.Embed(title=f"{u.nickname}\'s Balance", color=discord.Color.dark_orange())
-  embed.add_field(name="Primogems", value=formatter.numberFormat(u.primogems))
-  embed.add_field(name="Mora", value=formatter.numberFormat(u.mora))
-  embed.add_field(name="Star Glitter", value=formatter.numberFormat(u.starGlitter))
-  embed.add_field(name="Star Dust", value=formatter.numberFormat(u.starDust))
+  embed.add_field(name="Primogems", value=formatter.number_format(u.primogems))
+  embed.add_field(name="Mora", value=formatter.number_format(u.mora))
+  embed.add_field(name="Star Glitter", value=formatter.number_format(u.star_glitter))
+  embed.add_field(name="Star Dust", value=formatter.number_format(u.star_dust))
   f = discord.File("Images/Other/Balance.png", "Balance.png")
   embed.set_thumbnail(url="attachment://Balance.png")
-  return embed, f
+  await ctx.send(embed=embed, file=f)
 
-def embedResin(u):
+def embed_resin(u):
   embed = discord.Embed(title=f"{u.nickname}\'s Resin", color=discord.Color.blue())
-  embed.add_field(name="_ _", value=f"**{formatter.numberFormat(u.resin)}/{formatter.numberFormat(u.getResinCap())}**\nCondensed: {formatter.numberFormat(u.condensed)}")
+  embed.add_field(name="_ _", value=f"**{formatter.number_format(u.resin)}/{formatter.number_format(u.get_resin_cap())}**\nCondensed: {formatter.number_format(u.condensed)}")
   f = discord.File("Images/Other/Resin.png", "Resin.png")
   embed.set_thumbnail(url="attachment://Resin.png")
   return embed, f
 
-def embedProfile(u):
+async def embed_profile(ctx, u, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Profile", color=discord.Color.dark_gold(), description=u.description)
-  embed.add_field(name="Favorite Character", value=f"{u.favoriteChar}", inline=False)
-  embed.add_field(name="Adventure Rank", value=f"{formatter.numberFormat(u.AR)}", inline=True)
-  embed.add_field(name="World Level", value=f"{formatter.numberFormat(u.WL)}", inline=True)
-  embed.add_field(name="Current XP:", value=f"{formatter.numberFormat(u.XP)}/{formatter.numberFormat(u.getMaxXP())}", inline=False)
-  embed.add_field(name="Pity:", value=f"5:star: | **{u.pity}/90**\n4:star: | **{u.lastFour}/10**", inline=False)
-  embed.add_field(name="Currency:", value=f"Primogems: {formatter.numberFormat(u.primogems)}\nMora: {formatter.numberFormat(u.mora)}\nStar Glitter: {formatter.numberFormat(u.starGlitter)}\nStar Dust: {formatter.numberFormat(u.starDust)}", inline=True)
-  embed.add_field(name="Resin", value = f"{formatter.numberFormat(u.resin)}/{formatter.numberFormat(u.getResinCap())}\nCondensed: {formatter.numberFormat(u.condensed)}")
+  embed.add_field(name="Favorite Character", value=f"{u.favorite_character}", inline=False)
+  embed.add_field(name="Adventure Rank", value=f"{formatter.number_format(u.adventure_rank)}", inline=True)
+  embed.add_field(name="World Level", value=f"{formatter.number_format(u.world_level)}", inline=True)
+  embed.add_field(name="Current XP:", value=f"{formatter.number_format(u.experience)}/{formatter.number_format(u.get_max_experience())}", inline=False)
+  embed.add_field(name="Pity:", value=f"5:star: | **{u.five_pity}/90**\n4:star: | **{u.four_pity}/10**", inline=False)
+  embed.add_field(name="Currency:", value=f"Primogems: {formatter.number_format(u.primogems)}\nMora: {formatter.number_format(u.mora)}\nStar Glitter: {formatter.number_format(u.star_glitter)}\nStar Dust: {formatter.number_format(u.star_dust)}", inline=True)
+  embed.add_field(name="Resin", value = f"{formatter.number_format(u.resin)}/{formatter.number_format(u.get_resin_cap())}\nCondensed: {formatter.number_format(u.condensed)}")
   text = ""
-  for comID in u.Commissions.keys():
-    commissionName = u.Commissions[comID]["commission"]["title"]
-    if u.Commissions[comID]["commission"]["completed"]:
+  for comID in u.commissions.keys():
+    commissionName = u.commissions[comID]["commission"]["title"]
+    if u.commissions[comID]["commission"]["completed"]:
       text += f"~~{commissionName}~~ - **Completed**\n"
     else:
       text += f"{commissionName}\n"
   embed.add_field(name="Commissions", value = text, inline=False)
-  can, dailyString = u.canDaily()
-  can, weeklyString = u.canWeekly()
+
+  can, dailyString = u.can_daily()
+  can, weeklyString = u.can_weekly()
   embed.add_field(name="Recharge Times", value=f"Daily: {dailyString}\nWeekly: {weeklyString}", inline=False)
 
-  return embed
+  url = formatter.get_avatar(member)
+  embed.set_thumbnail(url=url)
 
-def embedCharList(u, pg):
-  allChars = formatter.organizeByRarity(u.characters)
+  await ctx.send(embed=embed)
+
+async def embed_char_list(ctx, u, pg):
+  allChars = formatter.organize_by_rarity(u.characters)
   charlist = []
   text = ""
   for i in range(len(allChars)):
@@ -370,7 +324,7 @@ def embedCharList(u, pg):
       text += prefix.fiveStarPrefix
     else:
       text += prefix.fourStarPrefix
-    text += "{n} **C{con}** x{c}\n".format(n = char["name"], con=char["unlockedC"] ,c = char["totalGot"])
+    text += "{n} **C{con}** x{c}\n".format(n = char["name"], con=char["const_amnt"] ,c = char["total"])
     if i % 10 == 0 and i != 0:
       charlist.append(text)
       text = ""
@@ -383,10 +337,10 @@ def embedCharList(u, pg):
     pg = 1  
   embed.add_field(name="_ _", value=f"{charlist[pg-1]}")
   embed.set_footer(text=f"Page {pg}/{len(charlist)}")
-  return embed
+  await ctx.send(embed=embed)
 
-def embedWeapList(u, pg):
-  allWeaps = formatter.organizeByRarity(u.weapons)
+async def embed_weap_list(ctx, u, pg):
+  allWeaps = formatter.organize_by_rarity(u.weapons)
   weaplist = []
   text = ""
   for i in range(len(allWeaps)):
@@ -401,7 +355,7 @@ def embedWeapList(u, pg):
       text += prefix.twoStarPrefix
     else:
       text += prefix.oneStarPrefix
-    text += "{n} **R{r}** x{c}\n".format(n = weap["name"], r=weap["refinement"] ,c = weap["totalGot"])
+    text += "{n} **R{r}** x{c}\n".format(n = weap["name"], r=weap["refinement"] ,c = weap["total"])
     if i % 10 == 0 and i != 0:
       weaplist.append(text)
       text = ""
@@ -414,51 +368,48 @@ def embedWeapList(u, pg):
     pg = 1
   embed.add_field(name="_ _", value=f"{weaplist[pg-1]}")
   embed.set_footer(text=f"Page {pg}/{len(weaplist)}")
-  return embed
+  await ctx.send(embed=embed)
 
 #Shows gift of primo to user
-def embedGivePrimo(u, primo):
+async def embed_give_primo(ctx, u, primo, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift", color=discord.Color.blurple())
   u.primogems += primo
   embed.add_field(name = f"Primogems x{primo}", value = "_ _")
   f = discord.File("Images/Other/Primogem.png", "Primogem.png")
   embed.set_thumbnail(url="attachment://Primogem.png")
-  saveUser(u)
-  return embed, f
+  await ctx.send(member.mention, embed=embed, file=f)
 
 #Shows donation of primo to user
-def embedDonatePrimo(giver, u, primo):
+async def embed_donate_primo(ctx, giver, u, primo, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift from {giver.nickname}", color=discord.Color.blurple())
   amnt, given = giver.givePrimo(u, primo)
   if given:
     embed.add_field(name = f"Primogems x{primo}", value = "_ _")
+    await ctx.send(member.mention, embed=embed)
   else:
-    embed = error.embedFailedDonationPrimo()
-  return embed
+    await error.embed_failed_donation_primo(ctx)
   
 #Shows gift of mora to user
-def embedGiveMora(u, mora):
+async def embed_give_mora(ctx, u, mora, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift", color=discord.Color.gold())
   u.mora += mora
-  embed.add_field(name = f"Mora x{formatter.numberFormat(mora)}", value = "_ _")
+  embed.add_field(name = f"Mora x{formatter.number_format(mora)}", value = "_ _")
   f = discord.File("Images/Other/Mora.png", "Mora.png")
   embed.set_thumbnail(url="attachment://Mora.png")
-  saveUser(u)
-  return embed, f
+  await ctx.send(member.mention, embed=embed, file=f)
 
 #Shows donation of mora to user
-def embedDonateMora(giver, u, mora):
+async def embed_donate_mora(ctx, giver, u, mora, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift from {giver.nickname}", color=discord.Color.gold())
-  amnt, given = giver.giveMora(u, mora)
+  amnt, given = giver.give_mora(u, mora)
   if given:
-    embed.add_field(name = f"Mora x{formatter.numberFormat(mora)}", value = "_ _")
+    embed.add_field(name = f"Mora x{formatter.number_format(mora)}", value = "_ _")
+    await ctx.send(member.mention, embed=embed)
   else:
-    embed = error.embedFailedDonationMora()
-  saveUser(u)
-  return embed
+    await error.embed_failed_donation_mora(ctx)
 
 #Shows user owned character info
-async def embedShowCharInfo(ctx, u, c):
+async def embed_show_char_info(ctx, u, c):
   color = discord.Color.red()
   if c["element"] == "Anemo":
     color = discord.Color.green()
@@ -474,88 +425,82 @@ async def embedShowCharInfo(ctx, u, c):
     color = discord.Color.blue()
 
   embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = c["name"]), color=color, description=c["description"])
-  level = formatter.numberFormat(c["level"])
-  currXP = formatter.numberFormat(c["xp"])
-  maxXP = formatter.numberFormat(formatter.getXPToNextLevel(c["level"]))
+  level = formatter.number_format(c["level"])
+  currXP = formatter.number_format(c["xp"])
+  maxXP = formatter.number_format(formatter.get_xp_to_next_level(c["level"]))
   embed.add_field(name="Level {l}".format(l = level), value = "**XP:** {x}/{xm}".format(x=currXP, xm=maxXP))
-  embed.add_field(name="Amount Info", value="**Constellations Unlocked:** {cu}\n**Total Wished:** {tr}".format(cu = c["unlockedC"], tr = formatter.numberFormat(c["totalGot"])))
-  if len(c["w"]) == 0:
+  embed.add_field(name="Amount Info", value="**Constellations Unlocked:** {cu}\n**Total Wished:** {tr}".format(cu = c["const_amnt"], tr = formatter.number_format(c["total"])))
+  if len(c["weapon_equiped"]) == 0:
     text = "None"
   else:
-    text = c["w"][0]["name"]
-  embed.add_field(name="Equipped Weapon", value=text)
-  embed.add_field(name="Trivia Info", value="**Element:** {e}\n**Constellation:** {c}".format(e = c["element"], c = c["constName"]))
+    text = c["weapon_equiped"]["name"]
+  embed.add_field(name="Equiped Weapon", value=text)
+  embed.add_field(name="Trivia Info", value="**Element:** {e}\n**Constellation:** {c}".format(e = c["element"], c = c["constellation_name"]))
   f = []
-  f.append(discord.File(c["iconURL"], "{}-icon.png".format(c["urlName"])))
-  f.append(discord.File(c["portraitURL"], "{}-portrait.png".format(c["urlName"])))
-  embed.set_image(url="attachment://{}-portrait.png".format(c["urlName"]))
-  embed.set_thumbnail(url="attachment://{}-icon.png".format(c["urlName"]))
+  f.append(discord.File(c["URL_icon"], "{}-icon.png".format(c["URL_name"])))
+  f.append(discord.File(c["URL_portrait"], "{}-portrait.png".format(c["URL_name"])))
+  embed.set_image(url="attachment://{}-portrait.png".format(c["URL_name"]))
+  embed.set_thumbnail(url="attachment://{}-icon.png".format(c["URL_name"]))
 
   await ctx.send(embed=embed, files=f)
 
 #Show user owned weapon info
-def embedShowWeapInfo(u, w):
+async def embed_show_weap_info(ctx, u, w):
   embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = w["name"]))
-  embed.add_field(name="Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Refinement:** {cu}\n**Total Wished:** {tr}".format(l = formatter.numberFormat(w["level"]), cu = w["refinement"], tr = formatter.numberFormat(w["totalGot"]), x = formatter.numberFormat(w["xp"]), xm = formatter.numberFormat(formatter.getXPToNextLevel(w["level"]))))
+  embed.add_field(name="Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Refinement:** {cu}\n**Total Wished:** {tr}".format(l = formatter.number_format(w["level"]), cu = w["refinement"], tr = formatter.number_format(w["total"]), x = formatter.number_format(w["xp"]), xm = formatter.number_format(formatter.get_xp_to_next_level(w["level"]))))
 
-  f = discord.File(w["iconURL"], "{}-icon.png".format(w["urlName"]))
-  embed.set_thumbnail(url="attachment://{}-icon.png".format(w["urlName"]))
+  f = discord.File(w["URL_icon"], "{}-icon.png".format(w["URL_name"]))
+  embed.set_thumbnail(url="attachment://{}-icon.png".format(w["URL_name"]))
 
-  return embed, f
+  await ctx.send(embed=embed, file=f)
 
-async def embedDaily(ctx, u):
-  can, timeLeft = u.canDaily()
+async def embed_daily(ctx, u):
+  can, timeLeft = u.can_daily()
   embed = discord.Embed(title=f"{u.nickname}\'s Daily Claim")
   if can:
     u.primogems += 800
     u.mora += 10000
     u.condensed += 3
-    u.updateDaily()
+    u.update_daily()
     embed.add_field(name="Reward", value="**800** Primogems\n**10,000** Mora\n**3** Condensed Resin")
     f = discord.File("Images/Other/Gift.png", "Gift.png")
     embed.set_thumbnail(url="attachment://Gift.png")
-    saveUser(u)
+    
     await ctx.send(embed=embed, file=f)
   else:
-    embed = error.embedTooEarly(timeLeft)
-    await ctx.send(embed=embed)
+    await error.embed_too_early(ctx, timeLeft)
 
-async def embedWeekly(ctx, u):
-  can, timeLeft = u.canWeekly()
+async def embed_weekly(ctx, u):
+  can, timeLeft = u.can_weekly()
   embed = discord.Embed(title=f"{u.nickname}\'s Weekly Claim")
   if can:
     u.primogems += 1600
     u.mora += 500000
     u.condensed += 10
-    u.updateWeekly()
+    u.update_weekly()
     embed.add_field(name="Reward", value="**1,600** Primogems\n**500,000** Mora\n**10** Condensed Resin")
     f = discord.File("Images/Other/Gift.png", "Gift.png")
     embed.set_thumbnail(url="attachment://Gift.png")
-    saveUser(u)
     await ctx.send(embed=embed, file=f)
   else:
-    embed = error.embedTooEarly(timeLeft)
-    await ctx.send(embed=embed)
+    await error.embed_too_early(ctx, timeLeft)
 
-async def embedCondensed(ctx, u, amnt):
-  amntSucc, reason = u.condenseResin(amnt)
+async def embed_condensed(ctx, u, amnt):
+  amntSucc, reason = u.condense_resin(amnt)
   if amntSucc > 0:
     embed = discord.Embed(title="Condensing Resin", color=discord.Color.blue())
     embed.add_field(name="Condensed Successfully Crafted:", value=f"{amntSucc}")
-    saveUser(u)
     f = discord.File("Images/Other/Condensed_Resin.png", "Condensed_Resin.png")
     embed.set_thumbnail(url="attachment://Condensed_Resin.png")
     await ctx.send(embed=embed, file=f)
   else:
     if reason == "n":
-      embed = error.embedNotEnoughResin()
-      await ctx.send(embed=embed)
+      await error.embed_not_enough_resin(ctx)
     else:
-      embed = error.embedTooMuchCondensed()
-      await ctx.send(embed=embed)
+      await error.embed_too_much_condensed(ctx)
 
-async def embedUseCondensed(ctx, u):
-  can = u.useCondensed()
+async def embed_use_condensed(ctx, u):
+  can = u.use_condensed()
   if can:
     embed = discord.Embed(title="Using Condensed", color=discord.Color.blue())
     embed.add_field(name="Condensed Resin Used", value=f"You now have {u.condensed} remaining.")
@@ -563,45 +508,40 @@ async def embedUseCondensed(ctx, u):
     embed.set_thumbnail(url="attachment://Condensed_Resin.png")
     await ctx.send(embed=embed, file=f)
   else:
-    embed = error.embedNotEnoughCondensed()
-    await ctx.send(embed=embed)
+    await error.embed_not_enough_condensed(ctx)
 
-def rechargeAllResin():
-  for i in db["User"].keys():
-    u = getUser(i)
-    u.rechargeResin()
-    saveUser(u)
+def recharge_all_resin():
+  users_ids = database_mongo.get_all_users_list_ids()
+  for i in range(len(users_ids)):
+    u = get_user(users_ids[i])
+    u.recharge_resin()
+    database_mongo.save_user(u)
 
-async def embedAdventureRankUp(ctx, u):
-  embed = discord.Embed(title="Adventure Rank Up", color=discord.Color.green(), description=f"{u.nickname}\'s Adventure Rank has increased to {u.AR}")
+async def embed_adventure_rank_up(ctx, u):
+  embed = discord.Embed(title="Adventure Rank Up", color=discord.Color.green(), description=f"{u.nickname}\'s Adventure Rank has increased to {u.adventure_rank}")
   await ctx.send(embed=embed)
 
-async def embedWorldLevelUp(ctx, u):
-  embed = discord.Embed(title="World Level Increase", color=discord.Color.green(), description=f"{u.nickname}\'s World Level has increased to {u.WL}\n Your adventuring rewards will increase.")
+async def embed_world_level_up(ctx, u):
+  embed = discord.Embed(title="World Level Increase", color=discord.Color.green(), description=f"{u.nickname}\'s World Level has increased to {u.world_level}\n Your adventuring rewards will increase.")
   await ctx.send(embed=embed)
 
-def clearUserData():
-  print("Clearing User Data")
-  db["User"] = {}
-  print("User Data Cleared")
+def reset_timers(_id):
+  u = get_user(_id)
+  u.last_daily = ""
+  u.last_weekly = ""
+  database_mongo.save_user(u)
 
-def resetTimers(i):
-  if i in db["User"].keys():
-    u = getUser(i)
-    u.lastDaily = ""
-    u.lastWeekly = ""
-    saveUser(u)
+def reset_daily_commissions(_id):
+  
+  u = get_user(_id)
+  u.commissions = {}
+  u.commissions = commission.make_user_commissions()
+  database_mongo.save_user(u)
 
-def resetDailyCommissions(i):
-  if i in db["User"].keys():
-    u = getUser(i)
-    u.Commissions = {}
-    u.Commissions = adventure.makeUserCommissions()
-    saveUser(u)
-
-def generateAllUserCommissions():
-  for i in db["User"].keys():
-    u = getUser(i)
-    u.Commissions = {}
-    u.Commissions = adventure.makeUserCommissions()
-    saveUser(u)
+def generate_all_user_commissions():
+  users_ids = database_mongo.get_all_users_list_ids()
+  for i in range(len(users_ids)):
+    u = get_user(users_ids[i])
+    u.commissions = {}
+    u.commissions = commission.make_user_commissions()
+    database_mongo.save_user(u)

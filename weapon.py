@@ -2,40 +2,27 @@ import requests
 import json
 import formatter
 import math
-from replit import db
+import database_mongo
 
 class Weapon:
-  name = "None"
-  urlName = ""
-  iconURL = ""
-  weaponType = ""
-  totalGot = 0
-  rarity = 0
-  refinement = 1
-  attack = 0
-  substat = ""
-  substatVal = 0
-  level = 1
-  xp = 0
-
-  def __init__(self, name, urlName, iconURL, weaponType, totalGot, rarity, refinement, attack, substat, substatVal, level, xp):
-    self.name = str(name)
-    self.urlName = str(urlName)
-    self.iconURL = str(iconURL)
-    self.weaponType = str(weaponType)
-    self.totalGot = int(totalGot)
-    self.rarity = int(rarity)
-    self.refinement = int(refinement)
-    self.attack = int(attack)
-    self.substat = str(substat)
-    self.substatVal = int(substatVal)
-    self.level = int(level)
-    self.xp = int(xp)
+  def __init__(self, name, URL_name, URL_icon, weapon_type, total, rarity, refinement, attack, substat, substat_value, level, xp):
+    self.name = name
+    self.URL_name = URL_name
+    self.URL_icon = URL_icon
+    self.weapon_type = weapon_type
+    self.total = total
+    self.rarity = rarity
+    self.refinement = refinement
+    self.attack = attack
+    self.substat = substat
+    self.substat_value = substat_value
+    self.level = level
+    self.xp = xp
 
   def copy(self):
-    return Weapon(self.name, self.urlName, self.iconURL, self.weaponType, self.totalGot, self.rarity, self.refinement, self.attack, self.substat, self.substatVal, self.level, self.xp)
+    return Weapon(self.name, self.URL_name, self.URL_icon, self.weapon_type, self.total, self.rarity, self.refinement, self.attack, self.substat, self.substat_value, self.level, self.xp)
 
-  def getXPToNextLevel(self):
+  def get_xp_to_next_level(self):
     return int((30 + (10*(self.level-1)*(10**math.floor(self.level/10))))/2)
 
   def refine(self, user):
@@ -49,30 +36,35 @@ class Weapon:
         return True
     return False
 
-  def getDict(self):
+  def get_dict(self):
     return self.__dict__
 
 apiURL = "https://api.genshin.dev/"
-weapIconURL = "https://raw.github.com/genshindev/api/master/assets/images/weapons/{}/icon"
+weapURL_icon = "https://raw.github.com/genshindev/api/master/assets/images/weapons/{}/icon"
 
-def getWeapFromDict(weapDict, name):
-  n = formatter.nameUnformatter(name)
+def get_weapon_from_dict(weapDict, name):
+  n = formatter.name_formatter(name)
   if n in weapDict.keys():
     w = weapDict[n]
-    return Weapon(w["name"], w["urlName"], w["iconURL"], w["weaponType"], w["totalGot"], w["rarity"], w["refinement"], w["attack"], w["substat"], w["substatVal"], w["level"], w["xp"])
+    return Weapon(w["name"], w["URL_name"], w["URL_icon"], w["weapon_type"], w["total"], w["rarity"], w["refinement"], w["attack"], w["substat"], w["substat_value"], w["level"], w["xp"])
 
-def getWeap(name):
-  if name in db["Weapons"].keys():
-    w = db["Weapons"][name]
-    return Weapon(w["name"], w["urlName"], w["iconURL"], w["weaponType"], w["totalGot"], w["rarity"], w["refinement"], w["attack"], w["substat"], w["substatVal"], w["level"], w["xp"])
+def get_weap_list_from_dict_list(dictList):
+  weapList = []
+  for w in dictList:
+    weapList.append(Weapon(w["name"], w["URL_name"], w["URL_icon"], w["weapon_type"], w["total"], w["rarity"], w["refinement"], w["attack"], w["substat"], w["substat_value"], w["level"], w["xp"]))
+  return weapList
 
-def getWeapNames():
+def get_weapon(name):
+  w = database_mongo.get_weapon_dict(name)
+  return Weapon(w["name"], w["URL_name"], w["URL_icon"], w["weapon_type"], w["total"], w["rarity"], w["refinement"], w["attack"], w["substat"], w["substat_value"], w["level"], w["xp"])
+
+def get_weapon_names_API():
   response = requests.get(apiURL + "weapons/")
   json_data = json.loads(response.text)
   return json_data
 
-def getAllWeapsAPI():
-  allWeapNames = getWeapNames()
+def get_all_weaps_API():
+  allWeapNames = get_weapon_names_API()
   allWeaps = []
   print("Getting Weapons")
   for i in allWeapNames:
@@ -80,82 +72,50 @@ def getAllWeapsAPI():
     response = requests.get(apiURL + "weapons/" + i)
     json_data = response.json()
 
-    name = formatter.nameFormatter("{}".format(i))
-    urlName = "{}".format(i)
+    name = formatter.name_unformatter("{}".format(i))
+    URL_name = "{}".format(i)
 
-    iconURL = f"Images/Weapons/{urlName}-icon.png"
+    URL_icon = f"Images/Weapons/{URL_name}-icon.png"
 
     rarity = int("{}".format(json_data['rarity']))
-    weaponType = "{}".format(json_data['type'])
+    weapon_type = "{}".format(json_data['type'])
     attack = int("{}".format(json_data['baseAttack']))
     substat = "{}".format(json_data['subStat'])
 
-    allWeaps.append(Weapon(name, urlName, iconURL, weaponType, 0, rarity, 1, attack, substat, 0, 1, 0))
+    allWeaps.append(Weapon(name, URL_name, URL_icon, weapon_type, 0, rarity, 1, attack, substat, 0, 1, 0))
     print("Finished {} Data".format(i))
   print("Finished Weapons")
   return allWeaps
 
-def getAllWeapImages():
-  allWeapNames = getWeapNames()
+def get_all_weap_images():
+  allWeapNames = get_weapon_names_API()
   for i in allWeapNames:
-    urlName = "{}".format(i)
-    url = weapIconURL.format(urlName)
+    URL_name = "{}".format(i)
+    url = weapURL_icon.format(URL_name)
     r = requests.get(url)
-    with open(f"Images/Weapons/{urlName}-icon.png", "wb") as f:
+    with open(f"Images/Weapons/{URL_name}-icon.png", "xb") as f:
       f.write(r.content)
 
-def getAllWeaps():
-  allWeaps = []
-  for w in db["Weapons"].keys():
-    allWeaps.append(getWeap(w))
+def get_all_Weapons():
+  allWeaps = get_weap_list_from_dict_list(database_mongo.get_all_weapons_list())
   return allWeaps
 
 def updateWeaponsDB():
-  allWeapons = getAllWeapsAPI()
-  if "Weapons" not in db.keys():
-    db["Weapons"] = {}
+  allWeapons = get_all_weaps_API()
   for weapon in allWeapons:
-    db["Weapons"][weapon.urlName] = weapon.getDict()
+    database_mongo.save_weapon(weapon)
 
-def getFiveStarWeaps():
-  allWeaps = getAllWeaps()
-  weaps = []
-  for w in allWeaps:
-    if w.rarity == 5:
-      weaps.append(w)
-  return weaps
+def get_five_star_weapons():
+  return get_weap_list_from_dict_list(database_mongo.get_all_weapons_of_criteria("rarity", 5))
 
-def getFourStarWeaps():
-  allWeaps = getAllWeaps()
-  weaps = []
-  for w in allWeaps:
-    if w.rarity == 4:
-      weaps.append(w)
-  return weaps
+def get_four_star_weapons():
+  return get_weap_list_from_dict_list(database_mongo.get_all_weapons_of_criteria("rarity", 4))
 
-def getThreeStarWeaps():
-  allWeaps = getAllWeaps()
-  weaps = []
-  for w in allWeaps:
-    if w.rarity == 3:
-      weaps.append(w)
-  return weaps
+def get_three_star_weapons():
+  return get_weap_list_from_dict_list(database_mongo.get_all_weapons_of_criteria("rarity", 3))
 
-def getTwoStarWeaps():
-  allWeaps = getAllWeaps()
-  weaps = []
-  for w in allWeaps:
-    if w.rarity == 2:
-      weaps.append(w)
-  return weaps
+def get_two_star_weapons():
+  return get_weap_list_from_dict_list(database_mongo.get_all_weapons_of_criteria("rarity", 2))
 
-def getOneStarWeaps():
-  allWeaps = getAllWeaps()
-  weaps = []
-  for w in allWeaps:
-    if w.rarity == 1:
-      weaps.append(w)
-  return weaps
-
-#updateWeaponsDB()
-#getAllWeapImages()
+def get_one_star_weapons():
+  return get_weap_list_from_dict_list(database_mongo.get_all_weapons_of_criteria("rarity", 1))

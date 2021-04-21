@@ -2,15 +2,15 @@ import math
 import discord
 import prefix
 import datetime
-def getAvatar(avamember : discord.Member=None):
+def get_avatar(avamember : discord.Member=None):
   return avamember.avatar_url
 
-def nameUnformatter(name):
+def name_formatter(name):
   map_dict = {' ':'-', '\'':'-'}
   uFormName = ''.join(i if i not in map_dict else map_dict[i] for i in name)
   return uFormName.lower()
 
-def nameFormatter(name):
+def name_unformatter(name):
     currentPart = ""
     formattedName = ""
     #Iterates through name given
@@ -40,7 +40,7 @@ def nameFormatter(name):
           formattedName += currentPart
     return formattedName;
 
-def textFormatter(name):
+def text_formatter(name):
     currentPart = ""
     formattedName = ""
     #Iterates through name given
@@ -68,7 +68,7 @@ def textFormatter(name):
           formattedName += " " + currentPart
     return formattedName;
 
-def rewardListOrganizer(ar):
+def reward_list_organizer(ar):
   orgAr = []
   changedItems = 0
   for i in range(6):
@@ -80,7 +80,7 @@ def rewardListOrganizer(ar):
       break    
   return orgAr[::-1]
 
-def organizeByRarity(d):
+def organize_by_rarity(d):
   sortedKeys = sorted(d)[::-1]
   orgAr = []
   changedItems = 0
@@ -93,24 +93,24 @@ def organizeByRarity(d):
       break    
   return orgAr[::-1]
 
-def getXPToNextLevel(level):
+def get_xp_to_next_level(level):
     return int((30 + (10*(level-1)*(10**math.floor(level/10))))/2)
 
-def getIDFromMention(text):
-  id = ""
+def get_id_from_mention(text):
+  _id = ""
   for c in text:
     if c.isdigit():
-      id += c
-  return id
+      _id += c
+  return int(_id)
 
-def removeExtraSpaces(command):
+def remove_extra_spaces(command):
   for i in range(2):
     while command.startswith(" ") and len(command) > 0:
       command = command[1:]
     command = command[::-1]
   return command
 
-def splitInformation(command):
+def split_information(command):
   info = []
   text = ""
   for c in command:
@@ -118,13 +118,13 @@ def splitInformation(command):
       text += c
     else:
       if text != "":
-        info.append(removeExtraSpaces(text))
+        info.append(remove_extra_spaces(text))
         text = ""
   if text != "":
-    info.append(removeExtraSpaces(text))
+    info.append(remove_extra_spaces(text))
   return info
 
-def getDateTime(timeString):
+def get_DateTime(timeString):
   t = []
   text = ""
   for c in timeString:
@@ -144,7 +144,7 @@ def separate_commands(commandsPointer):
   for x in commandsPointer:
     if x.startswith(prefix.commandPrefix):
       if text != "":
-        commands.append(removeExtraSpaces(text))
+        commands.append(remove_extra_spaces(text))
         text = x
     else:
       if text == "":
@@ -155,16 +155,16 @@ def separate_commands(commandsPointer):
     commands.append(text)
   return commands
 
-def getCommissionID(command):
-  id = command[:1].upper()
+def get_commission_ID(command):
+  _id = command[:1].upper()
   for c in command[1:]:
     if c == " ":
       break
     elif c.isdigit():
-      id += c
-  return id
+      _id += c
+  return _id
 
-def numberFormat(num):
+def number_format(num):
   numString = str(num)[::-1]
   finalString = ""
   for i in range(len(numString)):

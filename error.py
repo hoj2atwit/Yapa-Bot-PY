@@ -1,86 +1,86 @@
 import discord
 
-def embedNotEnoughPrimo():
+async def embed_not_enough_primo(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Low Balance", value = "Not Enough Primogems")
-  return embed
-def embedNotEnoughMora():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_not_enough_mora(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Low Balance", value = "Not Enough Mora")
-  return embed
-def embedNotEnoughStarGlitter():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_not_enough_star_glitter(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Low Balance", value = "Not Enough Star Glitter")
-  return embed
-def embedNotEnoughStarDust():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_not_enough_star_dust(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Low Balance", value = "Not Enough Star Dust")
-  return embed
-def embedCharIsNotOwned():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_char_is_not_owned(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Character not found", value = "You do not own this character or this character does not exist.")
-  return embed
-def embedCharDoesNotExist():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_char_does_not_exist(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Character not found", value = "This character does not exist.")
-  return embed
-def embedWeapIsNotOwned():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_weap_is_not_owned(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Weapon not found", value = "You do not own this weapon or this weapon does not exist.")
-  return embed
-def embedWeapIsNotCompatible():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_weap_is_not_compatible(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Incompatible", value = "That weapon is incompatible.")
-  return embed
-def embedWeapDoesNotExist():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_weap_does_not_exist(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Character not found", value = "This weapon does not exist.")
-  return embed
-def embedArtIsNotOwned():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_art_is_not_owned(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Artifact not found", value = "You do not own this artifact or this artifact does not exist.")
-  return embed
-def embedArtDoesNotExist():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_art_does_not_exist(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Artifact not found", value = "This artifact does not exist.")
-  return embed
-def embedUserDoesNotExist():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_user_does_not_exist(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "User not found", value = "This User does not exist or has not begun their adventure.")
-  return embed
-def embedFailedRobbery():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_failed_robbery(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Mora not found", value = "This User does not have enough mora to steal.")
-  return embed
-def embedFailedDonationMora():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_failed_donation_mora(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Mora not found", value = "This User does not have enough mora to give away.")
-  return embed
-def embedFailedDonationPrimo():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_failed_donation_primo(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Primo not found", value = "This User does not have enough primogems to give away.")
-  return embed
-def embedTooEarly(waitTime):
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_too_early(ctx, waitTime):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Too Early", value = f"You cannot use that command for **{waitTime}**.")
-  return embed
-def embedNotEnoughResin():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_not_enough_resin(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Resin Not Found", value = "You do not have sufficient Resin.")
-  return embed
-def embedNotEnoughCondensed():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_not_enough_condensed(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Resin Not Found", value = "You do not have sufficient Condensed Resin.")
-  return embed
-def embedTooManyCharacters():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_too_many_characters(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Character Error", value = "You have given too many characters.")
-  return embed
-def embedWrongAnswer():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_wrong_answer(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Answer Error", value = "Your answer is incorrect.")
-  return embed
-def embedTooMuchCondensed():
+  await ctx.send(ctx.author.mention, embed=embed)
+async def embed_too_much_condensed(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Maximum Hit", value = "You already have 10 or more condensed resin.")
-  return embed
+  await ctx.send(ctx.author.mention, embed=embed)
