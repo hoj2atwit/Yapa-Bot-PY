@@ -120,12 +120,18 @@ def get_all_character_images_API():
     urlName = "{}".format(i)
     url = charIconURL.format(urlName)
     r = requests.get(url)
-    with open(f"Images/Characters/{urlName}-icon.png", "xb") as f:
-      f.write(r.content)
+    try:
+        with open(f"Images/Characters/{urlName}-icon.png", "xb") as f:
+            f.write(r.content)
+    except FileExistsError:
+        pass
     url = charImgURL.format(urlName)
     r = requests.get(url)
-    with open(f"Images/Characters/{urlName}-portrait.png", "xb") as f:
-      f.write(r.content)
+    try:
+        with open(f"Images/Characters/{urlName}-portrait.png", "xb") as f:
+            f.write(r.content)
+    except FileExistsError:
+        pass
 
 def get_all_characters():
   allChars = []

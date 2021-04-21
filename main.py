@@ -9,18 +9,20 @@ import prefix
 import formatter
 import adventure
 import commission
+import character
+import weapon
 import threading, time
-from keep_alive import keep_alive
+from dotenv import load_dotenv
 import pytz
 from datetime import datetime, timedelta
 
 tz = pytz.timezone("America/New_York")
 pre = prefix.commandPrefix
+load_dotenv()
+
 
 bot = commands.Bot(f"{pre}", case_insensitive=True)
 bot.remove_command("help") # Removing the default help command
-bot.remove_command("test") # Removing the default help command
-bot.remove_command("reset") # Removing the default help command
 
 def update_commissions_check():
   # This function runs periodically every 1 second
@@ -122,6 +124,17 @@ async def on_command_error(ctx, error):
 
 
 ###OWNER COMMANDS###
+
+@bot.command(name="update")
+@commands.check(user_is_me)
+async def update(ctx, arg1, arg2):
+    if arg1 == "c" and arg2 == "i":
+        character.get_all_character_images_API()
+        await ctx.send(f"{ctx.author.mention}, Character images have been downloaded.")
+    elif arg1 == "w" and arg2 == "i":
+        weapon.get_all_weapon_images_API()
+        await ctx.send(f"{ctx.author.mention}, Weapon images have been downloaded.")
+
 @bot.command(name="test")
 @commands.check(user_is_me)
 async def test(ctx, mention):
@@ -519,5 +532,4 @@ async def help(ctx):
 
 threading.Thread(target=update_counter).start()
 update_commissions_check()
-keep_alive()
 bot.run(os.getenv('TOKEN'))

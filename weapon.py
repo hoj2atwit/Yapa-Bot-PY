@@ -93,8 +93,11 @@ def get_all_weap_images():
     URL_name = "{}".format(i)
     url = weapURL_icon.format(URL_name)
     r = requests.get(url)
-    with open(f"Images/Weapons/{URL_name}-icon.png", "xb") as f:
-      f.write(r.content)
+    try:
+        with open(f"Images/Weapons/{URL_name}-icon.png", "xb") as f:
+            f.write(r.content)
+    except FileExistsError:
+        pass
 
 def get_all_Weapons():
   allWeaps = get_weap_list_from_dict_list(database_mongo.get_all_weapons_list())
