@@ -358,7 +358,8 @@ async def listc(ctx, *args):
         await user.embed_show_char_info(ctx, u, u.characters[formatter.name_formatter(name)])
         return
       else:
-        await error.embed_char_is_not_owned(ctx)
+        await user.embed_get_character_suggestions(ctx, u, name)
+        return
   await user.embed_char_list(ctx, u, pg)
 
 @bot.command(name="listWeapon", aliases=["listw", "lw"])
@@ -377,7 +378,8 @@ async def listw(ctx, *args):
         await user.embed_show_weap_info(ctx, u, u.weapons[formatter.name_formatter(name)])
         return
       else:
-        await error.embed_weap_is_not_owned(ctx)
+        await user.embed_get_weapon_suggestions(ctx, u, name)
+        return
   await user.embed_weap_list(ctx, u, pg)
 
 @bot.command(name="equip", aliases=["e", "eq"])
@@ -391,11 +393,11 @@ async def equip(ctx, *args):
     worked, reason = u.equip_weapon(characterName, weaponName)
     if not worked:
       if reason == "c":
-        await error.embed_char_is_not_owned(ctx)
+        await error.embed_get_character_suggestions(ctx, characterName)
       elif reason == "i":
         await error.embed_weap_is_not_compatible(ctx)
       else:
-        await error.embed_weap_is_not_owned(ctx)
+        await user.embed_get_weapon_suggestions(ctx, weaponName)
     else:
       await ctx.send("Weapon has been equipped.")
       database_mongo.save_user(u)

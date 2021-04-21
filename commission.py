@@ -131,7 +131,7 @@ class Buy:
 
   def check_done(self):
     for tKey in self.targets:
-      t = dict_to_Target(self.targets[tKey])
+      t = dict_to_target(self.targets[tKey])
       if t.amnt < t.total:
         return False
     self.completed = True
