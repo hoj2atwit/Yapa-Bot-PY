@@ -189,12 +189,13 @@ async def rob(ctx, memberMention):
   mention_id = formatter.get_id_from_mention(str(memberMention))
   if user.does_exist(mention_id) and user.does_exist(ctx.author.id):
     u = user.get_user(ctx.author.id)
-    robbedAmnt, robbed = u.rob(user.get_user(mention_id))
+    user_robbed = user.get_user(mention_id)
+    robbedAmnt, robbed = u.rob(user_robbed)
     if robbed:
       e=discord.Embed(title=f"{user.get_user(mention_id).nickname} has been Robbed!",color=discord.Color.red())
       e.add_field(name="_ _", value=f"{u.nickname} stole **{robbedAmnt}** Mora from your account.")
       await ctx.send(f"<@{mention_id}>",embed=e)
-      database_mongo.save_user(user.get_user(mention_id))
+      database_mongo.save_user(user_robbed)
       database_mongo.save_user(u)
     else:
       await error.embed_failed_robbery(ctx)
