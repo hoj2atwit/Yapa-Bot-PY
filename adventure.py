@@ -41,7 +41,9 @@ async def embed_adventure(ctx, u, characterList):
     f = discord.File("Images/Other/Drops.png", "Drops.png")
     e.set_thumbnail(url="attachment://Drops.png")
     await ctx.send(embed=e, file=f)
-  elif len(characters) > 4:
+  elif len(characters) == 0:
+    await error.embed_no_characters(ctx)
+  else:
     await error.embed_too_many_characters(ctx)
 
 #generateAllCommissions()

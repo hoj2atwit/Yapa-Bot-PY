@@ -468,12 +468,11 @@ async def condense(ctx, arg=None):
 async def _adventure(ctx, *args):
   u = user.get_user(ctx.author.id)
   commands = formatter.separate_commands(args)
-  if len(commands) > 0 and len(commands) <= 4:
-    charList = []
-    for i in range(len(commands)):
-      charList.append(formatter.split_information(commands[i])[0].lower())
-    await adventure.embed_adventure(ctx, u, charList)
-    database_mongo.save_user(u)
+  charList = []
+  for i in range(len(commands)):
+    charList.append(formatter.split_information(commands[i])[0].lower())
+  await adventure.embed_adventure(ctx, u, charList)
+  database_mongo.save_user(u)
     
 @bot.command(name="trivia", aliases=["triv","t"])
 @commands.check(user_exists)
