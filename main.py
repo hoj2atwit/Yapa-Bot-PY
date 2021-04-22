@@ -33,7 +33,7 @@ def update_commissions_check():
 
   current_time = now.strftime("%H:%M:%S")
 
-  if(current_time == '00:00:00'):
+  if(current_time == '00:00:00' or current_time == '12:00:00'):
     print("Updating Commissions")
     user.generate_all_user_commissions()
 

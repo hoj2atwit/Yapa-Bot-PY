@@ -176,7 +176,7 @@ def make_adventure_commission(ID, amnt):
   return Quest(ID, f"The Adventure Continues - A{amnt}", f"Go on an adventure {amnt} times.", targets, int(60*amnt), int(3000*amnt), int(45*amnt), False)
 
 async def show_commissions(ctx, u):
-  embed = discord.Embed(title = f"{u.nickname}\'s Commissions", color=discord.Color.green(),description="Resets everyday at midnight EST.")
+  embed = discord.Embed(title = f"{u.nickname}\'s Commissions", color=discord.Color.green(),description="Resets everyday at midnight and Noon EST.")
   for k in u.commissions.keys():
     c = u.commissions[k]
     if c["t"] == "T":
@@ -350,13 +350,13 @@ async def all_commissions_completed(ctx, u):
     else:
       return
 
-  realXP = int(100 * (u.world_level + 1))
+  realXP = int(200 * (u.world_level + 1))
   await u.add_experience(realXP, ctx)
   realPrimo = int(800 * (u.world_level + 1))
   u.primogems += realPrimo
   realMora = int(5000 * (u.world_level + 1))
   u.mora += realMora
-  e = discord.Embed(title="All Commissions Complete!", color=discord.Color.blurple(), description=f"{u.nickname} has completed all of their daily commissions.")
+  e = discord.Embed(title="All Commissions Complete!", color=discord.Color.blurple(), description=f"{u.nickname} has completed all of their commissions.")
   text = ""
   text += f"**{formatter.number_format(realXP)}** Adventurer\'s Experience\n"
   text += f"**{formatter.number_format(realMora)}x** Mora\n"
