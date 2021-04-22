@@ -244,25 +244,16 @@ def make_user_commissions():
   while count < 4:
     typeNum = random.randint(1,3)
     if typeNum == 1:
-      print("Getting Trivia")
       comDict = database_mongo.get_commissions_of_type("Trivia")
-      print("Selecting random Trivia")
       comID = "T" + str(random.randint(1, len(comDict.keys())))
-      print(f"Selected {comID}")
       com = Commission(comDict[comID], "T")
     elif typeNum == 2:
-      print("Getting Quests")
       comDict = database_mongo.get_commissions_of_type("Quest")
-      print("Selecting random Quest")
       comID = "Q" + str(random.randint(1, len(comDict.keys())))
-      print(f"Selected {comID}")
       com = Commission(comDict[comID], "Q")
     elif typeNum == 3:
-      print("Getting Wish")
       comDict = database_mongo.get_commissions_of_type("Wish")
-      print("Selecting random Wish")
       comID = "W" + str(random.randint(1, len(comDict.keys())))
-      print(f"Selected {comID}")
       com = Commission(comDict[comID], "W")
     else:
       comDict = database_mongo.get_commissions_of_type("Buy")

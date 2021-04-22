@@ -1,6 +1,4 @@
 import constellation
-import json
-import requests
 import formatter
 import math
 import discord
@@ -67,10 +65,6 @@ class Character:
   def get_dict(self):
     return self.__dict__
 
-apiURL = "https://api.genshin.dev/"
-charImgURL = "https://github.com/genshindev/api/raw/master/assets/images/characters/{}/portrait"
-charIconURL = "https://github.com/genshindev/api/raw/master/assets/images/characters/{}/icon"
-
 def get_character_from_dict(charsDict, name):
   n = formatter.name_formatter(name)
   c = charsDict[n]
@@ -84,66 +78,12 @@ def dict_to_char(charDict):
   c = charDict
   return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], c["constellation_name"], c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
 
-def get_character_names_API():
-    response = requests.get(apiURL + "characters/")
-    json_data = json.loads(response.text)
-    return json_data
-
-def get_all_characters_API():
-  print("Getting Characters from API")
-  allCharNames = get_character_names_API()
-  allChars = []
-  for i in allCharNames:
-    print("getting {} data".format(i))
-    response = requests.get(apiURL + "characters/" + i)
-    json_data = response.json()
-    name = formatter.name_unformatter("{}".format(i))
-    urlName = "{}".format(i)
-    
-    iconURL = f"Images/Characters/{urlName}-icon.png"
-    portraitURL = f"Images/Characters/{urlName}-portrait.png"
-
-    description = formatter.text_formatter("{}".format(json_data['description']))
-    rarity = int("{}".format(json_data['rarity']), base = 10)
-    element = formatter.name_unformatter("{}".format(json_data['vision']))
-    weaponType = "{}".format(json_data['weapon_type'])
-    constName = "{}".format(json_data['constellation'])
-    constellations = constellation.get_all_constillations(rarity, json_data)
-    allChars.append(Character(name, urlName, iconURL, portraitURL, description, rarity, element, {}, weaponType, constName, constellations, {}, 1, 0, 0, 0, 5, 1, 50, 20))
-    print("finished {} data".format(i))
-  print("Finished Getting Characters from API")
-  return allChars
-
-def get_all_character_images_API():
-  allCharNames = get_character_names_API()
-  for i in allCharNames:
-    urlName = "{}".format(i)
-    url = charIconURL.format(urlName)
-    r = requests.get(url)
-    try:
-        with open(f"Images/Characters/{urlName}-icon.png", "xb") as f:
-            f.write(r.content)
-    except FileExistsError:
-        pass
-    url = charImgURL.format(urlName)
-    r = requests.get(url)
-    try:
-        with open(f"Images/Characters/{urlName}-portrait.png", "xb") as f:
-            f.write(r.content)
-    except FileExistsError:
-        pass
-
 def get_all_characters():
   allChars = []
   allCharsDicts = database_mongo.get_all_characters_list()
   for c in allCharsDicts():
     allChars.append(dict_to_char(c))
   return allChars
-
-def update_all_characters_DB():
-  allChars = get_all_characters_API()
-  for c in allChars:
-    database_mongo.save_character(c)
 
 def get_six_star_characters():
   sixStarChars = database_mongo.get_all_characters_of_criteria("rarity", 6)

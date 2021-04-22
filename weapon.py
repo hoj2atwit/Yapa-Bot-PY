@@ -1,5 +1,3 @@
-import requests
-import json
 import formatter
 import math
 import database_mongo
@@ -39,9 +37,6 @@ class Weapon:
   def get_dict(self):
     return self.__dict__
 
-apiURL = "https://api.genshin.dev/"
-weapURL_icon = "https://raw.github.com/genshindev/api/master/assets/images/weapons/{}/icon"
-
 def get_weapon_from_dict(weapDict, name):
   n = formatter.name_formatter(name)
   if n in weapDict.keys():
@@ -58,55 +53,10 @@ def get_weapon(name):
   w = database_mongo.get_weapon_dict(name)
   return Weapon(w["name"], w["URL_name"], w["URL_icon"], w["weapon_type"], w["total"], w["rarity"], w["refinement"], w["attack"], w["substat"], w["substat_value"], w["level"], w["xp"])
 
-def get_weapon_names_API():
-  response = requests.get(apiURL + "weapons/")
-  json_data = json.loads(response.text)
-  return json_data
-
-def get_all_weaps_API():
-  allWeapNames = get_weapon_names_API()
-  allWeaps = []
-  print("Getting Weapons")
-  for i in allWeapNames:
-    print("Getting {} Data".format(i))
-    response = requests.get(apiURL + "weapons/" + i)
-    json_data = response.json()
-
-    name = formatter.name_unformatter("{}".format(i))
-    URL_name = "{}".format(i)
-
-    URL_icon = f"Images/Weapons/{URL_name}-icon.png"
-
-    rarity = int("{}".format(json_data['rarity']))
-    weapon_type = "{}".format(json_data['type'])
-    attack = int("{}".format(json_data['baseAttack']))
-    substat = "{}".format(json_data['subStat'])
-
-    allWeaps.append(Weapon(name, URL_name, URL_icon, weapon_type, 0, rarity, 1, attack, substat, 0, 1, 0))
-    print("Finished {} Data".format(i))
-  print("Finished Weapons")
-  return allWeaps
-
-def get_all_weap_images():
-  allWeapNames = get_weapon_names_API()
-  for i in allWeapNames:
-    URL_name = "{}".format(i)
-    url = weapURL_icon.format(URL_name)
-    r = requests.get(url)
-    try:
-        with open(f"Images/Weapons/{URL_name}-icon.png", "xb") as f:
-            f.write(r.content)
-    except FileExistsError:
-        pass
 
 def get_all_Weapons():
   allWeaps = get_weap_list_from_dict_list(database_mongo.get_all_weapons_list())
   return allWeaps
-
-def updateWeaponsDB():
-  allWeapons = get_all_weaps_API()
-  for weapon in allWeapons:
-    database_mongo.save_weapon(weapon)
 
 def get_five_star_weapons():
   return get_weap_list_from_dict_list(database_mongo.get_all_weapons_of_criteria("rarity", 5))

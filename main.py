@@ -9,8 +9,7 @@ import prefix
 import formatter
 import adventure
 import commission
-import character
-import weapon
+import updater
 import threading, time
 from dotenv import load_dotenv
 import pytz
@@ -128,11 +127,13 @@ async def on_command_error(ctx, error):
 @bot.command(name="update")
 @commands.check(user_is_me)
 async def update(ctx, arg1, arg2):
-    if arg1 == "c" and arg2 == "i":
-        character.get_all_character_images_API()
+    if arg1.lower() == "c" and arg2.lower() == "i":
+        print("Getting Character Images")
+        updater.get_all_character_images_API()
         await ctx.send(f"{ctx.author.mention}, Character images have been downloaded.")
-    elif arg1 == "w" and arg2 == "i":
-        weapon.get_all_weapon_images_API()
+    elif arg1.lower() == "w" and arg2.lower() == "i":
+        print("Getting Weapon Images")
+        updater.get_all_weap_images_API()
         await ctx.send(f"{ctx.author.mention}, Weapon images have been downloaded.")
 
 @bot.command(name="test")
