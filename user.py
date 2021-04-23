@@ -546,6 +546,21 @@ async def embed_show_team(ctx, u, teamNum):
     embed.add_field(name=f"Team {teamNum}", value=text)
     await ctx.send(embed=embed)
 
+async def embed_show_all_teams(ctx, u):
+    embed = discord.Embed(title=f"{u.nickname}\'s Teams")
+    for x in range(4):
+        realVal = x+1
+        text = ""
+        length = len(u.teams[str(realVal)])
+        for i in u.teams[str(realVal)].keys():
+            text += f"{i}: {u.teams[str(realVal)][i]}\n"
+        if length < 4:
+            difference = 4 - length
+            for i in range(difference):
+                text += f"{length+i+1}: None\n"
+        embed.add_field(name=f"Team {realVal}", value=text, inline=False)
+    await ctx.send(embed=embed)
+
 async def embed_set_team(ctx, u, teamNum, charList):
     if formatter.has_identicals(charList):
         await error.embed_dublicate_characters(ctx)

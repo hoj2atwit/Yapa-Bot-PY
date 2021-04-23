@@ -479,7 +479,7 @@ async def _adventure(ctx, *args):
   u = user.get_user(ctx.author.id)
   commands = formatter.separate_commands(args)
   charList = []
-  if len(args) >= 2 and args[0].startswith("team") and args[1].isdigit():
+  if len(args) >= 2 and (args[0].startswith("team") or args[0].startswith("party")) and args[1].isdigit():
       if int(args[1]) <= 4 and int(args[1]) > 0:
         for i in u.teams[args[1]].keys():
             charList.append(u.teams[args[1]][i])
@@ -498,11 +498,11 @@ async def trivia(ctx, TID, *answer):
   database_mongo.save_user(u)
 
 
-@bot.command(name="teams", aliases=["team"])
+@bot.command(name="teams", aliases=["team", "party"])
 @commands.check(user_exists)
-async def teams(ctx, arg1, *args):
+async def teams(ctx, arg1=None, *args):
   u = user.get_user(ctx.author.id)
-  if arg1.isdigit():
+  if arg1 != None and arg1.isdigit():
       if int(arg1) > 0 or int(arg1) <= 4:
           if len(args) == 0:
             await user.embed_show_team(ctx, u, int(arg1))
@@ -516,6 +516,8 @@ async def teams(ctx, arg1, *args):
             else:
                 await user.embed_set_team(ctx, u, int(arg1), charList)
                 database_mongo.save_user(u)
+  else:
+      await user.embed_show_all_teams(ctx, u)
 @bot.command(name="help", aliases=["h"])
 async def help(ctx):
   embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())
@@ -524,9 +526,8 @@ async def help(ctx):
   text += f"**[{pre}weekly]** Allows you to claim weekly rewards.\n"
   text += f"**[{pre}adventure] | [char_name] | [{pre}cn {pre}cn {pre}cn]** Allows you to go on an adventure with up to 4 of your characters at the cost of 20 resin. You must have atleast 1 character to adventure.\n"
   text += f"**[{pre}resin]** Allows you to look at your current resin.\n"
-  text += f"**[{pre}condense] | [use, amnt#]** Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
-  text += f"**[{pre}listc] | [pg#, char_name]** Allows you to look at your personal character collection.\n"
-  text += f"**[{pre}listw] | [pg#, weap_name]** Allows you to look at your personal weapon collection.\n_ _\n_ _"
+  text += f"**[{pre}condense] | [use or amnt#]** Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
+  text += f"**[{pre}listw] | [pg# or weap_name]** Allows you to look at your personal weapon collection.\n_ _\n_ _"
   embed.add_field(name="Basic Commands", value = text, inline=False)
 
 
@@ -541,7 +542,11 @@ async def help(ctx):
   embed.add_field(name="Economic Commands", value = text, inline=False)
 
 
-  text = f"**[{pre}equip] | [char_name] | [{pre}weap_name, {pre}none]** Allows you to equip a weapon to a chracter. You can only equip things you own.\n_ _\n_ _"
+  text = f"**[{pre}listc] | [pg# or char_name]** Allows you to look at your personal character collection.\n"
+  text += f"**[{pre}teams]** Allows you to look at all of your teams.\n"
+  text += f"**[{pre}teams] | [team #]** Allows you to look at who is in a specific team.\n"
+  text += f"**[{pre}teams] | [team #] | [?char_name ?char_name ?char_name ?char_name]** Allows you to put up to 4 characters you own into their own party.\n"
+  text += f"**[{pre}equip] | [char_name] | [{pre}weap_name, {pre}none]** Allows you to equip a weapon to a chracter. You can only equip things you own.\n_ _\n_ _"
   embed.add_field(name="Character Commands", value = text, inline=False)
 
 

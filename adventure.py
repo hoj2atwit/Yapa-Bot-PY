@@ -42,6 +42,7 @@ async def embed_adventure(ctx, u, characterList):
     await commission.check_target_complete(ctx, u, "adventure", 1)
     f = discord.File("Images/Other/Drops.png", "Drops.png")
     e.set_thumbnail(url="attachment://Drops.png")
+    e.set_footer(text=f"You have {formatter.number_format(u.resin)} Resin left.")
     await ctx.send(embed=e, file=f)
   elif len(characters) == 0:
     await error.embed_no_characters(ctx)
