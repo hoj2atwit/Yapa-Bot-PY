@@ -208,6 +208,6 @@ def get_suggestions(_dict, attempt):
 def has_identicals(lst):
     for i in range(len(lst)):
         for x in range(len(lst) - (i+1)):
-            if lst[i].lower() == lst[x+1+i].lower():
+            if str(lst[i].lower()) == str(lst[x+1+i]).lower():
                 return True
     return False
