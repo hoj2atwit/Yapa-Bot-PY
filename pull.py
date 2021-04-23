@@ -236,7 +236,7 @@ async def embed_single_pull(ctx, u):
   await ctx.send(ctx.author.mention, embed=embed, file=file)
 
 async def embed_free_single_pull(ctx, name):
-  u = user.User(0,name,name,"","none",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","",{},{},{})
+  u = user.User(0,name,name,"","none",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","",{},{},{},{"1":[], "2":[], "3":[], "4":[]})
   if u.five_pity >= 89:
     (p, t), five, four = pull(False, True, u)
   elif u.four_pity >= 9:
@@ -286,7 +286,7 @@ async def embed_free_single_pull(ctx, name):
   await ctx.send(ctx.author.mention, embed=embed, file=f)
 
 async def embed_free_ten_pull(ctx, name):
-  u = user.User(0,name,name,"","none",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","",{},{},{})
+  u = user.User(0,name,name,"","none",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","",{},{},{},{"1":[], "2":[], "3":[], "4":[]})
   pulls, five = ten_pull(u)
   if five:
     color = discord.Color.gold()

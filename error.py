@@ -21,9 +21,9 @@ async def embed_not_enough_star_dust(ctx):
   embed.add_field(name = "Low Balance", value = "Not Enough Star Dust")
   await ctx.send(ctx.author.mention, embed=embed)
 
-async def embed_char_is_not_owned(ctx):
+async def embed_char_is_not_owned(ctx, name):
   embed = discord.Embed(color=discord.Color.red())
-  embed.add_field(name = "Character not found", value = "You do not own this character or this character does not exist.")
+  embed.add_field(name = "Character not found", value = f"A character with the name **[{name}]** could not be found in your collection.")
   await ctx.send(ctx.author.mention, embed=embed)
 
 async def embed_char_does_not_exist(ctx):
@@ -31,9 +31,9 @@ async def embed_char_does_not_exist(ctx):
   embed.add_field(name = "Character not found", value = "This character does not exist.")
   await ctx.send(ctx.author.mention, embed=embed)
 
-async def embed_weap_is_not_owned(ctx):
+async def embed_weap_is_not_owned(ctx, name):
   embed = discord.Embed(color=discord.Color.red())
-  embed.add_field(name = "Weapon not found", value = "You do not own this weapon or this weapon does not exist.")
+  embed.add_field(name = "Weapon not found", value = f"A weapon with the name **[{name}]** could not be found in your collection.")
   await ctx.send(ctx.author.mention, embed=embed)
 
 async def embed_weap_is_not_compatible(ctx):
@@ -118,7 +118,7 @@ async def embed_get_character_suggestions(ctx, u, attempt):
     embed.add_field(name="Suggestions", value=f"Did you mean: {name_list_string}?")
     await ctx.send(ctx.author.mention, embed=embed)
   else:
-    await embed_char_is_not_owned(ctx)
+    await embed_char_is_not_owned(ctx, attempt)
 
 async def embed_get_weapon_suggestions(ctx, u, attempt):
   name_list_string = formatter.get_suggestions(u.weapons, attempt)
@@ -127,4 +127,9 @@ async def embed_get_weapon_suggestions(ctx, u, attempt):
     embed.add_field(name="Suggestions", value=f"Did you mean: {name_list_string}?")
     await ctx.send(ctx.author.mention, embed=embed)
   else:
-    await embed_weap_is_not_owned(ctx)
+    await embed_weap_is_not_owned(ctx, attempt)
+
+async def embed_dublicate_characters(ctx):
+    embed = discord.Embed()
+    embed.add_field(name="Character Error", value=f"You cannot input the same character multiple times.")
+    await ctx.send(ctx.author.mention, embed=embed)

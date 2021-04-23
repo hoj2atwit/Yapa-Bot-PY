@@ -146,10 +146,10 @@ def insert_character_trivia(triviaDict, startingIndex):
   allCharDicts = database_mongo.get_all_characters_list()
   for char in allCharDicts:
     c = char
-    triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What element is {}?".format(c["name"]), "{}".format(c["element"]), 50, 500, 30, False)
+    triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What element is {}?".format(c["name"]), "{}".format(c["element"]), 30, 500, 30, False)
     newTrivDict[f"T{newestIndex}"] = triv.get_dict()
     newestIndex += 1
-    triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What weapon type does {} use?".format(c["name"]), "{}".format(c["weapon_type"]), 50, 500, 30, False)
+    triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What weapon type does {} use?".format(c["name"]), "{}".format(c["weapon_type"]), 30, 500, 30, False)
     newTrivDict[f"T{newestIndex}"] = triv.get_dict()
     newestIndex += 1
     triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What is the name of {}\'s Constellation?".format(c["name"]), "{}".format(c["constellation_name"]), 160, 1000, 50, False)
@@ -168,12 +168,12 @@ def list_targets(tarDict):
   return tListStr
 
 def make_wish_commissions(ID, amnt):
-  return Wish(ID, f"Wish Upon A Star - W{amnt}", f"Do {amnt} wishes.", amnt, 0, int(160 * amnt), 0, int(20*amnt), False)
+  return Wish(ID, f"Wish Upon A Star - W{amnt}", f"Do {amnt} wishes.", amnt, 0, int(80 * amnt), 0, int(5*amnt), False)
 
 def make_adventure_commission(ID, amnt):
   t = Target("adventure", amnt, 0)
   targets = {"adventure" : t.get_dict()}
-  return Quest(ID, f"The Adventure Continues - A{amnt}", f"Go on an adventure {amnt} times.", targets, int(60*amnt), int(3000*amnt), int(45*amnt), False)
+  return Quest(ID, f"The Adventure Continues - A{amnt}", f"Go on an adventure {amnt} times.", targets, int(20*amnt), int(500*amnt), int(10*amnt), False)
 
 async def show_commissions(ctx, u):
   embed = discord.Embed(title = f"{u.nickname}\'s Commissions", color=discord.Color.green(),description="Resets everyday at midnight and Noon EST.")

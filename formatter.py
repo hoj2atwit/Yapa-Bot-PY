@@ -205,3 +205,9 @@ def get_suggestions(_dict, attempt):
       name_list_string += f", **[{name_list[i]}]**"
   return name_list_string
 
+def has_identicals(lst):
+    for i in range(len(lst)):
+        for x in range(len(lst) - (i+1)):
+            if lst[i].lower() == lst[x+1+i].lower():
+                return True
+    return False

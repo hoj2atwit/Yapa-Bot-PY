@@ -126,15 +126,23 @@ async def on_command_error(ctx, error):
 
 @bot.command(name="update")
 @commands.check(user_is_me)
-async def update(ctx, arg1, arg2):
+async def update(ctx, arg1, arg2=None):
     if arg1.lower() == "c" and arg2.lower() == "i":
-        print("Getting Character Images")
+        await ctx.send(f"{ctx.author.mention}, Downloading New Character Images")
         updater.get_all_character_images_API()
         await ctx.send(f"{ctx.author.mention}, Character images have been downloaded.")
     elif arg1.lower() == "w" and arg2.lower() == "i":
-        print("Getting Weapon Images")
+        await ctx.send(f"{ctx.author.mention}, Downloading New Weapon Images")
         updater.get_all_weap_images_API()
         await ctx.send(f"{ctx.author.mention}, Weapon images have been downloaded.")
+    elif arg1.lower() == "u":
+        await ctx.send(f"{ctx.author.mention}, Updating All Users.")
+        user.update_users()
+        await ctx.send(f"{ctx.author.mention}, All users have been updated.")
+    elif arg1.lower() == "com":
+        await ctx.send(f"{ctx.author.mention}, Updating All Commissions.")
+        commission.generate_all_commissions()
+        await ctx.send(f"{ctx.author.mention}, All commissions have been updated.")
 
 @bot.command(name="test")
 @commands.check(user_is_me)
@@ -471,8 +479,13 @@ async def _adventure(ctx, *args):
   u = user.get_user(ctx.author.id)
   commands = formatter.separate_commands(args)
   charList = []
-  for i in range(len(commands)):
-    charList.append(formatter.split_information(commands[i])[0].lower())
+  if len(args) >= 2 and args[0].startswith("team") and args[1].isdigit():
+      if int(args[1]) <= 4 and int(args[1]) > 0:
+        for i in u.teams[args[1]].keys():
+            charList.append(u.teams[args[1]][i])
+  else:
+      for i in range(len(commands)):
+            charList.append(formatter.split_information(commands[i])[0].lower())
   await adventure.embed_adventure(ctx, u, charList)
   database_mongo.save_user(u)
     
@@ -484,6 +497,25 @@ async def trivia(ctx, TID, *answer):
   await commission.answer_trivia(ctx, u, TID.upper(), answerString)
   database_mongo.save_user(u)
 
+
+@bot.command(name="teams", aliases=["team"])
+@commands.check(user_exists)
+async def teams(ctx, arg1, *args):
+  u = user.get_user(ctx.author.id)
+  if arg1.isdigit():
+      if int(arg1) > 0 or int(arg1) <= 4:
+          if len(args) == 0:
+            await user.embed_show_team(ctx, u, int(arg1))
+          else:
+            commands = formatter.separate_commands(args)
+            charList = []
+            for i in range(len(commands)):
+                charList.append(formatter.split_information(commands[i])[0].lower())
+            if len(charList) > 4:
+                await error.embed_too_many_characters(ctx)
+            else:
+                await user.embed_set_team(ctx, u, int(arg1), charList)
+                database_mongo.save_user(u)
 @bot.command(name="help", aliases=["h"])
 async def help(ctx):
   embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())

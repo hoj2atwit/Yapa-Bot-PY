@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 tz = pytz.timezone("America/New_York")
 
 class User:
-  def __init__(self, _id, name, nickname, description, favorite_character, adventure_rank, experience, world_level, resin, five_pity, four_pity, characters, weapons, artifacts, mora, primogems, star_glitter, star_dust, condensed, last_daily, last_weekly, bag, gear, commissions):
+  def __init__(self, _id, name, nickname, description, favorite_character, adventure_rank, experience, world_level, resin, five_pity, four_pity, characters, weapons, artifacts, mora, primogems, star_glitter, star_dust, condensed, last_daily, last_weekly, bag, gear, commissions, teams):
     self._id = int(_id)
     self.name = str(name)
     self.nickname = str(nickname)
@@ -38,6 +38,7 @@ class User:
     self.bag = bag
     self.gear = gear
     self.commissions = commissions
+    self.teams = teams
 
   def can_daily(self):
     utc_now = pytz.utc.localize(datetime.utcnow())
@@ -54,6 +55,15 @@ class User:
       minutes, seconds = divmod(difference.seconds, 60)
       hours, minutes = divmod(minutes, 60)
       return False, f"{hours}H:{minutes}M:{seconds}S"
+
+  def set_team(self, teamNum, characters):
+      for name in characters:
+          if not self.does_character_exist(name):
+              return False, name
+      self.teams[str(teamNum)] = {}
+      for i in range(len(characters)):
+          self.teams[str(teamNum)][str(i+1)] = formatter.name_unformatter(formatter.name_formatter(characters[i]))
+      return True, "None"
 
   def update_daily(self):
     utc_now = pytz.utc.localize(datetime.utcnow())
@@ -257,7 +267,7 @@ class User:
       
 def get_user(_id):
   u = database_mongo.get_user_dict(_id)
-  return User(u["_id"], u["name"], u["nickname"], u["description"], u["favorite_character"], u["adventure_rank"], u["experience"], u["world_level"], u["resin"], u["five_pity"], u["four_pity"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["star_glitter"], u["star_dust"], u["condensed"], u["last_daily"], u["last_weekly"], u["bag"], u["gear"], u["commissions"])
+  return User(u["_id"], u["name"], u["nickname"], u["description"], u["favorite_character"], u["adventure_rank"], u["experience"], u["world_level"], u["resin"], u["five_pity"], u["four_pity"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["star_glitter"], u["star_dust"], u["condensed"], u["last_daily"], u["last_weekly"], u["bag"], u["gear"], u["commissions"], u["teams"])
 
 def does_exist(_id):
   u = database_mongo.get_user_dict(_id)
@@ -267,7 +277,7 @@ def does_exist(_id):
     return True
 
 def create_user(name, ID):
-  newU = User(ID, name, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 8000, 0, 0, 0, "", "", {}, {}, commission.make_user_commissions())
+  newU = User(ID, name, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 8000, 0, 0, 0, "", "", {}, {}, commission.make_user_commissions(),{"1":{}, "2":{}, "3":{}, "4":{}})
   database_mongo.save_user(newU)
 
 async def embed_balance(ctx, u):
@@ -525,6 +535,28 @@ async def embed_world_level_up(ctx, u):
   embed = discord.Embed(title="World Level Increase", color=discord.Color.green(), description=f"{u.nickname}\'s World Level has increased to {u.world_level}\n Your adventuring rewards will increase.")
   await ctx.send(embed=embed)
 
+async def embed_show_team(ctx, u, teamNum):
+    embed = discord.Embed(title=f"{u.nickname}\'s Team")
+    text = ""
+    for i in u.teams[str(teamNum)].keys():
+        text += f"{i}: {u.teams[str(teamNum)][i]}\n"
+    if len(u.teams[str(teamNum)]) < 4:
+        for i in range(4-len(u.teams[str(teamNum)])):
+            text += f"{len(u.teams[str(teamNum)])+i+1}: None\n"
+    embed.add_field(name=f"Team {teamNum}", value=text)
+    await ctx.send(embed=embed)
+
+async def embed_set_team(ctx, u, teamNum, charList):
+    if formatter.has_identicals(charList):
+        await error.embed_dublicate_characters(ctx)
+    else:
+        set, failedName = u.set_team(teamNum, charList)
+        if not set:
+            await error.embed_get_character_suggestions(ctx, u, failedName)
+        else:
+            embed = discord.Embed(title = "Team set Successfull", description=f"Team {teamNum} has successfully been set.")
+            await ctx.send(ctx.author.mention, embed=embed)
+
 def reset_timers(_id):
   u = get_user(_id)
   u.last_daily = ""
@@ -544,4 +576,10 @@ def generate_all_user_commissions():
     u = get_user(users_ids[i])
     u.commissions = {}
     u.commissions = commission.make_user_commissions()
+    database_mongo.save_user(u)
+
+def update_users():
+  users_ids = database_mongo.get_all_users_list_ids()
+  for i in range(len(users_ids)):
+    u = get_user(users_ids[i])
     database_mongo.save_user(u)
