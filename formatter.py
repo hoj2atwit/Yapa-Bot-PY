@@ -174,6 +174,14 @@ def number_format(num):
   return finalString[::-1]
     
 
+def has_identicals(lst):
+    for i in range(len(lst)):
+        for x in range(len(lst) - (i+1)):
+            if str(lst[i].lower()) == str(lst[x+1+i]).lower():
+                return True
+    return False
+
+
 def get_suggestions(_dict, attempt):
   name_list = []
   for l in range(len(attempt)-1):
@@ -204,10 +212,3 @@ def get_suggestions(_dict, attempt):
     else:
       name_list_string += f", **[{name_list[i]}]**"
   return name_list_string
-
-def has_identicals(lst):
-    for i in range(len(lst)):
-        for x in range(len(lst) - (i+1)):
-            if str(lst[i].lower()) == str(lst[x+1+i]).lower():
-                return True
-    return False
