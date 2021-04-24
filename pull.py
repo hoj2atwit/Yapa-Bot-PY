@@ -433,6 +433,7 @@ async def embed_gamble(ctx, u, amnt, _type):
         else:
             embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Primogems.")
 
+
     embed.add_field(name="Rolls", value=f"{rolls[0]}, {rolls[1]}, {rolls[2]}, {rolls[3]}, {rolls[4]}, {rolls[5]}")
     u.resin -= 10
     await commission.check_target_complete(ctx, u, "gamble", 1)
