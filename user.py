@@ -324,7 +324,7 @@ async def embed_profile(ctx, u, member):
 
   await ctx.send(embed=embed)
 
-async def embed_char_list(ctx, u, pg):
+async def embed_char_list(ctx, u, pg, bot):
   allChars = formatter.organize_by_rarity(u.characters)
   charlist = []
   text = ""
@@ -342,14 +342,47 @@ async def embed_char_list(ctx, u, pg):
     text = "none\n"
   if(text != ""):
     charlist.append(text)
-  embed = discord.Embed(title=f"{u.nickname}\'s Characters", color=discord.Color.dark_teal())
   if(pg > len(charlist) or pg < 1):
     pg = 1  
-  embed.add_field(name="_ _", value=f"{charlist[pg-1]}")
-  embed.set_footer(text=f"Page {pg}/{len(charlist)}")
-  await ctx.send(embed=embed)
+  charListPages = []
+  for i in range(len(charlist)):
+      embed = discord.Embed(title=f"{u.nickname}\'s Characters", color=discord.Color.dark_teal())
+      if i+pg > len(charlist):
+          pageNum = i+pg - len(charlist)
+      else:
+          pageNum = i+pg
+      embed.add_field(name="_ _", value=f"{charlist[pageNum-1]}")
+      embed.set_footer(text=f"Page {pageNum}/{len(charlist)}")
+      charListPages.append(embed)
+  cur_index = 0
+  pages = await ctx.send(embed=charListPages[0])
+  await pages.add_reaction("◀️")
+  await pages.add_reaction("▶️")
+  def check(reaction, user):
+        return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
+  while True:
+        try:
+            reaction, user = await bot.wait_for("reaction_add", timeout=30, check=check)
 
-async def embed_weap_list(ctx, u, pg):
+            if str(reaction.emoji) == "▶️":
+                cur_index += 1
+                if cur_index >= len(charListPages):
+                    cur_index = 0
+                await pages.edit(embed=charListPages[cur_index])
+                await pages.remove_reaction(reaction, user)
+
+            elif str(reaction.emoji) == "◀️":
+                cur_index -= 1
+                if cur_index < 0:
+                    cur_index = len(charListPages)-1
+                await pages.edit(embed=charListPages[cur_index])
+                await pages.remove_reaction(reaction, user)
+
+            else:
+                await pages.remove_reaction(reaction, user)
+        except asyncio.TimeoutError:
+            break
+async def embed_weap_list(ctx, u, pg, bot):
   allWeaps = formatter.organize_by_rarity(u.weapons)
   weaplist = []
   text = ""
@@ -373,12 +406,48 @@ async def embed_weap_list(ctx, u, pg):
     text = "none\n"
   if(text != ""):
     weaplist.append(text)
-  embed = discord.Embed(title=f"{u.nickname}\'s Weapons", color=discord.Color.dark_teal())
+  
   if(pg > len(weaplist) or pg < 1):
     pg = 1
-  embed.add_field(name="_ _", value=f"{weaplist[pg-1]}")
-  embed.set_footer(text=f"Page {pg}/{len(weaplist)}")
-  await ctx.send(embed=embed)
+  weapListPages = []
+  for i in range(len(weaplist)):
+      embed = discord.Embed(title=f"{u.nickname}\'s Weapons", color=discord.Color.dark_teal())
+      if i+pg > len(weaplist):
+          pageNum = i+pg - len(weaplist)
+      else:
+          pageNum = i+pg
+      embed.add_field(name="_ _", value=f"{weaplist[pageNum-1]}")
+      embed.set_footer(text=f"Page {pageNum}/{len(weaplist)}")
+      weapListPages.append(embed)
+
+  cur_index = 0
+  pages = await ctx.send(embed=weapListPages[0])
+  await pages.add_reaction("◀️")
+  await pages.add_reaction("▶️")
+  def check(reaction, user):
+        return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
+  while True:
+        try:
+            reaction, user = await bot.wait_for("reaction_add", timeout=30, check=check)
+
+            if str(reaction.emoji) == "▶️":
+                cur_index += 1
+                if cur_index >= len(charListPages):
+                    cur_index = 0
+                await pages.edit(embed=weapListPages[cur_index])
+                await pages.remove_reaction(reaction, user)
+
+            elif str(reaction.emoji) == "◀️":
+                cur_index -= 1
+                if cur_index < 0:
+                    cur_index = len(weapListPages)-1
+                await pages.edit(embed=weapListPages[cur_index])
+                await pages.remove_reaction(reaction, user)
+
+            else:
+                await pages.remove_reaction(reaction, user)
+        except asyncio.TimeoutError:
+            break
 
 #Shows gift of primo to user
 async def embed_give_primo(ctx, u, primo, member):

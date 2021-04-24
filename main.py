@@ -383,7 +383,7 @@ async def listc(ctx, *args):
       else:
         await error.embed_get_character_suggestions(ctx, u, name)
         return
-  await user.embed_char_list(ctx, u, pg)
+  await user.embed_char_list(ctx, u, pg, bot)
 
 @bot.command(name="listWeapon", aliases=["listw", "lw"])
 @commands.check(user_exists)
@@ -403,7 +403,7 @@ async def listw(ctx, *args):
       else:
         await error.embed_get_weapon_suggestions(ctx, u, name)
         return
-  await user.embed_weap_list(ctx, u, pg)
+  await user.embed_weap_list(ctx, u, pg, bot)
 
 @bot.command(name="equip", aliases=["e", "eq"])
 @commands.check(user_exists)
@@ -545,7 +545,7 @@ async def help(ctx):
   text = f"**[{pre}listc] | [pg# or char_name]** Allows you to look at your personal character collection.\n"
   text += f"**[{pre}teams]** Allows you to look at all of your teams.\n"
   text += f"**[{pre}teams] | [team #]** Allows you to look at who is in a specific team.\n"
-  text += f"**[{pre}teams] | [team #] | [?char_name ?char_name ?char_name ?char_name]** Allows you to put up to 4 characters you own into their own party.\n"
+  text += f"**[{pre}teams] | [team #] | [char_name ?char_name ?char_name ?char_name]** Allows you to put up to 4 characters you own into their own party.\n"
   text += f"**[{pre}equip] | [char_name] | [{pre}weap_name, {pre}none]** Allows you to equip a weapon to a chracter. You can only equip things you own.\n_ _\n_ _"
   embed.add_field(name="Character Commands", value = text, inline=False)
 

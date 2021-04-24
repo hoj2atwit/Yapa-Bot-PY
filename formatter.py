@@ -146,6 +146,8 @@ def separate_commands(commandsPointer):
       if text != "":
         commands.append(remove_extra_spaces(text))
         text = x
+      else:
+        text = x
     else:
       if text == "":
         text += x
