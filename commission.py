@@ -175,6 +175,11 @@ def make_adventure_commission(ID, amnt):
   targets = {"adventure" : t.get_dict()}
   return Quest(ID, f"The Adventure Continues - A{amnt}", f"Go on an adventure {amnt} times.", targets, int(20*amnt), int(500*amnt), int(10*amnt), False)
 
+def make_gamble_commission(ID, amnt):
+  t = Target("gamble", amnt, 0)
+  targets = {"gamble" : t.get_dict()}
+  return Quest(ID, f"The Gambler's Frenzy- G{amnt}", f"Gamble {amnt} times.", targets, int(20*amnt), int(500*amnt), int(10*amnt), False)
+
 async def show_commissions(ctx, u):
   embed = discord.Embed(title = f"{u.nickname}\'s Commissions", color=discord.Color.green(),description="Resets everyday at midnight and Noon EST.")
   for k in u.commissions.keys():
@@ -223,7 +228,10 @@ def generate_all_commissions():
   commissions["Quest"] = {
     "Q1" : make_adventure_commission("Q1", 3).get_dict(),
     "Q2" : make_adventure_commission("Q2", 5).get_dict(),
-    "Q3" : make_adventure_commission("Q3", 10).get_dict()
+    "Q3" : make_adventure_commission("Q3", 10).get_dict(),
+    "Q4" : make_gamble_commission("Q4", 3).get_dict(),
+    "Q5" : make_gamble_commission("Q5", 5).get_dict(),
+    "Q6" : make_gamble_commission("Q6", 10).get_dict()
   }
 
   #Wish

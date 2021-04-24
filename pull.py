@@ -8,6 +8,7 @@ import discord
 import prefix
 import commission
 import asyncio
+import error
 
 fiveStarChars = character.get_five_star_characters()
 fourStarChars = character.get_four_star_characters()
@@ -360,3 +361,67 @@ async def embed_ten_pull(ctx, u):
   await asyncio.sleep(sleep)
   await msg.delete()
   await ctx.send(ctx.author.mention, embed=embed, file=f)
+
+async def embed_gamble(ctx, u, amnt, _type):
+    if u.resin < 10:
+        await error.embed_not_enough_resin(ctx)
+        return
+    if _type == "m":
+        if amnt > u.mora:
+            await error.embed_not_enough_mora(ctx)
+            return
+        else:
+            u.mora -= amnt
+            await ctx.send(f"You spent {formatter.number_format(amnt)}x Mora to gamble.")
+    elif _type == "p":
+        if amnt > u.primogems:
+            await error.embed_not_enough_primo(ctx)
+            return
+        else:
+            u.primogems -= amnt
+            await ctx.send(f"You spent {formatter.number_format(amnt)}x Primogems to gamble.")
+    luck = random.randint(0, 10000)
+    if _type == "m":
+        if luck >= 9999:
+            u.mora += amnt*10
+            embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Mora")
+        elif luck >= 9500:
+            u.mora += amnt*2
+            embed = discord.Embed(title=f"{u.nickname} Won!")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Mora")
+        elif luck >= 6000:
+            u.mora += amnt
+            embed = discord.Embed(title=f"{u.nickname} Won!")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt)}x** Mora")
+        else:
+            embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Mora.")
+    elif _type == "p":
+        if luck >= 9999:
+            u.primogems += amnt*10
+            embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Primogems")
+        elif luck >= 9500:
+            u.primogems += amnt*2
+            embed = discord.Embed(title=f"{u.nickname} Won!")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Primogems")
+        elif luck >= 6000:
+            u.primogems += amnt
+            embed = discord.Embed(title=f"{u.nickname} Won!")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt)}x** Primogems")
+        else:
+            embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Primogems.")
+    u.resin -= 10
+    await commission.check_target_complete(ctx, u, "gamble", 1)
+    userXPReward = int(amnt / 100)
+    if _type == "p":
+        if userXPReward > (u.world_level+1)*100:
+            userXPReward = int((u.world_level+1)*100)
+    else:
+        if userXPReward > (u.world_level+1)*50:
+            userXPReward = int((u.world_level+1)*50)
+    if userXPReward > 0:
+        await u.add_experience(userXPReward, ctx)
+        embed.add_field(name="Experience Gained", value=f"**{userXPReward}** Adventure Experience")
+    embed.set_footer(text=f"You have {formatter.number_format(u.resin)} Resin left.")
+    await ctx.send(ctx.author.mention, embed=embed)

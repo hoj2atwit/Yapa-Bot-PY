@@ -518,6 +518,19 @@ async def teams(ctx, arg1=None, *args):
                 database_mongo.save_user(u)
   else:
       await user.embed_show_all_teams(ctx, u)
+
+@bot.command(name="gamble", aliases=["g"])
+@commands.check(user_exists)
+@commands.cooldown(1, 3, commands.BucketType.user)
+async def gamble(ctx, _type, amount):
+    typeList = ["primo", "p", "m", "mora"]
+    if _type.lower() in typeList:
+        if amount.isdigit():
+            u = user.get_user(ctx.author.id)
+            await pull.embed_gamble(ctx, u, int(amount), str(_type)[0].lower())
+            database_mongo.save_user(u)
+    
+
 @bot.command(name="help", aliases=["h"])
 async def help(ctx):
   embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())

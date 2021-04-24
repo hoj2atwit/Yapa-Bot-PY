@@ -432,7 +432,7 @@ async def embed_weap_list(ctx, u, pg, bot):
 
             if str(reaction.emoji) == "▶️":
                 cur_index += 1
-                if cur_index >= len(charListPages):
+                if cur_index >= len(weapListPages):
                     cur_index = 0
                 await pages.edit(embed=weapListPages[cur_index])
                 await pages.remove_reaction(reaction, user)
