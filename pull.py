@@ -436,11 +436,12 @@ async def embed_gamble(ctx, u, amnt, _type):
     embed.add_field(name="Rolls", value=f"{rolls[0]}, {rolls[1]}, {rolls[2]}, {rolls[3]}, {rolls[4]}, {rolls[5]}")
     u.resin -= 10
     await commission.check_target_complete(ctx, u, "gamble", 1)
-    userXPReward = int(amnt / 100)
     if _type == "p":
+        userXPReward = int(amnt / 50)
         if userXPReward > (u.world_level+1)*100:
             userXPReward = int((u.world_level+1)*100)
     else:
+        userXPReward = int(amnt / 1000)
         if userXPReward > (u.world_level+1)*50:
             userXPReward = int((u.world_level+1)*50)
     if userXPReward > 0:
