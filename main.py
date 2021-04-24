@@ -533,6 +533,7 @@ async def gamble(ctx, _type, amount):
 
 @bot.command(name="help", aliases=["h"])
 async def help(ctx):
+  embedList = []
   embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())
   text = f"**[{pre}start]** Allows you to start your Yappa Experience.\n"
   text += f"**[{pre}daily]** Allows you to claim daily rewards.\n"
@@ -570,7 +571,8 @@ async def help(ctx):
   embed.add_field(name="Profile Commands", value = text, inline=False)
 
 
-  await ctx.send(embed=embed)
+  embed.set_footer(text=f"Page 1/2")
+  embedList.append(embed)
 
 
   embed = discord.Embed(title = "Yapa Bot Commands 2", color=discord.Color.dark_red())
@@ -579,7 +581,14 @@ async def help(ctx):
   embed.add_field(name="Commission Commands", value = text, inline=False)
 
 
-  await ctx.send(embed=embed)
+  text = f"**[{pre}gamble] | [primo or mora] | [amount]** Allows you to use your mora or primogems to gamble, having a chance to win x2 or even x10 of waht you put it.\n"
+  embed.add_field(name="Gambling Commands", value = text, inline=False)
+
+
+  embed.set_footer(text=f"Page 2/2")
+  embedList.append(embed)
+
+  await formatter.pages(ctx, bot, embedList)
 
 threading.Thread(target=update_counter).start()
 update_commissions_check()

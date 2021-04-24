@@ -354,34 +354,8 @@ async def embed_char_list(ctx, u, pg, bot):
       embed.add_field(name="_ _", value=f"{charlist[pageNum-1]}")
       embed.set_footer(text=f"Page {pageNum}/{len(charlist)}")
       charListPages.append(embed)
-  cur_index = 0
-  pages = await ctx.send(embed=charListPages[0])
-  await pages.add_reaction("◀️")
-  await pages.add_reaction("▶️")
-  def check(reaction, user):
-        return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
-  while True:
-        try:
-            reaction, user = await bot.wait_for("reaction_add", timeout=30, check=check)
+  await formatter.pages(ctx, bot,  charListPages)
 
-            if str(reaction.emoji) == "▶️":
-                cur_index += 1
-                if cur_index >= len(charListPages):
-                    cur_index = 0
-                await pages.edit(embed=charListPages[cur_index])
-                await pages.remove_reaction(reaction, user)
-
-            elif str(reaction.emoji) == "◀️":
-                cur_index -= 1
-                if cur_index < 0:
-                    cur_index = len(charListPages)-1
-                await pages.edit(embed=charListPages[cur_index])
-                await pages.remove_reaction(reaction, user)
-
-            else:
-                await pages.remove_reaction(reaction, user)
-        except asyncio.TimeoutError:
-            break
 async def embed_weap_list(ctx, u, pg, bot):
   allWeaps = formatter.organize_by_rarity(u.weapons)
   weaplist = []
@@ -420,34 +394,7 @@ async def embed_weap_list(ctx, u, pg, bot):
       embed.set_footer(text=f"Page {pageNum}/{len(weaplist)}")
       weapListPages.append(embed)
 
-  cur_index = 0
-  pages = await ctx.send(embed=weapListPages[0])
-  await pages.add_reaction("◀️")
-  await pages.add_reaction("▶️")
-  def check(reaction, user):
-        return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
-  while True:
-        try:
-            reaction, user = await bot.wait_for("reaction_add", timeout=30, check=check)
-
-            if str(reaction.emoji) == "▶️":
-                cur_index += 1
-                if cur_index >= len(weapListPages):
-                    cur_index = 0
-                await pages.edit(embed=weapListPages[cur_index])
-                await pages.remove_reaction(reaction, user)
-
-            elif str(reaction.emoji) == "◀️":
-                cur_index -= 1
-                if cur_index < 0:
-                    cur_index = len(weapListPages)-1
-                await pages.edit(embed=weapListPages[cur_index])
-                await pages.remove_reaction(reaction, user)
-
-            else:
-                await pages.remove_reaction(reaction, user)
-        except asyncio.TimeoutError:
-            break
+  await formatter.pages(ctx, bot,  weapListPages)
 
 #Shows gift of primo to user
 async def embed_give_primo(ctx, u, primo, member):

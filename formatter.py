@@ -2,6 +2,7 @@ import math
 import discord
 import prefix
 import datetime
+import asyncio
 def get_avatar(avamember : discord.Member=None):
   return avamember.avatar_url
 
@@ -214,3 +215,33 @@ def get_suggestions(_dict, attempt):
     else:
       name_list_string += f", **[{name_list[i]}]**"
   return name_list_string
+
+async def pages(ctx, bot, embedList):
+  pages = await ctx.send(embed=embedList[0])
+  cur_index = 0
+  await pages.add_reaction("◀️")
+  await pages.add_reaction("▶️")
+  def check(reaction, user):
+        return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
+  while True:
+        try:
+            reaction, user = await bot.wait_for("reaction_add", timeout=30, check=check)
+
+            if str(reaction.emoji) == "▶️":
+                cur_index += 1
+                if cur_index >= len(embedList):
+                    cur_index = 0
+                await pages.edit(embed=embedList[cur_index])
+                await pages.remove_reaction(reaction, user)
+
+            elif str(reaction.emoji) == "◀️":
+                cur_index -= 1
+                if cur_index < 0:
+                    cur_index = len(embedList)-1
+                await pages.edit(embed=embedList[cur_index])
+                await pages.remove_reaction(reaction, user)
+
+            else:
+                await pages.remove_reaction(reaction, user)
+        except asyncio.TimeoutError:
+            break

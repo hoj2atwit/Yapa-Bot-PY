@@ -392,8 +392,8 @@ async def embed_gamble(ctx, u, amnt, _type):
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Mora")
         elif luck >= 6000:
             u.mora += amnt
-            embed = discord.Embed(title=f"{u.nickname} Won!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt)}x** Mora")
+            embed = discord.Embed(title=f"{u.nickname} Won?")
+            embed.add_field(name="Winnings", value=f"You got your mora back.")
         else:
             embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Mora.")
     elif _type == "p":
@@ -407,8 +407,8 @@ async def embed_gamble(ctx, u, amnt, _type):
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Primogems")
         elif luck >= 6000:
             u.primogems += amnt
-            embed = discord.Embed(title=f"{u.nickname} Won!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt)}x** Primogems")
+            embed = discord.Embed(title=f"{u.nickname} Won?")
+            embed.add_field(name="Winnings", value=f"You got your primogems back.")
         else:
             embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Primogems.")
     u.resin -= 10
