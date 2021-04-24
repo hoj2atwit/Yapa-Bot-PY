@@ -380,37 +380,60 @@ async def embed_gamble(ctx, u, amnt, _type):
         else:
             u.primogems -= amnt
             await ctx.send(f"You spent {formatter.number_format(amnt)}x Primogems to gamble.")
-    luck = random.randint(0, 10000)
+
+    rolls = [random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6)]
+    jackpot = True
+    triple = False
+    double = False
+
+    for num in rolls:
+        if num != 6:
+            jackpot = False
+            break
+
+    counter = 0
+    for i in range(len(rolls)):
+        counter = 0
+        for x in range(len(rolls) - i):
+            if rolls[i] == rolls[i+x]:
+                counter += 1
+        if counter >= 3:
+            triple = True
+        elif counter >= 2:
+            double = True
+
     if _type == "m":
-        if luck >= 9999:
+        if jackpot:
             u.mora += amnt*10
             embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Mora")
-        elif luck >= 9500:
+        elif triple:
             u.mora += amnt*2
             embed = discord.Embed(title=f"{u.nickname} Won!")
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Mora")
-        elif luck >= 6000:
+        elif double:
             u.mora += amnt
             embed = discord.Embed(title=f"{u.nickname} Won?")
             embed.add_field(name="Winnings", value=f"You got your mora back.")
         else:
             embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Mora.")
     elif _type == "p":
-        if luck >= 9999:
+        if jackpot:
             u.primogems += amnt*10
             embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Primogems")
-        elif luck >= 9500:
+        elif triple:
             u.primogems += amnt*2
             embed = discord.Embed(title=f"{u.nickname} Won!")
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Primogems")
-        elif luck >= 6000:
+        elif double:
             u.primogems += amnt
             embed = discord.Embed(title=f"{u.nickname} Won?")
             embed.add_field(name="Winnings", value=f"You got your primogems back.")
         else:
             embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Primogems.")
+
+    embed.add_field(name="Rolls", value=f"{rolls[0]}, {rolls[1]}, {rolls[2]}, {rolls[3]}, {rolls[4]}, {rolls[5]}")
     u.resin -= 10
     await commission.check_target_complete(ctx, u, "gamble", 1)
     userXPReward = int(amnt / 100)
