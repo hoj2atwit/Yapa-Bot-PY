@@ -382,36 +382,61 @@ async def embed_gamble(ctx, u, amnt, _type):
             await ctx.send(f"You spent {formatter.number_format(amnt)}x Primogems to gamble.")
 
     rolls = [random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6)]
-    jackpot = True
+    jackpot = False
     triple = False
     double = False
-
-    for num in rolls:
-        if num != 6:
-            jackpot = False
-            break
-
+    triplePair = False
+    doublePair = False
+    doubleTriple = False
+    quadruple = False
+    six = False
     counter = 0
+    last = 0
     for i in range(len(rolls)):
         counter = 0
-        for x in range(len(rolls) - i):
-            if rolls[i] == rolls[i+x]:
-                counter += 1
-        if counter >= 3:
-            triple = True
-        elif counter >= 2:
-            double = True
+        if rolls[i] != last:
+            last = rolls[i]
+            for x in range(len(rolls) - i):
+                if rolls[i] == rolls[i+x]:
+                    counter += 1
+            if counter == 6:
+                if roll[i] == 6:
+                    jackpot = True
+                    break
+                else:
+                    six = True
+                    break
+            elif counter >= 4:
+                quadruple = True
+                break
+            elif counter >= 3:
+                if triple:
+                    doubleTriple = True
+                else:
+                    triple = True
+            elif counter >= 2:
+                if double:
+                    if doublePair:
+                        triplePair = True
+                    else:
+                        doublePair = True
+                else:
+                    double = True
 
     if _type == "m":
         if jackpot:
             u.mora += amnt*10
             embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Mora")
-        elif triple:
+        elif six:
+            u.mora += amnt*5
+            embed = discord.Embed(title="MINI-JACKPOT----MINI-JACKPOT", description=f"{u.nickname} won the mini-jackpot!")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*5)}x** Mora")
+        elif quadruple or doubleTriple or triplePair:
             u.mora += amnt*2
             embed = discord.Embed(title=f"{u.nickname} Won!")
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Mora")
-        elif double:
+        elif triple or doublePair:
             u.mora += amnt
             embed = discord.Embed(title=f"{u.nickname} Won?")
             embed.add_field(name="Winnings", value=f"You got your mora back.")
@@ -422,11 +447,15 @@ async def embed_gamble(ctx, u, amnt, _type):
             u.primogems += amnt*10
             embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Primogems")
-        elif triple:
+        elif six:
+            u.primogems += amnt*5
+            embed = discord.Embed(title="MINI-JACKPOT----MINI-JACKPOT", description=f"{u.nickname} won the mini-jackpot!")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*5)}x** Primogems")
+        elif quadruple or doubleTriple or triplePair:
             u.primogems += amnt*2
             embed = discord.Embed(title=f"{u.nickname} Won!")
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Primogems")
-        elif double:
+        elif triple or doublePair:
             u.primogems += amnt
             embed = discord.Embed(title=f"{u.nickname} Won?")
             embed.add_field(name="Winnings", value=f"You got your primogems back.")
