@@ -272,7 +272,7 @@ async def profile(ctx, arg2=None, *arg3):
         u.change_description("No Description")
       await ctx.send(f"{ctx.author.mention}\'s description has been changed.")
       database_mongo.save_user(u)
-    elif arg2.startswith("nickname") or arg2.startswith("nick"):
+    elif arg2.lower().startswith("nickname") or arg2.lower().startswith("nick"):
       if arg3[0] != "":
         nickname = formatter.separate_commands(arg3)
         u.change_nickname(nickname[0])
@@ -280,7 +280,7 @@ async def profile(ctx, arg2=None, *arg3):
         u.change_nickname(u.name)
       await ctx.send(f"{ctx.author.mention}\'s nickname has been changed.")
       database_mongo.save_user(u)
-    elif arg2.startswith("favorite") or arg2.lower().startswith("fav"):
+    elif arg2.lower().startswith("favorite") or arg2.lower().startswith("fav"):
       if arg3[0] != "":
         char = formatter.separate_commands(arg3)
         have = u.change_favorite_character(char[0])
@@ -479,7 +479,7 @@ async def _adventure(ctx, *args):
   u = user.get_user(ctx.author.id)
   commands = formatter.separate_commands(args)
   charList = []
-  if len(args) >= 2 and (args[0].startswith("team") or args[0].startswith("party")) and args[1].isdigit():
+  if len(args) >= 2 and (args[0].lower().startswith("team") or args[0].lower().startswith("party") or args[0].lower() == "t" or args[0].lower() == "p") and args[1].isdigit():
       if int(args[1]) <= 4 and int(args[1]) > 0:
         for i in u.teams[args[1]].keys():
             charList.append(u.teams[args[1]][i])

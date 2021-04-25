@@ -181,7 +181,7 @@ def make_gamble_commission(ID, amnt):
   return Quest(ID, f"The Gambler's Frenzy- G{amnt}", f"Gamble {amnt} times.", targets, int(20*amnt), int(500*amnt), int(10*amnt), False)
 
 async def show_commissions(ctx, u):
-  embed = discord.Embed(title = f"{u.nickname}\'s Commissions", color=discord.Color.green(),description="Resets everyday at midnight and Noon EST.")
+  embed = discord.Embed(title = f"{u.nickname}\'s Commissions", color=discord.Color.green(),description="Resets everyday at Midnight and Noon EST.")
   for k in u.commissions.keys():
     c = u.commissions[k]
     if c["t"] == "T":
