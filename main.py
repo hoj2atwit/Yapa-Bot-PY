@@ -92,6 +92,9 @@ async def user_exists(ctx):
     await not_started(ctx)
     return False
 
+def not_DM(ctx):
+    return ctx.author.guild != None
+
 def user_already_exists(ctx):
   return not user.does_exist(ctx.author.id)
 
@@ -145,6 +148,7 @@ async def update(ctx, arg1, arg2=None):
         await ctx.send(f"{ctx.author.mention}, All commissions have been updated.")
 
 @bot.command(name="test")
+@commands.check(not_DM)
 @commands.check(user_is_me)
 async def test(ctx, mention):
   mention_id = formatter.get_id_from_mention(mention)
@@ -152,6 +156,7 @@ async def test(ctx, mention):
 
 #Resets a users timers or commissions
 @bot.command(name="reset")
+@commands.check(not_DM)
 @commands.check(user_is_me)
 async def reset(ctx, arg1, arg2):
   if arg1.lower() == "timers" or arg1.lower() == "t":
@@ -175,6 +180,7 @@ async def reset(ctx, arg1, arg2):
 
 #Deletes all user data
 @bot.command(name="clear")
+@commands.check(not_DM)
 @commands.check(user_is_me)
 async def clear(ctx):
   database_mongo.wipe_user_collection()
@@ -182,6 +188,7 @@ async def clear(ctx):
 
 #Command to delete a user's data
 @bot.command(name="delete", aliases=["del"])
+@commands.check(not_DM)
 @commands.check(user_is_me)
 async def delete(ctx, memberMention):
   mention_id = formatter.get_id_from_mention(str(memberMention))
@@ -193,6 +200,7 @@ async def delete(ctx, memberMention):
 
 #Command to Rob people
 @bot.command(name="rob")
+@commands.check(not_DM)
 @commands.check(user_is_me)
 async def rob(ctx, memberMention):
   mention_id = formatter.get_id_from_mention(str(memberMention))
@@ -213,6 +221,7 @@ async def rob(ctx, memberMention):
 
 #Command to give primo
 @bot.command(name="giftprimo", aliases=["giftp"])
+@commands.check(not_DM)
 @commands.check(user_is_me)
 async def giftp(ctx, memberMention, amnt=None):
   mention_id = formatter.get_id_from_mention(str(memberMention))
@@ -229,6 +238,7 @@ async def giftp(ctx, memberMention, amnt=None):
     
 #Command to give mora
 @bot.command(name="giftmora", aliases=["giftm"])
+@commands.check(not_DM)
 @commands.check(user_is_me)
 async def giftm(ctx, memberMention, amnt=None):
   mention_id = formatter.get_id_from_mention(str(memberMention))
@@ -251,6 +261,7 @@ async def giftm(ctx, memberMention, amnt=None):
 
 ###REGULAR USER COMMANDS
 @bot.command(name="start")
+@commands.check(not_DM)
 @commands.check(user_already_exists)
 async def start(ctx):
   user.create_user(str(ctx.author.name), ctx.author.id)
@@ -260,6 +271,7 @@ async def start(ctx):
   await ctx.send(ctx.author.mention, embed=embed)
 
 @bot.command(name="profile", aliases=["prof","p"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def profile(ctx, arg2=None, *arg3):
   u = user.get_user(ctx.author.id)
@@ -301,18 +313,21 @@ async def profile(ctx, arg2=None, *arg3):
     await user.embed_profile(ctx, u, ctx.author)
 
 @bot.command(name="commissions", aliases=["com","c"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def commissions(ctx):
   u = user.get_user(ctx.author.id)
   await commission.show_commissions(ctx, u)
 
 @bot.command(name="balance", aliases=["bal","b"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def balance(ctx):
   u = user.get_user(ctx.author.id)
   await user.embed_balance(ctx, u)
 
 @bot.command(name="daily", aliases=["day","d"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def daily(ctx):
   u = user.get_user(ctx.author.id)
@@ -320,6 +335,7 @@ async def daily(ctx):
   database_mongo.save_user(u)
 
 @bot.command(name="weekly", aliases=["week"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def weekly(ctx):
   u = user.get_user(ctx.author.id)
@@ -327,6 +343,7 @@ async def weekly(ctx):
   database_mongo.save_user(u)
 
 @bot.command(name="wish", aliases=["w"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 @commands.cooldown(1, 6, commands.BucketType.user)
 async def wish(ctx, arg=None):
@@ -347,6 +364,7 @@ async def wish(ctx, arg=None):
       
 
 @bot.command(name="free", aliases=["f"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 @commands.cooldown(1, 6, commands.BucketType.user)
 async def free(ctx, arg=None):
@@ -358,6 +376,7 @@ async def free(ctx, arg=None):
       
 
 @bot.command(name="resin", aliases=["r", "res"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def resin(ctx):
   u = user.get_user(ctx.author.id)
@@ -366,6 +385,7 @@ async def resin(ctx):
   await ctx.send(embed=e, file=f)
 
 @bot.command(name="listCharacter", aliases=["listc", "lc", "listchar"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def listc(ctx, *args):
@@ -386,6 +406,7 @@ async def listc(ctx, *args):
   await user.embed_char_list(ctx, u, pg, bot)
 
 @bot.command(name="listWeapon", aliases=["listw", "lw"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def listw(ctx, *args):
@@ -406,6 +427,7 @@ async def listw(ctx, *args):
   await user.embed_weap_list(ctx, u, pg, bot)
 
 @bot.command(name="equip", aliases=["e", "eq"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def equip(ctx, *args):
   u = user.get_user(ctx.author.id)
@@ -426,6 +448,7 @@ async def equip(ctx, *args):
       database_mongo.save_user(u)
 
 @bot.command(name="givemora", aliases=["givem", "gm"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def givem(ctx, mention, amnt):
   giver = user.get_user(ctx.author.id)
@@ -442,6 +465,7 @@ async def givem(ctx, mention, amnt):
     await error.embed_user_does_not_exist(ctx)
 
 @bot.command(name="giveprimo", aliases=["givep", "gp"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def givep(ctx, mention, amnt):
   giver = user.get_user(ctx.author.id)
@@ -458,6 +482,7 @@ async def givep(ctx, mention, amnt):
     await error.embed_user_does_not_exist(ctx)
 
 @bot.command(name="condense", aliases=["con"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def condense(ctx, arg=None):
   u = user.get_user(ctx.author.id)
@@ -473,6 +498,7 @@ async def condense(ctx, arg=None):
   database_mongo.save_user(u)
 
 @bot.command(name="adventure", aliases=["adv", "a"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 @commands.cooldown(1, 5.0, commands.BucketType.user)
 async def _adventure(ctx, *args):
@@ -490,6 +516,7 @@ async def _adventure(ctx, *args):
   database_mongo.save_user(u)
     
 @bot.command(name="trivia", aliases=["triv","t"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def trivia(ctx, TID, *answer):
   u = user.get_user(ctx.author.id)  
@@ -499,6 +526,7 @@ async def trivia(ctx, TID, *answer):
 
 
 @bot.command(name="teams", aliases=["team", "party"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 async def teams(ctx, arg1=None, *args):
   u = user.get_user(ctx.author.id)
@@ -520,6 +548,7 @@ async def teams(ctx, arg1=None, *args):
       await user.embed_show_all_teams(ctx, u)
 
 @bot.command(name="gamble", aliases=["g"])
+@commands.check(not_DM)
 @commands.check(user_exists)
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def gamble(ctx, _type, amount):
@@ -532,7 +561,8 @@ async def gamble(ctx, _type, amount):
     
 
 @bot.command(name="help", aliases=["h"])
-async def help(ctx):
+@commands.check(not_DM)
+async def help(ctx,arg1=None):
   embedList = []
   embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())
   text = f"**[{pre}start]** Allows you to start your Yappa Experience.\n"
@@ -588,7 +618,11 @@ async def help(ctx):
   embed.set_footer(text=f"Page 2/2")
   embedList.append(embed)
 
-  await formatter.pages(ctx, bot, embedList)
+  if arg1 == "p":
+    await formatter.pages(ctx, bot, embedList)
+  else:
+      for e in embedList:
+        await ctx.author.send(embed=e)
 
 threading.Thread(target=update_counter).start()
 update_commissions_check()
