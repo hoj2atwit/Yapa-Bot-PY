@@ -621,6 +621,7 @@ async def help(ctx,arg1=None):
   if arg1 == "p":
     await formatter.pages(ctx, bot, embedList)
   else:
+      await ctx.message.add_reaction("📧")
       for e in embedList:
         await ctx.author.send(embed=e)
 
