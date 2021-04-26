@@ -266,7 +266,7 @@ async def giftm(ctx, memberMention, amnt=None):
 async def start(ctx):
   user.create_user(str(ctx.author.name), ctx.author.id)
   embed = discord.Embed(title = "Starting Adventure", color = discord.Color.green())
-  embed.add_field(name = "_ _", value=f"{ctx.author.mention}\'s adventure has now begun!\nDo **[{pre}help]** to get the list of available commands.")
+  embed.add_field(name = "_ _", value=f"{ctx.author.mention}\'s adventure has now begun!\nDo **[{pre}help]** or **[{pre}help p]**to get the list of available commands.")
   embed.set_thumbnail(url=ctx.author.avatar_url)
   await ctx.send(ctx.author.mention, embed=embed)
 
