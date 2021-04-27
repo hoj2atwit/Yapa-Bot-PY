@@ -500,6 +500,7 @@ async def equip(ctx, *args):
       await ctx.send("Weapon has been equipped.")
       database_mongo.save_user(u)
 
+
 @bot.command(name="givemora", aliases=["givem", "gm"])
 @commands.check(not_DM)
 @commands.check(user_exists)
@@ -517,6 +518,7 @@ async def givem(ctx, mention, amnt):
       database_mongo.save_user(taker)
   else:
     await error.embed_user_does_not_exist(ctx)
+
 
 @bot.command(name="giveprimo", aliases=["givep", "gp"])
 @commands.check(not_DM)
@@ -536,6 +538,7 @@ async def givep(ctx, mention, amnt):
   else:
     await error.embed_user_does_not_exist(ctx)
 
+
 @bot.command(name="condense", aliases=["con"])
 @commands.check(not_DM)
 @commands.check(user_exists)
@@ -551,6 +554,7 @@ async def condense(ctx, arg=None):
       return
   await user.embed_condensed(ctx, u, amnt)
   database_mongo.save_user(u)
+
 
 @bot.command(name="adventure", aliases=["adv", "a"])
 @commands.check(not_DM)
@@ -570,6 +574,7 @@ async def _adventure(ctx, *args):
   await adventure.embed_adventure(ctx, u, charList)
   database_mongo.save_user(u)
     
+
 @bot.command(name="trivia", aliases=["triv","t"])
 @commands.check(not_DM)
 @commands.check(user_exists)
@@ -602,6 +607,7 @@ async def teams(ctx, arg1=None, *args):
                 database_mongo.save_user(u)
   else:
       await user.embed_show_all_teams(ctx, u)
+
 
 @bot.command(name="gamble", aliases=["g"])
 @commands.check(not_DM)
