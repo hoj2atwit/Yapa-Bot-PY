@@ -23,8 +23,8 @@ async def embed_adventure(ctx, u, characterList):
   if len(characters) > 0 and len(characters) <= 4:
     moraReward = int(random.randint(500, 5000)*int(2**u.world_level))
     primoReward = int(random.randint(2,6)*10 + (10*u.world_level))
-    charXPReward = int(random.randint(4,12)*int(2**u.world_level))
-    userXPReward = int(random.randint(12,30)*int(2**u.world_level))
+    charXPReward = int(random.randint(1,3)*int(2**u.world_level))
+    userXPReward = int(random.randint(8,25)*int(2**u.world_level))
     e = discord.Embed(title=f"{u.nickname}\'s Adventuring Rewards", color=discord.Color.green())
     u.mora += moraReward
     e.add_field(name="Drops", value=f"{formatter.number_format(moraReward)}x Mora", inline=False)
