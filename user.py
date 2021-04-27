@@ -124,7 +124,7 @@ class User:
     return amnt_made, reason
 
   def get_max_experience(self):
-    return int((30 + (10*(self.adventure_rank-1)*(10**self.world_level))))
+    return int((30 + (10*(self.adventure_rank-1) + (10**self.world_level))))
   
   def get_resin_cap(self):
     return int(120 + (20 * self.world_level))
@@ -162,11 +162,16 @@ class User:
     u.mora -= robbed
     self.mora += robbed
     return robbed, True
+  
+  def reset_level(self):
+      self.adventure_rank = 1
+      self.world_level = 0
+      self.experience = 0
 
   async def level_up(self, ctx):
     self.adventure_rank += 1
     await embed_adventure_rank_up(ctx, self)
-    if self.adventure_rank % 10 == 0:
+    if self.adventure_rank % 5 == 0:
       self.world_level += 1
       await embed_world_level_up(ctx, self)
     self.experience = 0
@@ -408,10 +413,12 @@ async def embed_give_primo(ctx, u, primo, member):
 #Shows donation of primo to user
 async def embed_donate_primo(ctx, giver, u, primo, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift from {giver.nickname}", color=discord.Color.blurple())
-  amnt, given = giver.givePrimo(u, primo)
+  amnt, given = giver.give_primo(u, primo)
   if given:
-    embed.add_field(name = f"Primogems x{primo}", value = "_ _")
-    await ctx.send(member.mention, embed=embed)
+    embed.add_field(name = f"Primogems x{formatter.number_format(primo)}", value = "_ _")
+    f = discord.File("Images/Other/Primogem.png", "Primogem.png")
+    embed.set_thumbnail(url="attachment://Primogem.png")
+    await ctx.send(member.mention, embed=embed, file=f)
   else:
     await error.embed_failed_donation_primo(ctx)
   
@@ -430,7 +437,9 @@ async def embed_donate_mora(ctx, giver, u, mora, member):
   amnt, given = giver.give_mora(u, mora)
   if given:
     embed.add_field(name = f"Mora x{formatter.number_format(mora)}", value = "_ _")
-    await ctx.send(member.mention, embed=embed)
+    f = discord.File("Images/Other/Mora.png", "Mora.png")
+    embed.set_thumbnail(url="attachment://Mora.png")
+    await ctx.send(member.mention, embed=embed, file=f)
   else:
     await error.embed_failed_donation_mora(ctx)
 

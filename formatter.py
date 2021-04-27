@@ -95,7 +95,7 @@ def organize_by_rarity(d):
   return orgAr[::-1]
 
 def get_xp_to_next_level(level):
-    return int((30 + (10*(level-1)*(10**math.floor(level/10))))/2)
+    return int((30 + (10*(level-1) + (10**math.floor(level/10))))/2)
 
 def get_id_from_mention(text):
   _id = ""
@@ -245,3 +245,21 @@ async def pages(ctx, bot, embedList):
                 await pages.remove_reaction(reaction, user)
         except asyncio.TimeoutError:
             break
+
+async def confirmation(ctx, bot):
+  await ctx.send(f"{ctx.author.mention}, Are you sure you want to do this?(y/n)")
+  def check(response):
+        confirmation = ["yes","no","y","n"]
+        return response.author == ctx.author and str(response.content.lower()) in confirmation
+  while True:
+        try:
+            response = await bot.wait_for(event = 'message', timeout=30, check=check)
+
+            if str(response.content.lower()) == "yes" or str(response.content.lower()) == "y":
+                return True
+
+            elif str(response.content.lower()) == "no" or str(response.content.lower()) == "n":
+                return False
+        except asyncio.TimeoutError:
+            await ctx.send("Response timeout.")
+            return False

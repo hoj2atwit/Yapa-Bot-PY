@@ -150,9 +150,12 @@ async def update(ctx, arg1, arg2=None):
 @bot.command(name="test")
 @commands.check(not_DM)
 @commands.check(user_is_me)
-async def test(ctx, mention):
-  mention_id = formatter.get_id_from_mention(mention)
-  await ctx.send(f"{ctx.author.mention}, <@!{mention_id}>")
+async def test(ctx):
+  confirm = await formatter.confirmation(ctx, bot)
+  if confirm:
+      await ctx.send("Confirmed!")
+  else:
+      await ctx.send("Denied!")
 
 #Resets a users timers or commissions
 @bot.command(name="reset")
@@ -162,29 +165,53 @@ async def reset(ctx, arg1, arg2):
   if arg1.lower() == "timers" or arg1.lower() == "t":
     mention_id = formatter.get_id_from_mention(arg2)
     if user.does_exist(mention_id):
-      user.reset_timers(mention_id)
-      await ctx.send(f"<@{mention_id}>\'s User timers reset.")
-    else:
-      await error.embed_user_does_not_exist(ctx)
-  elif arg1.lower() == "commissions" or arg1.lower() == "c" or arg1.lower() == "coms":
-    if arg2.lower() == "all":
-      user.generate_all_user_commissions()
-      await ctx.send(f"{ctx.author.mention}, All commissions have been reset.")
-      return
-    mention_id = formatter.get_id_from_mention(arg2)
-    if user.does_exist(mention_id):
-      user.reset_daily_commissions(mention_id)
-      await ctx.send(f"<@{mention_id}>\'s commissions reset.")
+      confirm = await formatter.confirmation(ctx, bot)
+      if confirm:
+          user.reset_timers(mention_id)
+          await ctx.send(f"<@{mention_id}>\'s User timers reset.")
+      else:
+          await ctx.send("Action Cancelled.")
     else:
       await error.embed_user_does_not_exist(ctx)
 
-#Deletes all user data
-@bot.command(name="clear")
-@commands.check(not_DM)
-@commands.check(user_is_me)
-async def clear(ctx):
-  database_mongo.wipe_user_collection()
-  await ctx.send("All User Data Cleared")
+
+  elif arg1.lower() == "commissions" or arg1.lower() == "c" or arg1.lower() == "coms":
+    if arg2.lower() == "all":
+      confirm = await formatter.confirmation(ctx, bot)
+      if confirm:
+        user.generate_all_user_commissions()
+        await ctx.send(f"{ctx.author.mention}, All commissions have been reset.")
+        return
+      else:
+        await ctx.send("Action Cancelled.")
+
+    mention_id = formatter.get_id_from_mention(arg2)
+    if user.does_exist(mention_id):
+      confirm = await formatter.confirmation(ctx, bot)
+      if confirm:
+        user.reset_daily_commissions(mention_id)
+        await ctx.send(f"<@{mention_id}>\'s commissions reset.")
+      else:
+        await ctx.send("Action Cancelled.")
+    else:
+      await error.embed_user_does_not_exist(ctx)
+
+
+  elif arg1.lower() == "level" or arg1.lower() == "l":
+    mention_id = formatter.get_id_from_mention(arg2)
+    if user.does_exist(mention_id):
+      confirm = await formatter.confirmation(ctx, bot)
+      if confirm:
+          u = user.get_user(mention_id)
+          member = await ctx.guild.fetch_member(str(mention_id))
+          u.reset_level()
+          await ctx.send(f"{member.mention}\'s adventure rank and world level have been reset.")
+          database_mongo.save_user(u)
+      else:
+        await ctx.send("Action Cancelled.")
+    else:
+      await error.embed_user_does_not_exist(ctx)
+
 
 #Command to delete a user's data
 @bot.command(name="delete", aliases=["del"])
@@ -193,8 +220,12 @@ async def clear(ctx):
 async def delete(ctx, memberMention):
   mention_id = formatter.get_id_from_mention(str(memberMention))
   if user.does_exist(mention_id):
-    database_mongo.delete_user(mention_id)
-    await ctx.send(f"<@{mention_id}>\'s User data deleted")
+    confirm = await formatter.confirmation(ctx, bot)
+    if confirm:
+        database_mongo.delete_user(mention_id)
+        await ctx.send(f"<@{mention_id}>\'s User data deleted")
+    else:
+        await ctx.send("Action Cancelled.")
   else:
     await error.embed_user_does_not_exist(ctx)
 
@@ -202,6 +233,7 @@ async def delete(ctx, memberMention):
 @bot.command(name="rob")
 @commands.check(not_DM)
 @commands.check(user_is_me)
+@commands.cooldown(1, 1.0, commands.BucketType.user)
 async def rob(ctx, memberMention):
   mention_id = formatter.get_id_from_mention(str(memberMention))
   if user.does_exist(mention_id) and user.does_exist(ctx.author.id):
@@ -210,7 +242,7 @@ async def rob(ctx, memberMention):
     robbedAmnt, robbed = u.rob(user_robbed)
     if robbed:
       e=discord.Embed(title=f"{user.get_user(mention_id).nickname} has been Robbed!",color=discord.Color.red())
-      e.add_field(name="_ _", value=f"{u.nickname} stole **{robbedAmnt}** Mora from your account.")
+      e.add_field(name="_ _", value=f"{u.nickname} stole **{formatter.number_format(robbedAmnt)}** Mora from your account.")
       await ctx.send(f"<@{mention_id}>",embed=e)
       database_mongo.save_user(user_robbed)
       database_mongo.save_user(u)
@@ -219,10 +251,29 @@ async def rob(ctx, memberMention):
   else:
     await error.embed_user_does_not_exist(ctx)
 
+@bot.command(name="giftxp")
+@commands.check(not_DM)
+@commands.check(user_is_me)
+@commands.cooldown(1, 1.0, commands.BucketType.user)
+async def giftxp(ctx, memberMention, amnt=None):
+  mention_id = formatter.get_id_from_mention(str(memberMention))
+  if user.does_exist(mention_id):
+      exp = 10000
+      if str(amnt).isdigit() and amnt != None:
+          exp = int(amnt)
+      u = user.get_user(mention_id)
+      member = await ctx.guild.fetch_member(str(mention_id))
+      await u.add_experience(exp, ctx)
+      await ctx.send(f"{member.mention} has been gifted {formatter.number_format(exp)} Adventurer's Experience.")
+      database_mongo.save_user(u)
+  else:
+      await error.embed_user_does_not_exist(ctx)
+
 #Command to give primo
 @bot.command(name="giftprimo", aliases=["giftp"])
 @commands.check(not_DM)
 @commands.check(user_is_me)
+@commands.cooldown(1, 1.0, commands.BucketType.user)
 async def giftp(ctx, memberMention, amnt=None):
   mention_id = formatter.get_id_from_mention(str(memberMention))
   if user.does_exist(mention_id):
@@ -240,6 +291,7 @@ async def giftp(ctx, memberMention, amnt=None):
 @bot.command(name="giftmora", aliases=["giftm"])
 @commands.check(not_DM)
 @commands.check(user_is_me)
+@commands.cooldown(1, 1.0, commands.BucketType.user)
 async def giftm(ctx, memberMention, amnt=None):
   mention_id = formatter.get_id_from_mention(str(memberMention))
   if user.does_exist(mention_id):
@@ -273,6 +325,7 @@ async def start(ctx):
 @bot.command(name="profile", aliases=["prof","p"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.cooldown(1, 1.0, commands.BucketType.user)
 async def profile(ctx, arg2=None, *arg3):
   u = user.get_user(ctx.author.id)
   if arg2 != None:
@@ -387,7 +440,6 @@ async def resin(ctx):
 @bot.command(name="listCharacter", aliases=["listc", "lc", "listchar"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 3, commands.BucketType.user)
 async def listc(ctx, *args):
   u = user.get_user(ctx.author.id)
   pg = 1
@@ -408,7 +460,6 @@ async def listc(ctx, *args):
 @bot.command(name="listWeapon", aliases=["listw", "lw"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 3, commands.BucketType.user)
 async def listw(ctx, *args):
   u = user.get_user(ctx.author.id)
   pg = 1
@@ -426,9 +477,11 @@ async def listw(ctx, *args):
         return
   await user.embed_weap_list(ctx, u, pg, bot)
 
+
 @bot.command(name="equip", aliases=["e", "eq"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.cooldown(1, 1.0, commands.BucketType.user)
 async def equip(ctx, *args):
   u = user.get_user(ctx.author.id)
   commands = formatter.separate_commands(args)
@@ -450,6 +503,7 @@ async def equip(ctx, *args):
 @bot.command(name="givemora", aliases=["givem", "gm"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.cooldown(1, 1.0, commands.BucketType.user)
 async def givem(ctx, mention, amnt):
   giver = user.get_user(ctx.author.id)
   taker_ID = formatter.get_id_from_mention(str(mention))
@@ -467,12 +521,13 @@ async def givem(ctx, mention, amnt):
 @bot.command(name="giveprimo", aliases=["givep", "gp"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.cooldown(1, 1.0, commands.BucketType.user)
 async def givep(ctx, mention, amnt):
   giver = user.get_user(ctx.author.id)
   taker_ID = formatter.get_id_from_mention(str(mention))
-  if user.does_exist(taker_ID) and str(taker_ID) != giver.ID:
+  if user.does_exist(taker_ID) and str(taker_ID) != giver._id:
     if amnt.isdigit():
-      member = await ctx.guild.fetch_member(int(taker_ID))
+      member = await ctx.guild.fetch_member(taker_ID)
       taker = user.get_user(taker_ID)
       primo = int(amnt)
       await user.embed_donate_primo(ctx, giver, taker, primo, member)
@@ -500,7 +555,7 @@ async def condense(ctx, arg=None):
 @bot.command(name="adventure", aliases=["adv", "a"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 5.0, commands.BucketType.user)
+@commands.cooldown(1, 4.0, commands.BucketType.user)
 async def _adventure(ctx, *args):
   u = user.get_user(ctx.author.id)
   commands = formatter.separate_commands(args)
@@ -528,6 +583,7 @@ async def trivia(ctx, TID, *answer):
 @bot.command(name="teams", aliases=["team", "party"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.cooldown(1, 1.0, commands.BucketType.user)
 async def teams(ctx, arg1=None, *args):
   u = user.get_user(ctx.author.id)
   if arg1 != None and arg1.isdigit():
@@ -550,7 +606,7 @@ async def teams(ctx, arg1=None, *args):
 @bot.command(name="gamble", aliases=["g"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 3, commands.BucketType.user)
+@commands.cooldown(1, 2, commands.BucketType.user)
 async def gamble(ctx, _type, amount):
     typeList = ["primo", "p", "m", "mora"]
     if _type.lower() in typeList:
@@ -562,6 +618,7 @@ async def gamble(ctx, _type, amount):
 
 @bot.command(name="help", aliases=["h"])
 @commands.check(not_DM)
+@commands.cooldown(1, 1.0, commands.BucketType.user)
 async def help(ctx,arg1=None):
   embedList = []
   embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())
