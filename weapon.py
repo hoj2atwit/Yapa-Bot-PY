@@ -21,7 +21,7 @@ class Weapon:
     return Weapon(self.name, self.URL_name, self.URL_icon, self.weapon_type, self.total, self.rarity, self.refinement, self.attack, self.substat, self.substat_value, self.level, self.xp)
 
   def get_xp_to_next_level(self):
-    return int((30 + (10*(self.level-1) + (10**math.floor(self.level/10))))/2)
+    return int((30 + (100*(self.level-1)*(int(self.level/5)+1)) + (20**int(self.level/10)))/2)
 
   def refine(self, user):
     count = 0

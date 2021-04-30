@@ -124,7 +124,7 @@ class User:
     return amnt_made, reason
 
   def get_max_experience(self):
-    return int((30 + (10*(self.adventure_rank-1) + (10**self.world_level))))
+    return int(30 + (100*(self.adventure_rank-1)*(self.world_level+1)) + (20**int(self.world_level/2)))
   
   def get_resin_cap(self):
     return int(120 + (20 * self.world_level))

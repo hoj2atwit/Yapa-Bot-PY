@@ -52,7 +52,7 @@ class Character:
       self.weapon_equiped = weapon.get_dict()
 
   def get_xp_to_next_level(self):
-    return int((30 + (10*(self.level-1) + (10**math.floor(self.level/10))))/2)
+    return int((30 + (100*(self.level-1)*(int(self.level/5)+1)) + (20**int(self.level/10)))/2)
 
   def add_copy(self):
     if self.const_amnt != 6:
