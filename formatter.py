@@ -222,7 +222,7 @@ async def pages(ctx, bot, embedList):
   await pages.add_reaction("◀️")
   await pages.add_reaction("▶️")
   def check(reaction, user):
-        return str(reaction.emoji) in ["◀️", "▶️"] and reaction.message == pages
+        return str(reaction.emoji) in ["◀️", "▶️"] and reaction.message == pages and (not user.bot)
   while True:
         try:
             reaction, user = await bot.wait_for("reaction_add", timeout=30, check=check)
