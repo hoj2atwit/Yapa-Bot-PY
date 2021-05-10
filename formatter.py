@@ -102,6 +102,8 @@ def get_id_from_mention(text):
   for c in text:
     if c.isdigit():
       _id += c
+  if _id == "":
+      return 0
   return int(_id)
 
 def remove_extra_spaces(command):

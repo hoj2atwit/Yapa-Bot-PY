@@ -444,18 +444,19 @@ async def listc(ctx, *args):
   u = user.get_user(ctx.author.id)
   pg = 1
   if len(args) > 0:
-    mention_ID = formatter.get_id_from_mention(str(args[0]))
     if args[0].isdigit():
       pg = int(args[0])
       if len(args) > 1:
         mention_ID = formatter.get_id_from_mention(str(args[1]))
         if user.does_exist(mention_ID):
           u = user.get_user(mention_ID)
-    elif user.does_exist(mention_ID):
-      u = user.get_user(mention_ID)
+
+    elif user.does_exist(formatter.get_id_from_mention(str(args[0]))):
+      u = user.get_user(formatter.get_id_from_mention(str(args[0])))
       if len(args) > 1:
         if args[1].isdigit():
           pg = int(args[1])
+
     else:
       #show specific character info
       name = formatter.separate_commands(args)[0].lower()
@@ -474,7 +475,6 @@ async def listw(ctx, *args):
   u = user.get_user(ctx.author.id)
   pg = 1
   if len(args) > 0:
-    mention_ID = formatter.get_id_from_mention(str(args[0]))
     if args[0].isdigit():
       pg = int(args[0])
       if len(args) > 1:
@@ -482,13 +482,14 @@ async def listw(ctx, *args):
         if user.does_exist(mention_ID):
           u = user.get_user(mention_ID)
 
-    elif user.does_exist(mention_ID):
-      u = user.get_user(mention_ID)
+    elif user.does_exist(formatter.get_id_from_mention(str(args[0]))):
+      u = user.get_user(formatter.get_id_from_mention(str(args[0])))
       if len(args) > 1:
         if args[1].isdigit():
           pg = int(args[1])
+
     else:
-      #show specific character info
+      #show specific weapon info
       name = formatter.separate_commands(args)[0]
       if u.does_weapon_exist(name):
         await user.embed_show_weap_info(ctx, u, u.weapons[formatter.name_formatter(name)])
