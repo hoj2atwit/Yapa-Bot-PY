@@ -508,32 +508,32 @@ async def listc(ctx, *args):
 @commands.check(user_exists)
 @commands.check(lock_exists)
 async def listw(ctx, *args):
-      u = user.get_user(ctx.author.id)
-      pg = 1
-      if len(args) > 0:
-        if args[0].isdigit():
-          pg = int(args[0])
-          if len(args) > 1:
-            mention_ID = formatter.get_id_from_mention(str(args[1]))
-            if user.does_exist(mention_ID):
-              u = user.get_user(mention_ID)
+    u = user.get_user(ctx.author.id)
+    pg = 1
+    if len(args) > 0:
+      if args[0].isdigit():
+        pg = int(args[0])
+        if len(args) > 1:
+          mention_ID = formatter.get_id_from_mention(str(args[1]))
+          if user.does_exist(mention_ID):
+            u = user.get_user(mention_ID)
 
-        elif user.does_exist(formatter.get_id_from_mention(str(args[0]))):
-          u = user.get_user(formatter.get_id_from_mention(str(args[0])))
-          if len(args) > 1:
-            if args[1].isdigit():
-              pg = int(args[1])
+      elif user.does_exist(formatter.get_id_from_mention(str(args[0]))):
+        u = user.get_user(formatter.get_id_from_mention(str(args[0])))
+        if len(args) > 1:
+          if args[1].isdigit():
+            pg = int(args[1])
 
+      else:
+        #show specific weapon info
+        name = formatter.separate_commands(args)[0]
+        if u.does_weapon_exist(name):
+          await user.embed_show_weap_info(ctx, u, u.weapons[formatter.name_formatter(name)])
+          return
         else:
-          #show specific weapon info
-          name = formatter.separate_commands(args)[0]
-          if u.does_weapon_exist(name):
-            await user.embed_show_weap_info(ctx, u, u.weapons[formatter.name_formatter(name)])
-            return
-          else:
-            await error.embed_get_weapon_suggestions(ctx, u, name)
-            return
-      await user.embed_weap_list(ctx, u, pg, bot)
+          await error.embed_get_weapon_suggestions(ctx, u, name)
+          return
+    await user.embed_weap_list(ctx, u, pg, bot)
 
 
 @bot.command(name="equip", aliases=["e", "eq"])
@@ -604,7 +604,7 @@ async def givep(ctx, mention, amnt):
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
-async def condense(ctx, arg=None):
+async def condense(ctx, arg=None, amount=None):
   async with locks[str(ctx.author.id)]:
       u = user.get_user(ctx.author.id)
       amnt = 1
@@ -612,7 +612,10 @@ async def condense(ctx, arg=None):
         if arg.isdigit():
           amnt = int(arg)
         elif arg.lower().startswith("use"):
-          await user.embed_use_condensed(ctx, u)
+          if amount != None:
+            if amount.isdigit():
+              amnt = int(amount)
+          await user.embed_use_condensed(ctx, u, amnt)
           database_mongo.save_user(u)
           return
       await user.embed_condensed(ctx, u, amnt)

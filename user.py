@@ -534,10 +534,18 @@ async def embed_condensed(ctx, u, amnt):
     else:
       await error.embed_too_much_condensed(ctx)
 
-async def embed_use_condensed(ctx, u):
-  can = u.use_condensed()
-  if can:
-    embed = discord.Embed(title="Using Condensed", color=discord.Color.blue())
+async def embed_use_condensed(ctx, u, amount):
+  some = False
+  count = 0
+  for i in range(amount):
+    can = u.use_condensed()
+    if not can:
+        if i > 0:
+          some = True
+        break
+    count += 1
+  if can or some:
+    embed = discord.Embed(title=f"Using {count} Condensed", color=discord.Color.blue())
     embed.add_field(name="Condensed Resin Used", value=f"You now have {u.condensed} remaining.")
     f = discord.File("Images/Other/Condensed_Resin.png", "Condensed_Resin.png")
     embed.set_thumbnail(url="attachment://Condensed_Resin.png")
