@@ -10,6 +10,7 @@ import formatter
 import adventure
 import commission
 import updater
+import asyncio
 import threading, time
 from dotenv import load_dotenv
 import pytz
@@ -22,6 +23,8 @@ load_dotenv()
 
 bot = commands.Bot(f"{pre}", case_insensitive=True)
 bot.remove_command("help") # Removing the default help command
+
+locks = {}
 
 def update_commissions_check():
   # This function runs periodically every 1 second
@@ -104,7 +107,13 @@ def user_is_me(ctx):
 async def not_started(ctx):
   await ctx.send(f"{ctx.author.mention}, Use **[{pre}start]** to begin your adventure")
 
-
+def lock_exists(ctx):
+  global locks
+  if str(ctx.author.id) not in locks.keys():
+      locks_copy = locks
+      locks_copy[str(ctx.author.id)] = asyncio.Lock()
+      locks = locks_copy
+  return True
 
 
 #When bot turns on
@@ -129,181 +138,193 @@ async def on_command_error(ctx, error):
 
 @bot.command(name="update")
 @commands.check(user_is_me)
+@commands.check(lock_exists)
 async def update(ctx, arg1, arg2=None):
-    if arg1.lower() == "c" and arg2.lower() == "i":
-        await ctx.send(f"{ctx.author.mention}, Downloading New Character Images")
-        updater.get_all_character_images_API()
-        await ctx.send(f"{ctx.author.mention}, Character images have been downloaded.")
-    elif arg1.lower() == "w" and arg2.lower() == "i":
-        await ctx.send(f"{ctx.author.mention}, Downloading New Weapon Images")
-        updater.get_all_weap_images_API()
-        await ctx.send(f"{ctx.author.mention}, Weapon images have been downloaded.")
-    elif arg1.lower() == "u":
-        await ctx.send(f"{ctx.author.mention}, Updating All Users.")
-        user.update_users()
-        await ctx.send(f"{ctx.author.mention}, All users have been updated.")
-    elif arg1.lower() == "com":
-        await ctx.send(f"{ctx.author.mention}, Updating All Commissions.")
-        commission.generate_all_commissions()
-        await ctx.send(f"{ctx.author.mention}, All commissions have been updated.")
+    async with locks[str(ctx.author.id)]:
+        if arg1.lower() == "c" and arg2.lower() == "i":
+            await ctx.send(f"{ctx.author.mention}, Downloading New Character Images")
+            updater.get_all_character_images_API()
+            await ctx.send(f"{ctx.author.mention}, Character images have been downloaded.")
+        elif arg1.lower() == "w" and arg2.lower() == "i":
+            await ctx.send(f"{ctx.author.mention}, Downloading New Weapon Images")
+            updater.get_all_weap_images_API()
+            await ctx.send(f"{ctx.author.mention}, Weapon images have been downloaded.")
+        elif arg1.lower() == "u":
+            await ctx.send(f"{ctx.author.mention}, Updating All Users.")
+            user.update_users()
+            await ctx.send(f"{ctx.author.mention}, All users have been updated.")
+        elif arg1.lower() == "com":
+            await ctx.send(f"{ctx.author.mention}, Updating All Commissions.")
+            commission.generate_all_commissions()
+            await ctx.send(f"{ctx.author.mention}, All commissions have been updated.")
 
 @bot.command(name="test")
 @commands.check(not_DM)
 @commands.check(user_is_me)
+@commands.check(lock_exists)
 async def test(ctx):
-  confirm = await formatter.confirmation(ctx, bot)
-  if confirm:
-      await ctx.send("Confirmed!")
-  else:
-      await ctx.send("Denied!")
+    async with locks[str(ctx.author.id)]:
+      confirm = await formatter.confirmation(ctx, bot)
+      if confirm:
+          await ctx.send("Confirmed!")
+      else:
+          await ctx.send("Denied!")
 
 #Resets a users timers or commissions
 @bot.command(name="reset")
 @commands.check(not_DM)
 @commands.check(user_is_me)
+@commands.check(lock_exists)
 async def reset(ctx, arg1, arg2):
-  if arg1.lower() == "timers" or arg1.lower() == "t":
-    mention_id = formatter.get_id_from_mention(arg2)
-    if user.does_exist(mention_id):
-      confirm = await formatter.confirmation(ctx, bot)
-      if confirm:
-          user.reset_timers(mention_id)
-          await ctx.send(f"<@{mention_id}>\'s User timers reset.")
-      else:
-          await ctx.send("Action Cancelled.")
-    else:
-      await error.embed_user_does_not_exist(ctx)
+    async with locks[str(ctx.author.id)]:
+      if arg1.lower() == "timers" or arg1.lower() == "t":
+        mention_id = formatter.get_id_from_mention(arg2)
+        if user.does_exist(mention_id):
+          confirm = await formatter.confirmation(ctx, bot)
+          if confirm:
+              user.reset_timers(mention_id)
+              await ctx.send(f"<@{mention_id}>\'s User timers reset.")
+          else:
+              await ctx.send("Action Cancelled.")
+        else:
+          await error.embed_user_does_not_exist(ctx)
 
 
-  elif arg1.lower() == "commissions" or arg1.lower() == "c" or arg1.lower() == "coms":
-    if arg2.lower() == "all":
-      confirm = await formatter.confirmation(ctx, bot)
-      if confirm:
-        user.generate_all_user_commissions()
-        await ctx.send(f"{ctx.author.mention}, All commissions have been reset.")
-        return
-      else:
-        await ctx.send("Action Cancelled.")
+      elif arg1.lower() == "commissions" or arg1.lower() == "c" or arg1.lower() == "coms":
+        if arg2.lower() == "all":
+          confirm = await formatter.confirmation(ctx, bot)
+          if confirm:
+            user.generate_all_user_commissions()
+            await ctx.send(f"{ctx.author.mention}, All commissions have been reset.")
+            return
+          else:
+            await ctx.send("Action Cancelled.")
 
-    mention_id = formatter.get_id_from_mention(arg2)
-    if user.does_exist(mention_id):
-      confirm = await formatter.confirmation(ctx, bot)
-      if confirm:
-        user.reset_daily_commissions(mention_id)
-        await ctx.send(f"<@{mention_id}>\'s commissions reset.")
-      else:
-        await ctx.send("Action Cancelled.")
-    else:
-      await error.embed_user_does_not_exist(ctx)
+        mention_id = formatter.get_id_from_mention(arg2)
+        if user.does_exist(mention_id):
+          confirm = await formatter.confirmation(ctx, bot)
+          if confirm:
+            user.reset_daily_commissions(mention_id)
+            await ctx.send(f"<@{mention_id}>\'s commissions reset.")
+          else:
+            await ctx.send("Action Cancelled.")
+        else:
+          await error.embed_user_does_not_exist(ctx)
 
 
-  elif arg1.lower() == "level" or arg1.lower() == "l":
-    mention_id = formatter.get_id_from_mention(arg2)
-    if user.does_exist(mention_id):
-      confirm = await formatter.confirmation(ctx, bot)
-      if confirm:
-          u = user.get_user(mention_id)
-          member = await ctx.guild.fetch_member(str(mention_id))
-          u.reset_level()
-          await ctx.send(f"{member.mention}\'s adventure rank and world level have been reset.")
-          database_mongo.save_user(u)
-      else:
-        await ctx.send("Action Cancelled.")
-    else:
-      await error.embed_user_does_not_exist(ctx)
+      elif arg1.lower() == "level" or arg1.lower() == "l":
+        mention_id = formatter.get_id_from_mention(arg2)
+        if user.does_exist(mention_id):
+          confirm = await formatter.confirmation(ctx, bot)
+          if confirm:
+              u = user.get_user(mention_id)
+              member = await ctx.guild.fetch_member(str(mention_id))
+              u.reset_level()
+              await ctx.send(f"{member.mention}\'s adventure rank and world level have been reset.")
+              database_mongo.save_user(u)
+          else:
+            await ctx.send("Action Cancelled.")
+        else:
+          await error.embed_user_does_not_exist(ctx)
 
 
 #Command to delete a user's data
 @bot.command(name="delete", aliases=["del"])
 @commands.check(not_DM)
 @commands.check(user_is_me)
+@commands.check(lock_exists)
 async def delete(ctx, memberMention):
-  mention_id = formatter.get_id_from_mention(str(memberMention))
-  if user.does_exist(mention_id):
-    confirm = await formatter.confirmation(ctx, bot)
-    if confirm:
-        database_mongo.delete_user(mention_id)
-        await ctx.send(f"<@{mention_id}>\'s User data deleted")
-    else:
-        await ctx.send("Action Cancelled.")
-  else:
-    await error.embed_user_does_not_exist(ctx)
+    async with locks[str(ctx.author.id)]:
+      mention_id = formatter.get_id_from_mention(str(memberMention))
+      if user.does_exist(mention_id):
+        confirm = await formatter.confirmation(ctx, bot)
+        if confirm:
+            database_mongo.delete_user(mention_id)
+            await ctx.send(f"<@{mention_id}>\'s User data deleted")
+        else:
+            await ctx.send("Action Cancelled.")
+      else:
+        await error.embed_user_does_not_exist(ctx)
 
 #Command to Rob people
 @bot.command(name="rob")
 @commands.check(not_DM)
 @commands.check(user_is_me)
-@commands.cooldown(1, 1.0, commands.BucketType.user)
+@commands.check(lock_exists)
 async def rob(ctx, memberMention):
-  mention_id = formatter.get_id_from_mention(str(memberMention))
-  if user.does_exist(mention_id) and user.does_exist(ctx.author.id):
-    u = user.get_user(ctx.author.id)
-    user_robbed = user.get_user(mention_id)
-    robbedAmnt, robbed = u.rob(user_robbed)
-    if robbed:
-      e=discord.Embed(title=f"{user.get_user(mention_id).nickname} has been Robbed!",color=discord.Color.red())
-      e.add_field(name="_ _", value=f"{u.nickname} stole **{formatter.number_format(robbedAmnt)}** Mora from your account.")
-      await ctx.send(f"<@{mention_id}>",embed=e)
-      database_mongo.save_user(user_robbed)
-      database_mongo.save_user(u)
-    else:
-      await error.embed_failed_robbery(ctx)
-  else:
-    await error.embed_user_does_not_exist(ctx)
+    async with locks[str(ctx.author.id)]:
+      mention_id = formatter.get_id_from_mention(str(memberMention))
+      if user.does_exist(mention_id) and user.does_exist(ctx.author.id):
+        u = user.get_user(ctx.author.id)
+        user_robbed = user.get_user(mention_id)
+        robbedAmnt, robbed = u.rob(user_robbed)
+        if robbed:
+          e=discord.Embed(title=f"{user.get_user(mention_id).nickname} has been Robbed!",color=discord.Color.red())
+          e.add_field(name="_ _", value=f"{u.nickname} stole **{formatter.number_format(robbedAmnt)}** Mora from your account.")
+          await ctx.send(f"<@{mention_id}>",embed=e)
+          database_mongo.save_user(user_robbed)
+          database_mongo.save_user(u)
+        else:
+          await error.embed_failed_robbery(ctx)
+      else:
+        await error.embed_user_does_not_exist(ctx)
 
 @bot.command(name="giftxp")
 @commands.check(not_DM)
 @commands.check(user_is_me)
-@commands.cooldown(1, 1.0, commands.BucketType.user)
+@commands.check(lock_exists)
 async def giftxp(ctx, memberMention, amnt=None):
-  mention_id = formatter.get_id_from_mention(str(memberMention))
-  if user.does_exist(mention_id):
-      exp = 10000
-      if str(amnt).isdigit() and amnt != None:
-          exp = int(amnt)
-      u = user.get_user(mention_id)
-      member = await ctx.guild.fetch_member(str(mention_id))
-      await u.add_experience(exp, ctx)
-      await ctx.send(f"{member.mention} has been gifted {formatter.number_format(exp)} Adventurer's Experience.")
-      database_mongo.save_user(u)
-  else:
-      await error.embed_user_does_not_exist(ctx)
+    async with locks[str(ctx.author.id)]:
+      mention_id = formatter.get_id_from_mention(str(memberMention))
+      if user.does_exist(mention_id):
+          exp = 10000
+          if str(amnt).isdigit() and amnt != None:
+              exp = int(amnt)
+          u = user.get_user(mention_id)
+          member = await ctx.guild.fetch_member(str(mention_id))
+          await u.add_experience(exp, ctx)
+          await ctx.send(f"{member.mention} has been gifted {formatter.number_format(exp)} Adventurer's Experience.")
+          database_mongo.save_user(u)
+      else:
+          await error.embed_user_does_not_exist(ctx)
 
 #Command to give primo
 @bot.command(name="giftprimo", aliases=["giftp"])
 @commands.check(not_DM)
 @commands.check(user_is_me)
-@commands.cooldown(1, 1.0, commands.BucketType.user)
+@commands.check(lock_exists)
 async def giftp(ctx, memberMention, amnt=None):
-  mention_id = formatter.get_id_from_mention(str(memberMention))
-  if user.does_exist(mention_id):
-    primo = 16000
-    if str(amnt).isdigit() and amnt != None:
-      primo = int(amnt)
-    u = user.get_user(mention_id)
-    member = await ctx.guild.fetch_member(str(mention_id))
-    await user.embed_give_primo(ctx, u, primo, member)
-    database_mongo.save_user(u)
-  else:
-    await error.embed_user_does_not_exist(ctx)
+    async with locks[str(ctx.author.id)]:
+      mention_id = formatter.get_id_from_mention(str(memberMention))
+      if user.does_exist(mention_id):
+        primo = 16000
+        if str(amnt).isdigit() and amnt != None:
+          primo = int(amnt)
+        u = user.get_user(mention_id)
+        member = await ctx.guild.fetch_member(str(mention_id))
+        await user.embed_give_primo(ctx, u, primo, member)
+        database_mongo.save_user(u)
+      else:
+        await error.embed_user_does_not_exist(ctx)
     
 #Command to give mora
 @bot.command(name="giftmora", aliases=["giftm"])
 @commands.check(not_DM)
 @commands.check(user_is_me)
-@commands.cooldown(1, 1.0, commands.BucketType.user)
+@commands.check(lock_exists)
 async def giftm(ctx, memberMention, amnt=None):
-  mention_id = formatter.get_id_from_mention(str(memberMention))
-  if user.does_exist(mention_id):
-    mora = 1000000
-    if str(amnt).isdigit() and amnt != None:
-      mora = int(amnt)
-    u = user.get_user(mention_id)
-    member = await ctx.guild.fetch_member(str(mention_id))
-    await user.embed_give_mora(ctx, u, mora, member)
-    database_mongo.save_user(u)
-  else:
-    await error.embed_user_does_not_exist(ctx)
+    async with locks[str(ctx.author.id)]:
+      mention_id = formatter.get_id_from_mention(str(memberMention))
+      if user.does_exist(mention_id):
+        mora = 1000000
+        if str(amnt).isdigit() and amnt != None:
+          mora = int(amnt)
+        u = user.get_user(mention_id)
+        member = await ctx.guild.fetch_member(str(mention_id))
+        await user.embed_give_mora(ctx, u, mora, member)
+        database_mongo.save_user(u)
+      else:
+        await error.embed_user_does_not_exist(ctx)
 
 
 
@@ -315,338 +336,369 @@ async def giftm(ctx, memberMention, amnt=None):
 @bot.command(name="start")
 @commands.check(not_DM)
 @commands.check(user_already_exists)
+@commands.check(lock_exists)
 async def start(ctx):
-  user.create_user(str(ctx.author.name), ctx.author.id)
-  embed = discord.Embed(title = "Starting Adventure", color = discord.Color.green())
-  embed.add_field(name = "_ _", value=f"{ctx.author.mention}\'s adventure has now begun!\nDo **[{pre}help]** or **[{pre}help p]**to get the list of available commands.")
-  embed.set_thumbnail(url=ctx.author.avatar_url)
-  await ctx.send(ctx.author.mention, embed=embed)
+    async with locks[str(ctx.author.id)]:
+      user.create_user(str(ctx.author.name), ctx.author.id)
+      embed = discord.Embed(title = "Starting Adventure", color = discord.Color.green())
+      embed.add_field(name = "_ _", value=f"{ctx.author.mention}\'s adventure has now begun!\nDo **[{pre}help]** or **[{pre}help p]**to get the list of available commands.")
+      embed.set_thumbnail(url=ctx.author.avatar_url)
+      await ctx.send(ctx.author.mention, embed=embed)
 
 @bot.command(name="profile", aliases=["prof","p"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 1.0, commands.BucketType.user)
+@commands.check(lock_exists)
 async def profile(ctx, arg2=None, *arg3):
-  u = user.get_user(ctx.author.id)
-  if arg2 != None:
-    if arg2.lower().startswith("description") or arg2.lower().startswith("bio") or arg2.lower().startswith("desc"):
-      if arg3[0] != "":
-        desc = formatter.separate_commands(arg3)
-        u.change_description(desc[0])
-      else:
-        u.change_description("No Description")
-      await ctx.send(f"{ctx.author.mention}\'s description has been changed.")
-      database_mongo.save_user(u)
-    elif arg2.lower().startswith("nickname") or arg2.lower().startswith("nick"):
-      if arg3[0] != "":
-        nickname = formatter.separate_commands(arg3)
-        u.change_nickname(nickname[0])
-      else:
-        u.change_nickname(u.name)
-      await ctx.send(f"{ctx.author.mention}\'s nickname has been changed.")
-      database_mongo.save_user(u)
-    elif arg2.lower().startswith("favorite") or arg2.lower().startswith("fav"):
-      if arg3[0] != "":
-        char = formatter.separate_commands(arg3)
-        have = u.change_favorite_character(char[0])
-        if have:
-          await ctx.send(f"{ctx.author.mention}\'s favorite Character has been set to: {formatter.name_unformatter(formatter.name_formatter(char[0]))}")
+    async with locks[str(ctx.author.id)]:
+      u = user.get_user(ctx.author.id)
+      if arg2 != None:
+        if arg2.lower().startswith("description") or arg2.lower().startswith("bio") or arg2.lower().startswith("desc"):
+          if arg3[0] != "":
+            desc = formatter.separate_commands(arg3)
+            u.change_description(desc[0])
+          else:
+            u.change_description("No Description")
+          await ctx.send(f"{ctx.author.mention}\'s description has been changed.")
           database_mongo.save_user(u)
+        elif arg2.lower().startswith("nickname") or arg2.lower().startswith("nick"):
+          if arg3[0] != "":
+            nickname = formatter.separate_commands(arg3)
+            u.change_nickname(nickname[0])
+          else:
+            u.change_nickname(u.name)
+          await ctx.send(f"{ctx.author.mention}\'s nickname has been changed.")
+          database_mongo.save_user(u)
+        elif arg2.lower().startswith("favorite") or arg2.lower().startswith("fav"):
+          if arg3[0] != "":
+            char = formatter.separate_commands(arg3)
+            have = u.change_favorite_character(char[0])
+            if have:
+              await ctx.send(f"{ctx.author.mention}\'s favorite Character has been set to: {formatter.name_unformatter(formatter.name_formatter(char[0]))}")
+              database_mongo.save_user(u)
+            else:
+              await error.embed_get_character_suggestions(ctx, u, char[0])
         else:
-          await error.embed_get_character_suggestions(ctx, u, char[0])
-    else:
-      mention_id = formatter.get_id_from_mention(str(arg2))
-      if user.does_exist(mention_id):
-        member = await ctx.guild.fetch_member(mention_id)
-        u = user.get_user(mention_id)
-        await user.embed_profile(ctx, u, member)
+          mention_id = formatter.get_id_from_mention(str(arg2))
+          if user.does_exist(mention_id):
+            member = await ctx.guild.fetch_member(mention_id)
+            u = user.get_user(mention_id)
+            await user.embed_profile(ctx, u, member)
+          else:
+            await error.embed_user_does_not_exist(ctx)
       else:
-        await error.embed_user_does_not_exist(ctx)
-  else:
-    await user.embed_profile(ctx, u, ctx.author)
+        await user.embed_profile(ctx, u, ctx.author)
 
 @bot.command(name="commissions", aliases=["com","c"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.check(lock_exists)
 async def commissions(ctx):
-  u = user.get_user(ctx.author.id)
-  await commission.show_commissions(ctx, u)
+    async with locks[str(ctx.author.id)]:
+      u = user.get_user(ctx.author.id)
+      await commission.show_commissions(ctx, u)
 
 @bot.command(name="balance", aliases=["bal","b"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.check(lock_exists)
 async def balance(ctx):
-  u = user.get_user(ctx.author.id)
-  await user.embed_balance(ctx, u)
+    async with locks[str(ctx.author.id)]:
+      u = user.get_user(ctx.author.id)
+      await user.embed_balance(ctx, u)
 
 @bot.command(name="daily", aliases=["day","d"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.check(lock_exists)
 async def daily(ctx):
-  u = user.get_user(ctx.author.id)
-  await user.embed_daily(ctx, u)
-  database_mongo.save_user(u)
+    async with locks[str(ctx.author.id)]:
+      u = user.get_user(ctx.author.id)
+      await user.embed_daily(ctx, u)
+      database_mongo.save_user(u)
 
 @bot.command(name="weekly", aliases=["week"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.check(lock_exists)
 async def weekly(ctx):
-  u = user.get_user(ctx.author.id)
-  await user.embed_weekly(ctx, u)
-  database_mongo.save_user(u)
+    async with locks[str(ctx.author.id)]:
+      u = user.get_user(ctx.author.id)
+      await user.embed_weekly(ctx, u)
+      database_mongo.save_user(u)
 
 @bot.command(name="wish", aliases=["w"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 6, commands.BucketType.user)
+@commands.check(lock_exists)
 async def wish(ctx, arg=None):
-  u = user.get_user(ctx.author.id)
-  if arg == "10":
-    if u.primogems < 1600:
-      await error.embed_not_enough_primo(ctx)
-      return
-    await pull.embed_ten_pull(ctx, u)
-    database_mongo.save_user(u)
-  else:
-    if u.primogems < 160:
-      await error.embed_not_enough_primo(ctx)
-      return
-    await pull.embed_single_pull(ctx, u)
-    database_mongo.save_user(u)
+    async with locks[str(ctx.author.id)]:
+      u = user.get_user(ctx.author.id)
+      if arg == "10":
+        if u.primogems < 1600:
+          await error.embed_not_enough_primo(ctx)
+          return
+        await pull.embed_ten_pull(ctx, u)
+        database_mongo.save_user(u)
+      else:
+        if u.primogems < 160:
+          await error.embed_not_enough_primo(ctx)
+          return
+        await pull.embed_single_pull(ctx, u)
+        database_mongo.save_user(u)
       
       
 
 @bot.command(name="free", aliases=["f"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 6, commands.BucketType.user)
+@commands.check(lock_exists)
 async def free(ctx, arg=None):
-  u = user.get_user(ctx.author.id)
-  if arg == "10":
-    await pull.embed_free_ten_pull(ctx, u.nickname)
-  else:
-    await pull.embed_free_single_pull(ctx, u.nickname)
+    u = user.get_user(ctx.author.id)
+    if arg == "10":
+      await pull.embed_free_ten_pull(ctx, u.nickname)
+    else:
+      await pull.embed_free_single_pull(ctx, u.nickname)
       
 
 @bot.command(name="resin", aliases=["r", "res"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.check(lock_exists)
 async def resin(ctx):
-  u = user.get_user(ctx.author.id)
-  e, f = user.embed_resin(u)
-  e.set_footer(text=f"Only {get_next_resin_time()} till your next {u.get_resin_recharge()} Resin.")
-  await ctx.send(embed=e, file=f)
+    u = user.get_user(ctx.author.id)
+    e, f = user.embed_resin(u)
+    e.set_footer(text=f"Only {get_next_resin_time()} till your next {u.get_resin_recharge()} Resin.")
+    await ctx.send(embed=e, file=f)
 
 @bot.command(name="listCharacter", aliases=["listc", "lc", "listchar"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.check(lock_exists)
 async def listc(ctx, *args):
-  u = user.get_user(ctx.author.id)
-  pg = 1
-  if len(args) > 0:
-    if args[0].isdigit():
-      pg = int(args[0])
-      if len(args) > 1:
-        mention_ID = formatter.get_id_from_mention(str(args[1]))
-        if user.does_exist(mention_ID):
-          u = user.get_user(mention_ID)
+      u = user.get_user(ctx.author.id)
+      pg = 1
+      if len(args) > 0:
+        if args[0].isdigit():
+          pg = int(args[0])
+          if len(args) > 1:
+            mention_ID = formatter.get_id_from_mention(str(args[1]))
+            if user.does_exist(mention_ID):
+              u = user.get_user(mention_ID)
 
-    elif user.does_exist(formatter.get_id_from_mention(str(args[0]))):
-      u = user.get_user(formatter.get_id_from_mention(str(args[0])))
-      if len(args) > 1:
-        if args[1].isdigit():
-          pg = int(args[1])
+        elif user.does_exist(formatter.get_id_from_mention(str(args[0]))):
+          u = user.get_user(formatter.get_id_from_mention(str(args[0])))
+          if len(args) > 1:
+            if args[1].isdigit():
+              pg = int(args[1])
 
-    else:
-      #show specific character info
-      name = formatter.separate_commands(args)[0].lower()
-      if u.does_character_exist(name):
-        await user.embed_show_char_info(ctx, u, u.characters[formatter.name_formatter(name)])
-        return
-      else:
-        await error.embed_get_character_suggestions(ctx, u, name)
-        return
-  await user.embed_char_list(ctx, u, pg, bot)
+        else:
+          #show specific character info
+          name = formatter.separate_commands(args)[0].lower()
+          if u.does_character_exist(name):
+            await user.embed_show_char_info(ctx, u, u.characters[formatter.name_formatter(name)])
+            return
+          else:
+            await error.embed_get_character_suggestions(ctx, u, name)
+            return
+      await user.embed_char_list(ctx, u, pg, bot)
 
 @bot.command(name="listWeapon", aliases=["listw", "lw"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.check(lock_exists)
 async def listw(ctx, *args):
-  u = user.get_user(ctx.author.id)
-  pg = 1
-  if len(args) > 0:
-    if args[0].isdigit():
-      pg = int(args[0])
-      if len(args) > 1:
-        mention_ID = formatter.get_id_from_mention(str(args[1]))
-        if user.does_exist(mention_ID):
-          u = user.get_user(mention_ID)
+      u = user.get_user(ctx.author.id)
+      pg = 1
+      if len(args) > 0:
+        if args[0].isdigit():
+          pg = int(args[0])
+          if len(args) > 1:
+            mention_ID = formatter.get_id_from_mention(str(args[1]))
+            if user.does_exist(mention_ID):
+              u = user.get_user(mention_ID)
 
-    elif user.does_exist(formatter.get_id_from_mention(str(args[0]))):
-      u = user.get_user(formatter.get_id_from_mention(str(args[0])))
-      if len(args) > 1:
-        if args[1].isdigit():
-          pg = int(args[1])
+        elif user.does_exist(formatter.get_id_from_mention(str(args[0]))):
+          u = user.get_user(formatter.get_id_from_mention(str(args[0])))
+          if len(args) > 1:
+            if args[1].isdigit():
+              pg = int(args[1])
 
-    else:
-      #show specific weapon info
-      name = formatter.separate_commands(args)[0]
-      if u.does_weapon_exist(name):
-        await user.embed_show_weap_info(ctx, u, u.weapons[formatter.name_formatter(name)])
-        return
-      else:
-        await error.embed_get_weapon_suggestions(ctx, u, name)
-        return
-  await user.embed_weap_list(ctx, u, pg, bot)
+        else:
+          #show specific weapon info
+          name = formatter.separate_commands(args)[0]
+          if u.does_weapon_exist(name):
+            await user.embed_show_weap_info(ctx, u, u.weapons[formatter.name_formatter(name)])
+            return
+          else:
+            await error.embed_get_weapon_suggestions(ctx, u, name)
+            return
+      await user.embed_weap_list(ctx, u, pg, bot)
 
 
 @bot.command(name="equip", aliases=["e", "eq"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 1.0, commands.BucketType.user)
+@commands.check(lock_exists)
 async def equip(ctx, *args):
-  u = user.get_user(ctx.author.id)
-  commands = formatter.separate_commands(args)
-  if len(commands) == 2:
-    characterName = formatter.split_information(commands[0])[0]
-    weaponName = formatter.split_information(commands[1])[0]
-    worked, reason = u.equip_weapon(characterName, weaponName)
-    if not worked:
-      if reason == "c":
-        await error.embed_get_character_suggestions(ctx, characterName)
-      elif reason == "i":
-        await error.embed_weap_is_not_compatible(ctx)
-      else:
-        await error.embed_get_weapon_suggestions(ctx, weaponName)
-    else:
-      await ctx.send("Weapon has been equipped.")
-      database_mongo.save_user(u)
+  async with locks[str(ctx.author.id)]:
+      u = user.get_user(ctx.author.id)
+      commands = formatter.separate_commands(args)
+      if len(commands) == 2:
+        characterName = formatter.split_information(commands[0])[0]
+        weaponName = formatter.split_information(commands[1])[0]
+        worked, reason = u.equip_weapon(characterName, weaponName)
+        if not worked:
+          if reason == "c":
+            await error.embed_get_character_suggestions(ctx, u, characterName)
+          elif reason == "i":
+            await error.embed_weap_is_not_compatible(ctx)
+          else:
+            await error.embed_get_weapon_suggestions(ctx, u, weaponName)
+        else:
+          await ctx.send("Weapon has been equipped.")
+          database_mongo.save_user(u)
 
 
 @bot.command(name="givemora", aliases=["givem", "gm"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 1.0, commands.BucketType.user)
+@commands.check(lock_exists)
 async def givem(ctx, mention, amnt):
-  giver = user.get_user(ctx.author.id)
-  taker_ID = formatter.get_id_from_mention(str(mention))
-  if user.does_exist(taker_ID) and str(taker_ID) != giver._id:
-    if amnt.isdigit():
-      member = await ctx.guild.fetch_member(taker_ID)
-      taker = user.get_user(taker_ID)
-      mora = int(amnt)
-      await user.embed_donate_mora(ctx, giver, taker, mora, member)
-      database_mongo.save_user(giver)
-      database_mongo.save_user(taker)
-  else:
-    await error.embed_user_does_not_exist(ctx)
+  async with locks[str(ctx.author.id)]:
+      giver = user.get_user(ctx.author.id)
+      taker_ID = formatter.get_id_from_mention(str(mention))
+      if user.does_exist(taker_ID) and str(taker_ID) != giver._id:
+        if amnt.isdigit():
+          member = await ctx.guild.fetch_member(taker_ID)
+          taker = user.get_user(taker_ID)
+          mora = int(amnt)
+          await user.embed_donate_mora(ctx, giver, taker, mora, member)
+          database_mongo.save_user(giver)
+          database_mongo.save_user(taker)
+      else:
+        await error.embed_user_does_not_exist(ctx)
 
 
 @bot.command(name="giveprimo", aliases=["givep", "gp"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 1.0, commands.BucketType.user)
+@commands.check(lock_exists)
 async def givep(ctx, mention, amnt):
-  giver = user.get_user(ctx.author.id)
-  taker_ID = formatter.get_id_from_mention(str(mention))
-  if user.does_exist(taker_ID) and str(taker_ID) != giver._id:
-    if amnt.isdigit():
-      member = await ctx.guild.fetch_member(taker_ID)
-      taker = user.get_user(taker_ID)
-      primo = int(amnt)
-      await user.embed_donate_primo(ctx, giver, taker, primo, member)
-      database_mongo.save_user(giver)
-      database_mongo.save_user(taker)
-  else:
-    await error.embed_user_does_not_exist(ctx)
+  async with locks[str(ctx.author.id)]:
+      giver = user.get_user(ctx.author.id)
+      taker_ID = formatter.get_id_from_mention(str(mention))
+      if user.does_exist(taker_ID) and str(taker_ID) != giver._id:
+        if amnt.isdigit():
+          member = await ctx.guild.fetch_member(taker_ID)
+          taker = user.get_user(taker_ID)
+          primo = int(amnt)
+          await user.embed_donate_primo(ctx, giver, taker, primo, member)
+          database_mongo.save_user(giver)
+          database_mongo.save_user(taker)
+      else:
+        await error.embed_user_does_not_exist(ctx)
 
 
 @bot.command(name="condense", aliases=["con"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.check(lock_exists)
 async def condense(ctx, arg=None):
-  u = user.get_user(ctx.author.id)
-  amnt = 1
-  if arg != None:
-    if arg.isdigit():
-      amnt = int(arg)
-    elif arg.lower().startswith("use"):
-      await user.embed_use_condensed(ctx, u)
+  async with locks[str(ctx.author.id)]:
+      u = user.get_user(ctx.author.id)
+      amnt = 1
+      if arg != None:
+        if arg.isdigit():
+          amnt = int(arg)
+        elif arg.lower().startswith("use"):
+          await user.embed_use_condensed(ctx, u)
+          database_mongo.save_user(u)
+          return
+      await user.embed_condensed(ctx, u, amnt)
       database_mongo.save_user(u)
-      return
-  await user.embed_condensed(ctx, u, amnt)
-  database_mongo.save_user(u)
 
 
 @bot.command(name="adventure", aliases=["adv", "a"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 4.0, commands.BucketType.user)
+@commands.check(lock_exists)
 async def _adventure(ctx, *args):
-  u = user.get_user(ctx.author.id)
-  commands = formatter.separate_commands(args)
-  charList = []
-  if len(args) >= 2 and (args[0].lower().startswith("team") or args[0].lower().startswith("party") or args[0].lower() == "t" or args[0].lower() == "p") and args[1].isdigit():
-      if int(args[1]) <= 4 and int(args[1]) > 0:
-        for i in u.teams[args[1]].keys():
+  async with locks[str(ctx.author.id)]:
+    u = user.get_user(ctx.author.id)
+    commands = formatter.separate_commands(args)
+    charList = []
+    if len(args) >= 1 and len(args) <= 2 and (args[0].lower().startswith("team") or args[0].lower().startswith("party") or (args[0].lower().startswith("t") and len(args[0]) <= 2) or (args[0].lower().startswith("p") and len(args[0]) <= 2)):
+      if len(args) == 2 and args[1].isdigit():
+        if int(args[1]) <= 4 and int(args[1]) > 0:
+          for i in u.teams[args[1]].keys():
             charList.append(u.teams[args[1]][i])
-  else:
+      else:
+        num = args[0][::-1][0]
+        if num.isdigit():
+          if int(num) <= 4 and int(num) > 0:
+            for i in u.teams[num].keys():
+              charList.append(u.teams[num][i])
+    else:
       for i in range(len(commands)):
-            charList.append(formatter.split_information(commands[i])[0].lower())
-  await adventure.embed_adventure(ctx, u, charList)
-  database_mongo.save_user(u)
+        charList.append(formatter.split_information(commands[i])[0].lower())
+    await adventure.embed_adventure(ctx, u, charList)
+    database_mongo.save_user(u)
     
 
 @bot.command(name="trivia", aliases=["triv","t"])
 @commands.check(not_DM)
 @commands.check(user_exists)
+@commands.check(lock_exists)
 async def trivia(ctx, TID, *answer):
-  u = user.get_user(ctx.author.id)  
-  answerString = formatter.separate_commands(answer)[0]
-  await commission.answer_trivia(ctx, u, TID.upper(), answerString)
-  database_mongo.save_user(u)
+  async with locks[str(ctx.author.id)]:
+      u = user.get_user(ctx.author.id)  
+      answerString = formatter.separate_commands(answer)[0]
+      await commission.answer_trivia(ctx, u, TID.upper(), answerString)
+      database_mongo.save_user(u)
 
 
 @bot.command(name="teams", aliases=["team", "party"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 1.0, commands.BucketType.user)
+@commands.check(lock_exists)
 async def teams(ctx, arg1=None, *args):
-  u = user.get_user(ctx.author.id)
-  if arg1 != None and arg1.isdigit():
-      if int(arg1) > 0 or int(arg1) <= 4:
-          if len(args) == 0:
-            await user.embed_show_team(ctx, u, int(arg1))
-          else:
-            commands = formatter.separate_commands(args)
-            charList = []
-            for i in range(len(commands)):
-                charList.append(formatter.split_information(commands[i])[0].lower())
-            if len(charList) > 4:
-                await error.embed_too_many_characters(ctx)
-            else:
-                await user.embed_set_team(ctx, u, int(arg1), charList)
-                database_mongo.save_user(u)
-  else:
-      await user.embed_show_all_teams(ctx, u)
+    async with locks[str(ctx.author.id)]:
+      u = user.get_user(ctx.author.id)
+      if arg1 != None and arg1.isdigit():
+          if int(arg1) > 0 or int(arg1) <= 4:
+              if len(args) == 0:
+                await user.embed_show_team(ctx, u, int(arg1))
+              else:
+                commands = formatter.separate_commands(args)
+                charList = []
+                for i in range(len(commands)):
+                    charList.append(formatter.split_information(commands[i])[0].lower())
+                if len(charList) > 4:
+                    await error.embed_too_many_characters(ctx)
+                else:
+                    await user.embed_set_team(ctx, u, int(arg1), charList)
+                    database_mongo.save_user(u)
+      else:
+          await user.embed_show_all_teams(ctx, u)
 
 
 @bot.command(name="gamble", aliases=["g"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-@commands.cooldown(1, 2, commands.BucketType.user)
+@commands.check(lock_exists)
 async def gamble(ctx, _type, amount):
+  async with locks[str(ctx.author.id)]:
     typeList = ["primo", "p", "m", "mora"]
     if _type.lower() in typeList:
-        if amount.isdigit():
-            u = user.get_user(ctx.author.id)
-            await pull.embed_gamble(ctx, u, int(amount), str(_type)[0].lower())
-            database_mongo.save_user(u)
+      if amount.isdigit():
+        u = user.get_user(ctx.author.id)
+        await pull.embed_gamble(ctx, u, int(amount), str(_type)[0].lower())
+        database_mongo.save_user(u)
     
 
 @bot.command(name="help", aliases=["h"])
 @commands.check(not_DM)
-@commands.cooldown(1, 1.0, commands.BucketType.user)
 async def help(ctx,arg1=None):
   embedList = []
   embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())
