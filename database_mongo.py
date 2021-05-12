@@ -99,12 +99,28 @@ def get_all_weapons_list():
     weapons_list.append(weapon)
   return weapons_list
 
+def get_all_weapon_names_list():
+  weapon_collection = get_weapon_collection()
+  weapons = weapon_collection.find({})
+  weapons_list = []
+  for weapon in weapons:
+    weapons_list.append(weapon["URL_name"])
+  return weapons_list
+
 def get_all_characters_list():
   character_collection = get_character_collection()
   characters = character_collection.find({})
   characters_list = []
   for character in characters:
     characters_list.append(character)
+  return characters_list
+
+def get_all_character_names_list():
+  character_collection = get_character_collection()
+  characters = character_collection.find({})
+  characters_list = []
+  for character in characters:
+    characters_list.append(character["URL_name"])
   return characters_list
 
 def get_all_characters_of_criteria(search_criteria, value):

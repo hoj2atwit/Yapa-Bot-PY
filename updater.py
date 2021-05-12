@@ -45,14 +45,14 @@ def get_all_weaps_API():
   return allWeaps
 
 async def get_all_weap_images_API(ctx):
-  allWeapNames = get_weapon_names_API()
+  allWeapNames = database_mongo.get_all_weapon_names_list()
   for i in allWeapNames:
     URL_name = "{}".format(i)
     url = weapURL_icon.format(URL_name)
     r = requests.get(url)
     try:
         with open(f"Images/Weapons/{URL_name}-icon.png", "xb") as f:
-            ctx.send(f"Downloading {URL_name} Icon")
+            await ctx.send(f"Downloading {URL_name} Icon")
             f.write(r.content)
     except FileExistsError:
         continue
@@ -60,7 +60,7 @@ async def get_all_weap_images_API(ctx):
 async def update_weapons_DB(ctx):
   allWeapons = get_all_weaps_API()
   for weapon in allWeapons:
-    ctx.send(f"Importing {weapon.name} Data")
+    await ctx.send(f"Importing {weapon.name} Data")
     database_mongo.save_weapon(weapon)
 
 
@@ -106,7 +106,7 @@ def get_all_characters_API():
   return allChars
 
 async def get_all_character_images_API(ctx):
-  allCharNames = get_character_names_API()
+  allCharNames = database_mongo.get_all_character_names_list()
   for i in allCharNames:
     URL_name = "{}".format(i)
     url = charIconURL.format(URL_name)
@@ -121,7 +121,7 @@ async def get_all_character_images_API(ctx):
     r = requests.get(url)
     try:
         with open(f"Images/Characters/{URL_name}-portrait.png", "xb") as f:
-            ctx.send(f"Downloading {URL_name} Portrait")
+            await ctx.send(f"Downloading {URL_name} Portrait")
             f.write(r.content)
     except FileExistsError:
         continue
@@ -129,5 +129,5 @@ async def get_all_character_images_API(ctx):
 async def update_all_characters_DB(ctx):
   allChars = get_all_characters_API()
   for c in allChars:
-    ctx.send(f"Importing {c.name} Data")
+    await ctx.send(f"Importing {c.name} Data")
     database_mongo.save_character(c)
