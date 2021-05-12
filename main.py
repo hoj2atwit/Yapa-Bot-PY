@@ -141,14 +141,26 @@ async def on_command_error(ctx, error):
 @commands.check(lock_exists)
 async def update(ctx, arg1, arg2=None):
     async with locks[str(ctx.author.id)]:
-        if arg1.lower() == "c" and arg2.lower() == "i":
-            await ctx.send(f"{ctx.author.mention}, Downloading New Character Images")
-            updater.get_all_character_images_API()
-            await ctx.send(f"{ctx.author.mention}, Character images have been downloaded.")
-        elif arg1.lower() == "w" and arg2.lower() == "i":
-            await ctx.send(f"{ctx.author.mention}, Downloading New Weapon Images")
-            updater.get_all_weap_images_API()
-            await ctx.send(f"{ctx.author.mention}, Weapon images have been downloaded.")
+        if arg1.lower() == "c":
+            if arg2 == None:
+                await ctx.send(f"{ctx.author.mention}, Searching new character data.")
+                await updater.update_all_characters_DB(ctx)
+                await ctx.send(f"{ctx.author.mention}, New character data downloaded.")
+            elif arg2.lower() == "i":
+                await ctx.send(f"{ctx.author.mention}, Searching for new character images.")
+                await updater.get_all_character_images_API(ctx)
+                await ctx.send(f"{ctx.author.mention}, New character images have been downloaded.")
+            
+        elif arg1.lower() == "w":
+            if arg2 == None:
+                await ctx.send(f"{ctx.author.mention}, Searching for new weapon data.")
+                await updater.update_weapons_DB(ctx)
+                await ctx.send(f"{ctx.author.mention}, New weapon data downloaded.")
+            elif arg2.lower() == "i":
+                await ctx.send(f"{ctx.author.mention}, Searching for new weapon images.")
+                await updater.get_all_weap_images_API(ctx)
+                await ctx.send(f"{ctx.author.mention}, Weapon images have been downloaded.")
+            
         elif arg1.lower() == "u":
             await ctx.send(f"{ctx.author.mention}, Updating All Users.")
             user.update_users()
