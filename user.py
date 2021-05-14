@@ -233,6 +233,18 @@ class User:
     else:
       return False
 
+  def does_item_exist(self, item_name):
+    if formatter.name_formatter(item_name) in self.bag.keys():
+      return True
+    else:
+      return False
+
+  def add_item(self, item):
+    if item.URL_name in self.bag.keys():
+      self.bag[item.URL_name]["amount"] += item.count
+    else:
+      self.bag[item.URL_name] = item.get_dict()
+
   def add_character(self, char):
     if char.URL_name in self.characters.keys():
       if self.characters[char.URL_name]["const_amnt"] < 6:

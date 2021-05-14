@@ -12,6 +12,7 @@ import commission
 import updater
 import asyncio
 import threading, time
+import shop
 from dotenv import load_dotenv
 import pytz
 from datetime import datetime, timedelta
@@ -115,6 +116,12 @@ def lock_exists(ctx):
       locks = locks_copy
   return True
 
+def shop_exists(ctx):
+  if shop.does_exist(ctx.author.id):
+    return True
+  else:
+    shop.generate_shop(ctx.author.id)
+    return True
 
 #When bot turns on
 @bot.event
@@ -142,33 +149,42 @@ async def on_command_error(ctx, error):
 async def update(ctx, arg1, arg2=None):
     async with locks[str(ctx.author.id)]:
         if arg1.lower() == "c":
-            if arg2 == None:
-                await ctx.send(f"{ctx.author.mention}, Searching new character data.")
-                await updater.update_all_characters_DB(ctx)
-                await ctx.send(f"{ctx.author.mention}, New character data downloaded.")
-            elif arg2.lower() == "i":
-                await ctx.send(f"{ctx.author.mention}, Searching for new character images.")
-                await updater.get_all_character_images_API(ctx)
-                await ctx.send(f"{ctx.author.mention}, New character images have been downloaded.")
+          if arg2 == None:
+            await ctx.send(f"{ctx.author.mention}, Searching new character data.")
+            await updater.update_all_characters_DB(ctx)
+            await ctx.send(f"{ctx.author.mention}, New character data downloaded.")
+          elif arg2.lower() == "i":
+            await ctx.send(f"{ctx.author.mention}, Searching for new character images.")
+            await updater.get_all_character_images_API(ctx)
+            await ctx.send(f"{ctx.author.mention}, New character images have been downloaded.")
             
         elif arg1.lower() == "w":
-            if arg2 == None:
-                await ctx.send(f"{ctx.author.mention}, Searching for new weapon data.")
-                await updater.update_weapons_DB(ctx)
-                await ctx.send(f"{ctx.author.mention}, New weapon data downloaded.")
-            elif arg2.lower() == "i":
-                await ctx.send(f"{ctx.author.mention}, Searching for new weapon images.")
-                await updater.get_all_weap_images_API(ctx)
-                await ctx.send(f"{ctx.author.mention}, Weapon images have been downloaded.")
+          if arg2 == None:
+            await ctx.send(f"{ctx.author.mention}, Searching for new weapon data.")
+            await updater.update_weapons_DB(ctx)
+            await ctx.send(f"{ctx.author.mention}, New weapon data downloaded.")
+          elif arg2.lower() == "i":
+            await ctx.send(f"{ctx.author.mention}, Searching for new weapon images.")
+            await updater.get_all_weap_images_API(ctx)
+            await ctx.send(f"{ctx.author.mention}, Weapon images have been downloaded.")
             
         elif arg1.lower() == "u":
-            await ctx.send(f"{ctx.author.mention}, Updating All Users.")
-            user.update_users()
-            await ctx.send(f"{ctx.author.mention}, All users have been updated.")
+          await ctx.send(f"{ctx.author.mention}, Updating All Users.")
+          user.update_users()
+          await ctx.send(f"{ctx.author.mention}, All users have been updated.")
         elif arg1.lower() == "com":
-            await ctx.send(f"{ctx.author.mention}, Updating All Commissions.")
-            commission.generate_all_commissions()
-            await ctx.send(f"{ctx.author.mention}, All commissions have been updated.")
+          await ctx.send(f"{ctx.author.mention}, Updating All Commissions.")
+          commission.generate_all_commissions()
+          await ctx.send(f"{ctx.author.mention}, All commissions have been updated.")
+        elif arg1.lower() == "shop":
+          if arg2 == None:
+            await ctx.send(f"{ctx.author.mention}, Updating All Shops.")
+            shop.generate_all_shops()
+            await ctx.send(f"{ctx.author.mention}, All Shops have been updated.")
+          elif arg2.lower() == "i":
+            await ctx.send(f"{ctx.author.mention}, Updating All Shop Items.")
+            shop.generate_shop_items()
+            await ctx.send(f"{ctx.author.mention}, All Shop Items have been updated.")
 
 @bot.command(name="test")
 @commands.check(not_DM)
@@ -712,6 +728,45 @@ async def gamble(ctx, _type, amount):
         database_mongo.save_user(u)
     
 
+@bot.command(name="shop", aliases=["s"])
+@commands.check(not_DM)
+@commands.check(user_exists)
+@commands.check(lock_exists)
+@commands.check(shop_exists)
+async def user_shop(ctx, _type=None):
+  async with locks[str(ctx.author.id)]:
+    u = user.get_user(ctx.author.id)
+    if _type == None:
+      await shop.embed_show_shop(ctx, u, "all")
+    else:
+      primo_types = ["primogems", "primo", "p", "primogem"]
+      mora_types = ["mora", "m"]
+      sd_types = ["stardust", "sd", "stard", "sdust"]
+      sg_types = ["starglitter", "sg", "starg", "sglitter", "sglit"]
+      if _type in primo_types:
+        await shop.embed_show_shop(ctx, u, "p")
+      elif _type in mora_types:
+        await shop.embed_show_shop(ctx, u, "m")
+      elif _type in sd_types:
+        await shop.embed_show_shop(ctx, u, "sd")
+      elif _type in sg_types:
+        await shop.embed_show_shop(ctx, u, "sg")
+      else:
+        await shop.embed_show_shop(ctx, u, "all")
+
+@bot.command(name="buy")
+@commands.check(not_DM)
+@commands.check(user_exists)
+@commands.check(lock_exists)
+@commands.check(shop_exists)
+async def buy(ctx, name, amnt=None):
+  async with locks[str(ctx.author.id)]:
+    u = user.get_user(ctx.author.id)
+    if amnt == None:
+      await shop.shop_buy(ctx, u, name, 1)
+    elif amnt.isdigit():
+      await shop.shop_buy(ctx, u, name, int(amnt))
+
 @bot.command(name="help", aliases=["h"])
 @commands.check(not_DM)
 async def help(ctx,arg1=None):
@@ -777,6 +832,7 @@ async def help(ctx,arg1=None):
       for e in embedList:
         await ctx.author.send(embed=e)
 
-threading.Thread(target=update_counter).start()
-update_commissions_check()
-bot.run(os.getenv('TOKEN'))
+if __name__ == "__main__":
+  threading.Thread(target=update_counter).start()
+  update_commissions_check()
+  bot.run(os.getenv('TOKEN'))

@@ -130,6 +130,21 @@ async def embed_get_weapon_suggestions(ctx, u, attempt):
     await embed_weap_is_not_owned(ctx, attempt)
 
 async def embed_dublicate_characters(ctx):
-    embed = discord.Embed()
-    embed.add_field(name="Character Error", value=f"You cannot input the same character multiple times.")
-    await ctx.send(ctx.author.mention, embed=embed)
+  embed = discord.Embed()
+  embed.add_field(name="Character Error", value="You cannot input the same character multiple times.")
+  await ctx.send(ctx.author.mention, embed=embed)
+
+async def embed_unknown_item(ctx):
+  embed = discord.Embed()
+  embed.add_field(name="Item Error", value="Item could not be found.")
+  await ctx.send(ctx.author.mention, embed=embed)
+
+async def embed_not_enough_items_to_purchase(ctx, item_name):
+  embed = discord.Embed()
+  embed.add_field(name="Shop Error", value="There is not enough {item_name} in stock.")
+  await ctx.send(ctx.author.mention, embed=embed)
+
+async def embed_out_of_stock(ctx):
+  embed = discord.Embed()
+  embed.add_field(name="Shop Error", value="That item is out of stock.")
+  await ctx.send(ctx.author.mention, embed=embed)

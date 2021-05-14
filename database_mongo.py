@@ -2,6 +2,40 @@ import pymongo
 from pymongo import MongoClient
 import formatter
 
+###COLLECTION GETTERS###
+def get_cluster():
+  return MongoClient("mongodb+srv://Yapa-Bot-Official:zdKwyRadkUfZeqj4@yapa-cluster.btsf9.mongodb.net/Yapa-Bot?retryWrites=true&w=majority")
+
+def get_time_collection():
+  db_mongo = get_cluster().Yapa
+  return db_mongo["Time"]
+
+def get_commission_collection():
+  db_mongo = get_cluster().Yapa
+  return db_mongo["Commissions"]
+
+def get_weapon_collection():
+  db_mongo = get_cluster().Yapa
+  return db_mongo["Weapons"]
+
+def get_character_collection():
+  db_mongo = get_cluster().Yapa
+  return db_mongo["Characters"]
+
+def get_user_collection():
+  db_mongo = get_cluster().Yapa
+  return db_mongo["Users"]
+
+def get_shop_item_collection():
+  db_mongo = get_cluster().Yapa
+  return db_mongo["Shop_Items"]
+
+def get_shop_collection():
+  db_mongo = get_cluster().Yapa
+  return db_mongo["Shops"]
+
+
+
 ###DELETING###
 def wipe_character_collection():
   character_collection = get_character_collection()
@@ -41,46 +75,37 @@ def save_commissions(com_dict):
   commission_collection = get_commission_collection()
   commission_collection.replace_one({},com_dict, upsert=True)
 
+def save_shop_item(si):
+  shop_items_collection = get_shop_item_collection()
+  shop_items_collection.replace_one({"item": {"URL_name" : si.item["URL_name"]}}, si.get_dict(), upsert=True)
 
-
+def save_shop(shop):
+  shop_collection = get_shop_collection()
+  shop_collection.replace_one({"_id" : shop._id}, shop.get_dict(), upsert=True)
 
 
 
 
 ###GETTERS###
-def get_cluster():
-  return MongoClient("mongodb+srv://Yapa-Bot-Official:zdKwyRadkUfZeqj4@yapa-cluster.btsf9.mongodb.net/Yapa-Bot?retryWrites=true&w=majority")
-
-def get_time_collection():
-  db_mongo = get_cluster().Yapa
-  return db_mongo["Time"]
-
-def get_commission_collection():
-  db_mongo = get_cluster().Yapa
-  return db_mongo["Commissions"]
-
-def get_weapon_collection():
-  db_mongo = get_cluster().Yapa
-  return db_mongo["Weapons"]
-
-def get_character_collection():
-  db_mongo = get_cluster().Yapa
-  return db_mongo["Characters"]
-
-def get_user_collection():
-  db_mongo = get_cluster().Yapa
-  return db_mongo["Users"]
 
 def get_user_dict(_id):
   user_collection = get_user_collection()
   return user_collection.find_one({"_id": int(_id)})
 
+def get_shop_dict(_id):
+  shop_collection = get_shop_collection()
+  return shop_collection.find_one({"_id": int(_id)})
+
+def get_shop_item_dict(name):
+  user_collection = get_shop_item_collection()
+  return user_collection.find_one({"item": {"URL_name" : formatter.name_formatter(name)}})
+
 def get_character_dict(name):
-  user_collection = get_user_collection()
+  user_collection = get_character_collection()
   return user_collection.find_one({"URL_name": formatter.name_formatter(name)})
 
 def get_weapon_dict(name):
-  user_collection = get_user_collection()
+  user_collection = get_weapon_collection()
   return user_collection.find_one({"URL_name": formatter.name_formatter(name)})
 
 def get_all_users_list_ids():
@@ -90,6 +115,14 @@ def get_all_users_list_ids():
   for user in users:
     users_list.append(user['_id'])
   return users_list
+
+def get_all_shop_items_list():
+  shop_item_collection = get_shop_item_collection()
+  shop_items = shop_item_collection.find({})
+  shop_items_list = []
+  for shop_item in shop_items:
+    shop_items_list.append(shop_item)
+  return shop_items_list
 
 def get_all_weapons_list():
   weapon_collection = get_weapon_collection()
