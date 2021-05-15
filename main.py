@@ -777,7 +777,8 @@ async def help(ctx,arg1=None):
   text += f"**[{pre}weekly]** Allows you to claim weekly rewards.\n"
   text += f"**[{pre}adventure] | [char_name] | [{pre}cn {pre}cn {pre}cn]** Allows you to go on an adventure with up to 4 of your characters at the cost of 20 resin. You must have atleast 1 character to adventure.\n"
   text += f"**[{pre}resin]** Allows you to look at your current resin.\n"
-  text += f"**[{pre}condense] | [use or amnt#]** Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
+  text += f"**[{pre}condense] | [amnt#]** Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
+  text += f"**[{pre}condense use] | [amnt#]** Allows you use stored resin.\n"
   text += f"**[{pre}listw] | [pg# or weap_name]** Allows you to look at your personal weapon collection.\n_ _\n_ _"
   embed.add_field(name="Basic Commands", value = text, inline=False)
 
@@ -817,10 +818,12 @@ async def help(ctx,arg1=None):
   text += f"**[{pre}trivia] | [triviaID] | [answer]** Allows you to answer your trivia commissions. Trivia id can be found in the () before every trivia commission."
   embed.add_field(name="Commission Commands", value = text, inline=False)
 
-
   text = f"**[{pre}gamble] | [primo or mora] | [amount]** Allows you to use your mora or primogems to gamble, having a chance to win x2 or even x10 of waht you put it.\n"
   embed.add_field(name="Gambling Commands", value = text, inline=False)
 
+  text = f"**[{pre}shop] | [p, m, sg, sd]** Allows user to see their shop.\n"
+  text += f"**[{pre}buy] | [item_name] | [amount]** Allows user to buy from the shop as long as they have enough of the right currency.\n"
+  embed.add_field(name="Shop Commands", value = text, inline=False)
 
   embed.set_footer(text=f"Page 2/2")
   embedList.append(embed)
