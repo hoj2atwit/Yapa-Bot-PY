@@ -1,6 +1,7 @@
 import discord
 import database_mongo
 from discord.ext import commands
+from discord.ext import tasks
 import os
 import user
 import pull
@@ -13,6 +14,7 @@ import updater
 import asyncio
 import threading, time
 import shop
+import dbl
 from dotenv import load_dotenv
 import pytz
 from datetime import datetime, timedelta
@@ -22,8 +24,11 @@ pre = prefix.commandPrefix
 load_dotenv()
 
 
+
 bot = commands.Bot(f"{pre}", case_insensitive=True)
 bot.remove_command("help") # Removing the default help command
+dbl_token = os.getenv('TOP_TOKEN')  # set this to your bot's top.gg token
+bot.dblpy = dbl.DBLClient(bot, dbl_token, webhook_path='/dblwebhook', webhook_auth="yapa_pass", webhook_port=5000)
 
 locks = {}
 
@@ -767,6 +772,13 @@ async def buy(ctx, name, amnt=None):
     elif amnt.isdigit():
       await shop.shop_buy(ctx, u, name, int(amnt))
 
+@bot.command(name="vote", aliases=["v"])
+@commands.check(not_DM)
+@commands.check(user_exists)
+@commands.check(lock_exists)
+async def vote(ctx):
+  await ctx.send(f"{ctx.author.mention} Vote here, https://top.gg/bot/827279423321276457")
+
 @bot.command(name="help", aliases=["h"])
 @commands.check(not_DM)
 async def help(ctx,arg1=None):
@@ -835,7 +847,39 @@ async def help(ctx,arg1=None):
       for e in embedList:
         await ctx.author.send(embed=e)
 
+@tasks.loop(minutes=30)
+async def update_stats():
+    #"""This function runs every 30 minutes to automatically update your server count."""
+    try:
+        await bot.dblpy.post_guild_count()
+        print(f'Posted server count ({bot.dblpy.guild_count})')
+    except Exception as e:
+        print('Failed to post server count\n{}: {}'.format(type(e).__name__, e))
+
+@bot.event
+async def on_dbl_vote(data):
+  #"""An event that is called whenever someone votes for the bot on top.gg."""
+  if not user.does_exist(int(data["user"])):
+    return
+  global locks
+  if str(data["user"]) not in locks.keys():
+    locks_copy = locks
+    locks_copy[str(data["user"])] = asyncio.Lock()
+    locks = locks_copy
+  async with locks[str(data["user"])]:
+    u = user.get_user(int(data["user"]))
+    u.primogems += 800
+    u.condensed += 3
+    u.mora += 10000
+    database_mongo.save_user(u)
+
+@bot.event
+async def on_dbl_test(data):
+    #"""An event that is called whenever someone tests the webhook system for your bot on top.gg."""
+    print(f"Received a test upvote:\n{data}")
+
 if __name__ == "__main__":
   threading.Thread(target=update_counter).start()
   update_commissions_check()
+  update_stats.start()
   bot.run(os.getenv('TOKEN'))
