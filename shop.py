@@ -62,16 +62,11 @@ class Shop_Item:
       e = error.embed_not_enough_star_glitter
 
     amnt = amount
-    if currency < amount*self.cost:
-      for i in range(amount):
-        amnt -= (i+1)
-        if currency >= amnt*self.cost:
-          break
-      if amnt == 0:
-          await e(ctx)
-          return
+    if currency < (amnt*self.cost):
+      await e(ctx)
+      return
     
-    currency -= amnt*self.cost
+    currency -= (amnt*self.cost)
     if self.cost_type=="p":
       u.primogems = currency
     elif self.cost_type=="m":
