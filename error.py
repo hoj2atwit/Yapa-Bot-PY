@@ -141,7 +141,7 @@ async def embed_unknown_item(ctx):
 
 async def embed_not_enough_items_to_purchase(ctx, item_name):
   embed = discord.Embed()
-  embed.add_field(name="Shop Error", value="There is not enough {item_name} in stock.")
+  embed.add_field(name="Shop Error", value=f"There is not enough {item_name} in stock.")
   await ctx.send(ctx.author.mention, embed=embed)
 
 async def embed_out_of_stock(ctx):
