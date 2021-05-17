@@ -203,6 +203,20 @@ async def clear(ctx, arg1):
       database_mongo.wipe_shop_item_collection()
       await ctx.send("Shop Items Cleared")
 
+@bot.command(name="stats")
+@commands.check(not_DM)
+@commands.check(user_is_me)
+@commands.check(lock_exists)
+async def stats(ctx):
+  async with locks[str(ctx.author.id)]:
+    embed = discord.Embed(title="Yapa Top.gg Stats", color = discord.Color.dark_teal())
+    bot_info = await bot.dblpy.get_bot_info()
+    upvotes = bot_info["points"]
+    shard_count = bot_info["shard_count"]
+    text = f"**Servers:** {bot.dblpy.guild_count()}\n**Users:** {database_mongo.get_user_collection().count_documents({})}\n**Upvotes:** {upvotes}\n**Shards:** {shard_count}\n"
+    embed.add_field(name="Stats", value=text)
+    await ctx.send(embed=embed)
+
 @bot.command(name="test")
 @commands.check(not_DM)
 @commands.check(user_is_me)
@@ -391,6 +405,11 @@ async def start(ctx):
       embed.add_field(name = "_ _", value=f"{ctx.author.mention}\'s adventure has now begun!\nDo **[{pre}help]** or **[{pre}help p]**to get the list of available commands.")
       embed.set_thumbnail(url=ctx.author.avatar_url)
       await ctx.send(ctx.author.mention, embed=embed)
+
+@bot.command(name="server")
+@commands.check(not_DM)
+async def server(ctx):
+  await ctx.send(f"{ctx.author.mention}, https://discord.gg//WRBbgP4q3V \nFeel free to join this server for developments or to submit suggestions.")
 
 @bot.command(name="profile", aliases=["prof","p"])
 @commands.check(not_DM)
@@ -802,6 +821,7 @@ async def help(ctx,arg1=None):
   embedList = []
   embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())
   text = f"**[{pre}start]** Allows you to start your Yappa Experience.\n"
+  text += f"**[{pre}server]** Sends the invite link to the official Yapa-Bot support server.\n"
   text += f"**[{pre}daily]** Allows you to claim daily rewards.\n"
   text += f"**[{pre}weekly]** Allows you to claim weekly rewards.\n"
   text += f"**[{pre}adventure] | [char_name] | [{pre}cn {pre}cn {pre}cn]** Allows you to go on an adventure with up to 4 of your characters at the cost of 20 resin. You must have atleast 1 character to adventure.\n"
@@ -857,8 +877,23 @@ async def help(ctx,arg1=None):
   embed.set_footer(text=f"Page 2/2")
   embedList.append(embed)
 
-  if arg1 == "p":
+  if arg1.lower() == "p":
     await formatter.pages(ctx, bot, embedList)
+  elif arg1.lower() == "a":
+    if user_is_me(ctx):
+      embed = discord.Embed(title="Admin Commands", color=discord.Color.dark_red())
+      text = f"**[{pre}update] | [w, c, u, com, shop] | [i]**\n"
+      text += f"**[{pre}stats]**\n"
+      text += f"**[{pre}clear shop_items]**\n"
+      text += f"**[{pre}test] | [?]**\n"
+      text += f"**[{pre}reset] | [c, @user, level] | [@user]**\n"
+      text += f"**[{pre}delete] | [@user]**\n"
+      text += f"**[{pre}rob] | [@user]**\n"
+      text += f"**[{pre}giftxp] | [@user] | [amnt]**\n"
+      text += f"**[{pre}giftp] | [@user] | [amnt]**\n"
+      text += f"**[{pre}giftm] | [@user] | [amnt]**\n"
+      embed.add_field(name="Admin Commands", value=text)
+      await ctx.send(embed=embed)
   else:
       await ctx.message.add_reaction("📧")
       for e in embedList:
