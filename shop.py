@@ -204,16 +204,24 @@ def generate_shop(_id):
     shop.add_item(get_shop_item(SI))
   five_star_chars = character.get_five_star_characters()
   four_star_chars = character.get_four_star_characters()
-  for i in range(4):
+  count = 0
+  uniques = []
+  while count < 4:
     r = random.randint(1, 30)
     if r == 1:
       r = random.randint(1, len(five_star_chars))
       c = five_star_chars[r-1]
-      shop.add_item(Shop_Item(item.Item(c.name, c.URL_name, c.description, 1, c.rarity, "character").get_dict(), 100, "sg", 1, 1))
+      if c.URL_name not in uniques:
+        shop.add_item(Shop_Item(item.Item(c.name, c.URL_name, c.description, 1, c.rarity, "character").get_dict(), 100, "sg", 1, 1))
+        count += 1
+        uniques.append(c.URL_name)
     else:
       r = random.randint(1, len(four_star_chars))
       c = four_star_chars[r-1]
-      shop.add_item(Shop_Item(item.Item(c.name, c.URL_name, c.description, 1, c.rarity, "character").get_dict(), 50, "sg", 1, 1))
+      if c.URL_name not in uniques:
+        shop.add_item(Shop_Item(item.Item(c.name, c.URL_name, c.description, 1, c.rarity, "character").get_dict(), 50, "sg", 1, 1))
+        count += 1
+        uniques.append(c.URL_name)
   database_mongo.save_shop(shop)
 
 def generate_all_shops():
@@ -226,3 +234,4 @@ def generate_shop_items():
   database_mongo.save_shop_item(Shop_Item(item.Item("Mora(SD)", "mora(sd)", "10,000 mora", 10000, 6, "currency").get_dict(), 30, "sd", -1, -1))
   database_mongo.save_shop_item(Shop_Item(item.Item("Primogems(SD)", "primogems(sd)", "160 Primogems", 160, 6, "currency").get_dict(), 30, "sd", 30, 30))
   database_mongo.save_shop_item(Shop_Item(item.Item("Mora(SG)", "mora(sg)", "10,000 Mora", 10000, 6, "currency").get_dict(), 2, "sg", -1, -1))
+  database_mongo.save_shop_item(Shop_Item(item.Item("Mora(P)", "mora(p)", "10,000 Mora", 10000, 6, "currency").get_dict(), 64, "p", -1, -1))
