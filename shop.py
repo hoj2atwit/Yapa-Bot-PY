@@ -1,3 +1,4 @@
+from logging import exception
 import discord
 import error
 import database_mongo
@@ -5,6 +6,7 @@ import formatter
 import item
 import character
 import weapon
+import random
 
 
 class Shop:
@@ -80,13 +82,13 @@ class Shop_Item:
 
     for i in range(amnt):
       if my_item.group == "currency":
-        if my_item.URL_name == "primogems":
+        if my_item.URL_name.startswith("primogems"):
           u.primogems += my_item.count
-        elif my_item.URL_name == "mora":
+        elif my_item.URL_name.startswith("mora"):
           u.mora += my_item.count
-      elif my_item.group == "character":
+      elif my_item.group.startswith("character"):
         u.add_character(character.get_character(my_item.URL_name))
-      elif my_item.group == "weapon":
+      elif my_item.group.startswith("weapon"):
         u.add_weapon(weapon.get_weapon(my_item.URL_name))
       else:
         u.add_item(my_item)
@@ -113,52 +115,61 @@ async def shop_buy(ctx, u, name, amount):
   SI = await shop.get_item(ctx, name)
   if SI != None:
     await SI.buy(ctx, u, amount)
-    shop.inventory[SI.item["URL_name"]] = SI
+    shop.inventory[SI.item["URL_name"]] = SI.get_dict()
     database_mongo.save_shop(shop)
 
 async def embed_show_shop(ctx, u, _type):
   shop = get_shop(database_mongo.get_shop_dict(u._id))
 
-  primo_text = "None"
-  mora_text = "None"
-  sg_text = "None"
-  sd_text = "None"
+  primo_text_list = []
+  mora_text_list = []
+  sg_text_list = []
+  sd_text_list = []
   for i in shop.inventory.keys():
+    textList = []
+    spacer_amnt = 30
     if shop.inventory[i]["amount"] > 0:
-      text = "({})".format(shop.inventory[i]["amount"])
-    else:
-      text = ""
-    
+      textList.append("({})".format(shop.inventory[i]["amount"]))
+      spacer_amnt -= len(textList[0])
     x=formatter.number_format(shop.inventory[i]["item"]["count"])
     y=shop.inventory[i]["item"]["name"]
     z=formatter.number_format(shop.inventory[i]["cost"])
     ct=shop.inventory[i]["cost_type"].upper()
-    text += f"{x}x {y} --------- **{z} {ct}**\n"
+    spacer_amnt -= (len(str(x)) + len(str(y)) + len(str(z)) + len(str(ct)))
+    textList.append(f"{x}x {y} ")
+    if spacer_amnt > 0:
+      for x in range(spacer_amnt):
+        textList.append("-")
+    textList.append(f" **{z} {ct}**")
+    text = "".join(textList)
 
     if shop.inventory[i]["amount"] == 0:
-      text = "~~" + text + "~~ **SOLDOUT**"
+      textList = ["~~", text, "~~ **SOLDOUT**"]
+      text = "".join(textList)
 
     if shop.inventory[i]["cost_type"] == "p":
-      if primo_text == "None":
-        primo_text = text
-      else:
-        primo_text += text
+      primo_text_list.append(text + "\n")
     if shop.inventory[i]["cost_type"] == "m":
-      if mora_text == "None":
-        mora_text = text
-      else:
-        mora_text += text
+      mora_text_list.append(text + "\n")
     if shop.inventory[i]["cost_type"] == "sd":
-      if sd_text == "None":
-        sd_text = text
-      else:
-        sd_text += text
+      sd_text_list.append(text + "\n")
     if shop.inventory[i]["cost_type"] == "sg":
-      if sg_text == "None":
-        sg_text = text
-      else:
-        sg_text += text
+      sg_text_list.append(text + "\n")
   
+  primo_text = "None"
+  mora_text = "None"
+  sd_text = "None"
+  sg_text = "None"
+
+  if len(primo_text_list) > 0:
+    primo_text = "".join(primo_text_list)
+  if len(mora_text_list) > 0:
+    mora_text = "".join(mora_text_list)
+  if len(sd_text_list) > 0:
+    sd_text = "".join(sd_text_list)
+  if len(sg_text_list) > 0:
+    sg_text = "".join(sg_text_list)
+
   embed = discord.Embed(title=f"{u.nickname}'s Shop", color=discord.Color.dark_green())
   if _type == "all":
     embed.add_field(name="Primogems Shop",value=primo_text, inline=False)
@@ -188,6 +199,18 @@ def generate_shop(_id):
   shop = Shop(int(_id), {})
   for SI in SI_list:
     shop.add_item(get_shop_item(SI))
+  five_star_chars = character.get_five_star_characters()
+  four_star_chars = character.get_four_star_characters()
+  for i in range(4):
+    r = random.randint(1, 30)
+    if r == 1:
+      r = random.randint(1, len(five_star_chars))
+      c = five_star_chars[r-1]
+      shop.add_item(Shop_Item(item.Item(c.name, c.URL_name, c.description, 1, c.rarity, "character").get_dict(), 100, "sg", 1, 1))
+    else:
+      r = random.randint(1, len(four_star_chars))
+      c = four_star_chars[r-1]
+      shop.add_item(Shop_Item(item.Item(c.name, c.URL_name, c.description, 1, c.rarity, "character").get_dict(), 50, "sg", 1, 1))
   database_mongo.save_shop(shop)
 
 def generate_all_shops():
@@ -196,4 +219,7 @@ def generate_all_shops():
     generate_shop(i)
 
 def generate_shop_items():
-  database_mongo.save_shop_item(Shop_Item(item.Item("Primogems", "primogems", "160 Primogems", 160, 6, "currency").get_dict(), 5, "sg", -1, -1))
+  database_mongo.save_shop_item(Shop_Item(item.Item("Primogems(SG)", "primogems(sg)", "160 Primogems", 160, 6, "currency").get_dict(), 5, "sg", -1, -1))
+  database_mongo.save_shop_item(Shop_Item(item.Item("Mora(SD)", "mora(sd)", "10,000 mora", 10000, 6, "currency").get_dict(), 30, "sd", -1, -1))
+  database_mongo.save_shop_item(Shop_Item(item.Item("Primogems(SD)", "primogems(sd)", "160 Primogems", 160, 6, "currency").get_dict(), 30, "sd", 30, 30))
+  database_mongo.save_shop_item(Shop_Item(item.Item("Mora(SG)", "mora(sg)", "10,000 Mora", 10000, 6, "currency").get_dict(), 2, "sg", -1, -1))

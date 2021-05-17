@@ -53,6 +53,19 @@ def delete_user(_id):
   user_collection = get_user_collection()
   user_collection.delete_one({"_id":_id})
 
+def wipe_shop_item_collection():
+  shop_item_collection = get_shop_item_collection()
+  shop_item_collection.delete_many({})
+
+def wipe_shop_item_characters():
+  shop_item_collection = get_shop_item_collection()
+  shop_items_list = get_all_shop_items_list()
+  for si in shop_items_list:
+    try:
+      if si["item"]["group"] == "character":
+        shop_item_collection.delete_many({"item": si["item"]})
+    except KeyError:
+      pass
 
 
 
@@ -77,7 +90,7 @@ def save_commissions(com_dict):
 
 def save_shop_item(si):
   shop_items_collection = get_shop_item_collection()
-  shop_items_collection.replace_one({"item": {"URL_name" : si.item["URL_name"]}}, si.get_dict(), upsert=True)
+  shop_items_collection.replace_one({"item": si.item}, si.get_dict(), upsert=True)
 
 def save_shop(shop):
   shop_collection = get_shop_collection()

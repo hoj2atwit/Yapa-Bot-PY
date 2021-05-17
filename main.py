@@ -1,4 +1,5 @@
 import discord
+from discord.ext.commands.core import command
 import database_mongo
 from discord.ext import commands
 from discord.ext import tasks
@@ -191,17 +192,30 @@ async def update(ctx, arg1, arg2=None):
             shop.generate_shop_items()
             await ctx.send(f"{ctx.author.mention}, All Shop Items have been updated.")
 
+@bot.command(name="clear")
+@commands.check(not_DM)
+@commands.check(user_is_me)
+@commands.check(lock_exists)
+async def clear(ctx, arg1):
+  if arg1 == "shop_items":
+    async with locks[str(ctx.author.id)]:
+      await ctx.send("Clearing Shop Items")
+      database_mongo.wipe_shop_item_collection()
+      await ctx.send("Shop Items Cleared")
+
 @bot.command(name="test")
 @commands.check(not_DM)
 @commands.check(user_is_me)
 @commands.check(lock_exists)
 async def test(ctx):
     async with locks[str(ctx.author.id)]:
-      confirm = await formatter.confirmation(ctx, bot)
-      if confirm:
-          await ctx.send("Confirmed!")
-      else:
-          await ctx.send("Denied!")
+      list = []
+      num = 5
+      list.append(f"{num} ")
+      for i in range(20):
+        list.append("-")
+      list.append(f" {num}")
+      print("".join(list))
 
 #Resets a users timers or commissions
 @bot.command(name="reset")
