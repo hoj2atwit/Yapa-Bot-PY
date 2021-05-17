@@ -777,7 +777,10 @@ async def buy(ctx, name, amnt=None):
 @commands.check(user_exists)
 @commands.check(lock_exists)
 async def vote(ctx):
-  await ctx.send(f"{ctx.author.mention} Vote here, https://top.gg/bot/827279423321276457")
+  async with locks[str(ctx.author.id)]:
+    u = user.get_user(ctx.author.id)
+    await user.embed_vote(ctx, u)
+    database_mongo.save_user(u)
 
 @bot.command(name="help", aliases=["h"])
 @commands.check(not_DM)
@@ -871,6 +874,7 @@ async def on_dbl_vote(data):
     u.primogems += 800
     u.condensed += 3
     u.mora += 10000
+    u.update_vote()
     database_mongo.save_user(u)
 
 @bot.event

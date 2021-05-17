@@ -33,16 +33,18 @@ class Character:
 
   async def add_xp(self, xp, ctx):
     maxXP = self.get_xp_to_next_level()
-    if xp + self.xp >= maxXP:
-      xpLeftOver = int(-1*(maxXP - self.xp - xp))
-      await self.level_up(ctx)
-      await self.add_xp(xpLeftOver, ctx)
-    else:
-      self.xp += int(xp)
+    xp_extra = int(xp)
+    curr_level = self.level
+    while xp_extra + self.xp >= maxXP:
+      xp_extra = int(-1*(maxXP - self.xp - xp))
+      maxXP = self.get_xp_to_next_level()
+      self.level_up()
+    self.xp += xp_extra
+    if curr_level != self.level:
+      await embed_level_up_character(ctx, self, curr_level)
 
-  async def level_up(self, ctx):
+  def level_up(self):
     self.level += 1
-    await embed_level_up_character(ctx, self)
     self.xp = 0
 
   def equip_weapon(self, weapon):
@@ -106,8 +108,8 @@ def get_four_star_characters():
     chars.append(dict_to_char(c))
   return chars
 
-async def embed_level_up_character(ctx, char):
-  embed = discord.Embed(title="Character Level Up!", color=discord.Color.gold(),description = f"{char.name} has leveled up to {char.level}")
+async def embed_level_up_character(ctx, char, old_level):
+  embed = discord.Embed(title="Character Level Up!", color=discord.Color.gold(),description = f"{char.name} has leveled up from {old_level} to {char.level}")
   f = discord.File(char.URL_icon, f"{char.URL_name}-icon.png")
   embed.set_thumbnail(url=f"attachment://{char.URL_name}-icon.png")
   await ctx.send(embed=embed, file=f)

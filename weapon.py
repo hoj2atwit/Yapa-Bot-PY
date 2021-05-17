@@ -1,6 +1,8 @@
+
 import formatter
 import math
 import database_mongo
+import discord
 
 class Weapon:
   def __init__(self, name, URL_name, URL_icon, weapon_type, total, rarity, refinement, attack, substat, substat_value, level, xp):
@@ -22,6 +24,22 @@ class Weapon:
 
   def get_xp_to_next_level(self):
     return int((30 + (100*(self.level-1)*(int(self.level/5)+1)) + (20**int(self.level/10)))/2)
+
+  async def add_xp(self, xp, ctx):
+    maxXP = self.get_xp_to_next_level()
+    xp_extra = int(xp)
+    curr_level = self.level
+    while xp_extra + self.xp >= maxXP:
+      xp_extra = int(-1*(maxXP - self.xp - xp))
+      maxXP = self.get_xp_to_next_level()
+      self.level_up()
+    self.xp += xp_extra
+    if curr_level != self.level:
+      await embed_level_up_weapon(ctx, self, curr_level)
+
+  def level_up(self):
+    self.level += 1
+    self.xp = 0
 
   def refine(self, user):
     count = 0
@@ -53,6 +71,11 @@ def get_weapon(name):
   w = database_mongo.get_weapon_dict(name)
   return Weapon(w["name"], w["URL_name"], w["URL_icon"], w["weapon_type"], w["total"], w["rarity"], w["refinement"], w["attack"], w["substat"], w["substat_value"], w["level"], w["xp"])
 
+async def embed_level_up_weapon(ctx, weap, old_level):
+  embed = discord.Embed(title="Weapon Level Up!", color=discord.Color.gold(),description = f"{weap.name} has leveled up from {old_level} to {weap.level}")
+  f = discord.File(weap.URL_icon, f"{weap.URL_name}-icon.png")
+  embed.set_thumbnail(url=f"attachment://{weap.URL_name}-icon.png")
+  await ctx.send(embed=embed, file=f)
 
 def get_all_Weapons():
   allWeaps = get_weap_list_from_dict_list(database_mongo.get_all_weapons_list())

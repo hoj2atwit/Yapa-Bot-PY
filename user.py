@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 tz = pytz.timezone("America/New_York")
 
 class User:
-  def __init__(self, _id, name, nickname, description, favorite_character, adventure_rank, experience, world_level, resin, five_pity, four_pity, characters, weapons, artifacts, mora, primogems, star_glitter, star_dust, condensed, last_daily, last_weekly, bag, gear, commissions, teams):
+  def __init__(self, _id, name, nickname, description, favorite_character, adventure_rank, experience, world_level, resin, five_pity, four_pity, characters, weapons, artifacts, mora, primogems, star_glitter, star_dust, condensed, last_daily, last_weekly, last_vote, bag, gear, commissions, teams):
     self._id = int(_id)
     self.name = str(name)
     self.nickname = str(nickname)
@@ -35,6 +35,7 @@ class User:
     self.condensed = int(condensed) 
     self.last_daily = str(last_daily)
     self.last_weekly = str(last_weekly)
+    self.last_vote = str(last_vote)
     self.bag = bag
     self.gear = gear
     self.commissions = commissions
@@ -74,6 +75,27 @@ class User:
     utc_now = pytz.utc.localize(datetime.utcnow())
     now = utc_now.astimezone(tz)
     self.last_weekly = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
+
+  def update_vote(self):
+    utc_now = pytz.utc.localize(datetime.utcnow())
+    now = utc_now.astimezone(tz)
+    self.last_vote = f"{now.year}/{now.month}/{now.day}/{now.hour}/{now.minute}/{now.second}"
+
+  def can_vote(self):
+    utc_now = pytz.utc.localize(datetime.utcnow())
+    now = utc_now.astimezone(tz)
+    if self.last_vote == "":
+      return True, "Now"
+    old = tz.localize(formatter.get_DateTime(self.last_vote), is_dst=None)
+    difference = now-old
+    if difference.seconds >= (43200):
+      return True, "Now"
+    else:
+      differenceDate = old + timedelta(hours=12)
+      difference = differenceDate-now
+      minutes, seconds = divmod(difference.seconds, 60)
+      hours, minutes = divmod(minutes, 60)
+      return False, f"{hours}H:{minutes}M:{seconds}S"
 
   def can_weekly(self):
     utc_now = pytz.utc.localize(datetime.utcnow())
@@ -134,12 +156,24 @@ class User:
 
   async def add_experience(self, xp, ctx):
     maxXP = self.get_max_experience()
-    if xp + self.experience >= maxXP:
-      xpLeftOver = int(-1*(maxXP - self.experience - xp))
-      await self.level_up(ctx)
-      await self.add_experience(xpLeftOver, ctx)
-    else:
-      self.experience += int(xp)
+    xp_extra = xp
+    curr_level = self.adventure_rank
+    curr_WL = self.world_level
+    while (xp_extra + self.experience >= maxXP):
+      xp_extra = int(-1*(maxXP - self.experience - xp))
+      self.level_up()
+      maxXP = self.get_max_experience()
+    self.experience += int(xp_extra)
+    if curr_level != self.adventure_rank:
+      await embed_adventure_rank_up(ctx, self, curr_level)
+    if curr_WL != self.world_level:
+      await embed_world_level_up(ctx, self, curr_WL)
+
+  def level_up(self):
+    self.adventure_rank += 1
+    if self.adventure_rank % 5 == 0:
+      self.world_level += 1
+    self.experience = 0
 
   def give_mora(self, u, amnt):
     if self.mora < amnt:
@@ -167,14 +201,6 @@ class User:
       self.adventure_rank = 1
       self.world_level = 0
       self.experience = 0
-
-  async def level_up(self, ctx):
-    self.adventure_rank += 1
-    await embed_adventure_rank_up(ctx, self)
-    if self.adventure_rank % 5 == 0:
-      self.world_level += 1
-      await embed_world_level_up(ctx, self)
-    self.experience = 0
 
   def get_character(self, charName):
     c = character.get_character_from_dict(self.characters, formatter.name_formatter(charName))
@@ -284,7 +310,7 @@ class User:
       
 def get_user(_id):
   u = database_mongo.get_user_dict(_id)
-  return User(u["_id"], u["name"], u["nickname"], u["description"], u["favorite_character"], u["adventure_rank"], u["experience"], u["world_level"], u["resin"], u["five_pity"], u["four_pity"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["star_glitter"], u["star_dust"], u["condensed"], u["last_daily"], u["last_weekly"], u["bag"], u["gear"], u["commissions"], u["teams"])
+  return User(u["_id"], u["name"], u["nickname"], u["description"], u["favorite_character"], u["adventure_rank"], u["experience"], u["world_level"], u["resin"], u["five_pity"], u["four_pity"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["star_glitter"], u["star_dust"], u["condensed"], u["last_daily"], u["last_weekly"], u["last_vote"], u["bag"], u["gear"], u["commissions"], u["teams"])
 
 def does_exist(_id):
   u = database_mongo.get_user_dict(_id)
@@ -294,7 +320,7 @@ def does_exist(_id):
     return True
 
 def create_user(name, ID):
-  newU = User(ID, name, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 8000, 0, 0, 0, "", "", {}, {}, commission.make_user_commissions(),{"1":{}, "2":{}, "3":{}, "4":{}})
+  newU = User(ID, name, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 8000, 0, 0, 0, "", "", "", {}, {}, commission.make_user_commissions(),{"1":{}, "2":{}, "3":{}, "4":{}})
   database_mongo.save_user(newU)
 
 async def embed_balance(ctx, u):
@@ -334,7 +360,8 @@ async def embed_profile(ctx, u, member):
 
   can, dailyString = u.can_daily()
   can, weeklyString = u.can_weekly()
-  embed.add_field(name="Recharge Times", value=f"Daily: {dailyString}\nWeekly: {weeklyString}", inline=False)
+  can, voteString = u.can_vote()
+  embed.add_field(name="Recharge Times", value=f"Daily: {dailyString}\nWeekly: {weeklyString}\nVote: {voteString}", inline=False)
 
   url = formatter.get_avatar(member)
   embed.set_thumbnail(url=url)
@@ -517,6 +544,13 @@ async def embed_daily(ctx, u):
   else:
     await error.embed_too_early(ctx, timeLeft)
 
+async def embed_vote(ctx, u):
+  can, timeLeft = u.can_vote()
+  if can:
+    await ctx.send(f"{ctx.author.mention} Vote here, https://top.gg/bot/827279423321276457/vote")
+  else:
+    await error.embed_too_early(ctx, timeLeft)
+
 async def embed_weekly(ctx, u):
   can, timeLeft = u.can_weekly()
   embed = discord.Embed(title=f"{u.nickname}\'s Weekly Claim")
@@ -572,12 +606,12 @@ def recharge_all_resin():
     u.recharge_resin()
     database_mongo.save_user(u)
 
-async def embed_adventure_rank_up(ctx, u):
-  embed = discord.Embed(title="Adventure Rank Up", color=discord.Color.green(), description=f"{u.nickname}\'s Adventure Rank has increased to {u.adventure_rank}")
+async def embed_adventure_rank_up(ctx, u, old_level):
+  embed = discord.Embed(title="Adventure Rank Up", color=discord.Color.green(), description=f"{u.nickname}\'s Adventure Rank has increased from {old_level} to {u.adventure_rank}")
   await ctx.send(embed=embed)
 
-async def embed_world_level_up(ctx, u):
-  embed = discord.Embed(title="World Level Increase", color=discord.Color.green(), description=f"{u.nickname}\'s World Level has increased to {u.world_level}\n Your adventuring rewards will increase.")
+async def embed_world_level_up(ctx, u, old_level):
+  embed = discord.Embed(title="World Level Increase", color=discord.Color.green(), description=f"{u.nickname}\'s World Level has increased from {old_level} to {u.world_level}\n Your adventuring rewards will increase.")
   await ctx.send(embed=embed)
 
 async def embed_show_team(ctx, u, teamNum):
