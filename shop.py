@@ -126,11 +126,11 @@ async def embed_show_shop(ctx, u, _type):
   sg_text_list = []
   sd_text_list = []
   for i in shop.inventory.keys():
-    textList = ["```"]
+    textList = []
     spacer_amnt = 30
     if shop.inventory[i]["amount"] > 0:
       textList.append("({}) ".format(shop.inventory[i]["amount"]))
-      spacer_amnt -= len(textList[1])
+      spacer_amnt -= len(textList[0])
     x=formatter.number_format(shop.inventory[i]["item"]["count"])
     y=shop.inventory[i]["item"]["name"]
     z=formatter.number_format(shop.inventory[i]["cost"])
@@ -144,10 +144,7 @@ async def embed_show_shop(ctx, u, _type):
     text = "".join(textList)
 
     if shop.inventory[i]["amount"] == 0:
-      textList = ["~~", text, "```~~ **SOLDOUT**"]
-      text = "".join(textList)
-    else:
-      textList = [text, "```"]
+      textList = [text, " SOLDOUT"]
       text = "".join(textList)
 
     if shop.inventory[i]["cost_type"] == "p":
@@ -165,13 +162,13 @@ async def embed_show_shop(ctx, u, _type):
   sg_text = "None"
 
   if len(primo_text_list) > 0:
-    primo_text = "".join(primo_text_list)
+    primo_text = "".join(["```","".join(primo_text_list),"```"])
   if len(mora_text_list) > 0:
-    mora_text = "".join(mora_text_list)
+    mora_text = "".join(["```", "".join(mora_text_list), "```"])
   if len(sd_text_list) > 0:
-    sd_text = "".join(sd_text_list)
+    sd_text = "".join(["```", "".join(sd_text_list), "```"])
   if len(sg_text_list) > 0:
-    sg_text = "".join(sg_text_list)
+    sg_text = "".join(["```", "".join(sg_text_list), "```"])
 
   embed = discord.Embed(title=f"{u.nickname}'s Shop", color=discord.Color.dark_green())
   if _type == "all":
