@@ -126,17 +126,17 @@ async def embed_show_shop(ctx, u, _type):
   sg_text_list = []
   sd_text_list = []
   for i in shop.inventory.keys():
-    textList = []
+    textList = ["```"]
     spacer_amnt = 30
     if shop.inventory[i]["amount"] > 0:
-      textList.append("{}x ".format(shop.inventory[i]["amount"]))
-      spacer_amnt -= len(textList[0])
+      textList.append("({}) ".format(shop.inventory[i]["amount"]))
+      spacer_amnt -= len(textList[1])
     x=formatter.number_format(shop.inventory[i]["item"]["count"])
     y=shop.inventory[i]["item"]["name"]
     z=formatter.number_format(shop.inventory[i]["cost"])
     ct=shop.inventory[i]["cost_type"].upper()
     spacer_amnt -= (len(str(x)) + len(str(y)) + len(str(z)) + len(str(ct)))
-    textList.append(f"```{x}x {y} ")
+    textList.append(f"{x}x {y} ")
     if spacer_amnt > 0:
       for x in range(spacer_amnt):
         textList.append("-")
