@@ -7,6 +7,7 @@ import random
 import error
 import commission
 import pytz
+import shop
 import database_mongo
 from datetime import datetime, timedelta
 
@@ -321,6 +322,9 @@ def does_exist(_id):
 
 def create_user(name, ID):
   newU = User(ID, name, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 8000, 0, 0, 0, "", "", "", {}, {}, commission.make_user_commissions(),{"1":{}, "2":{}, "3":{}, "4":{}})
+  shop.generate_shop(ID)
+  traveler = character.get_character("traveler-anemo")
+  newU.add_character(traveler)
   database_mongo.save_user(newU)
 
 async def embed_balance(ctx, u):
@@ -607,11 +611,11 @@ def recharge_all_resin():
     database_mongo.save_user(u)
 
 async def embed_adventure_rank_up(ctx, u, old_level):
-  embed = discord.Embed(title="Adventure Rank Up", color=discord.Color.green(), description=f"{u.nickname}\'s Adventure Rank has increased from {old_level} to {u.adventure_rank}")
+  embed = discord.Embed(title="Adventure Rank Up", color=discord.Color.green(), description=f"{u.nickname}\'s Adventure Rank has increased from **{old_level}** to **{u.adventure_rank}**")
   await ctx.send(embed=embed)
 
 async def embed_world_level_up(ctx, u, old_level):
-  embed = discord.Embed(title="World Level Increase", color=discord.Color.green(), description=f"{u.nickname}\'s World Level has increased from {old_level} to {u.world_level}\n Your adventuring rewards will increase.")
+  embed = discord.Embed(title="World Level Increase", color=discord.Color.green(), description=f"{u.nickname}\'s World Level has increased from **{old_level}** to **{u.world_level}**\n Your adventuring rewards will increase.")
   await ctx.send(embed=embed)
 
 async def embed_show_team(ctx, u, teamNum):

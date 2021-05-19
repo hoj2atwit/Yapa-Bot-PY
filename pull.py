@@ -19,7 +19,7 @@ twoStarWeaps = weapon.get_two_star_weapons()
 oneStarWeaps = weapon.get_one_star_weapons()
 
 fiveStarWishGifSingle = "Images/Gifs/SingleFiveStar.gif"
-fourStarWishGifSingle = "Images/Gifs/SingleThreeStar.gif"
+fourStarWishGifSingle = "Images/Gifs/SingleFourStar.gif"
 threeStarWishGifSingle = "Images/Gifs/SingleThreeStar.gif"
 fiveStarWishGifTen = "Images/Gifs/TenFiveStar.gif"
 fourStarWishGifTen = "Images/Gifs/TenFourStar.gif"
@@ -282,7 +282,7 @@ async def embed_free_single_pull(ctx, name):
     e.set_image(url="attachment://SingleThreeStar.gif")
 
   msg = await ctx.send(embed=e, file=file)
-  await asyncio.sleep(7)
+  await asyncio.sleep(6.2)
   await msg.delete()
   await ctx.send(ctx.author.mention, embed=embed, file=f)
 
@@ -312,14 +312,12 @@ async def embed_free_ten_pull(ctx, name):
   if pulls[0].rarity == 5:
     file = discord.File(fiveStarWishGifTen, "TenFiveStar.gif")
     e.set_image(url="attachment://TenFiveStar.gif")
-    sleep = 6
   else:
     file = discord.File(fourStarWishGifTen, "TenFourStar.gif")
     e.set_image(url="attachment://TenFourStar.gif")
-    sleep = 7
   
   msg = await ctx.send(embed=e, file=file)
-  await asyncio.sleep(sleep)
+  await asyncio.sleep(6.2)
   await msg.delete()
   await ctx.send(ctx.author.mention, embed=embed, file=f)
 
@@ -351,14 +349,12 @@ async def embed_ten_pull(ctx, u):
   if pulls[0].rarity == 5:
     file = discord.File(fiveStarWishGifTen, "TenFiveStar.gif")
     e.set_image(url="attachment://TenFiveStar.gif")
-    sleep = 6
   else:
     file = discord.File(fourStarWishGifTen, "TenFourStar.gif")
     e.set_image(url="attachment://TenFourStar.gif")
-    sleep = 7
   
   msg = await ctx.send(embed=e, file=file)
-  await asyncio.sleep(sleep)
+  await asyncio.sleep(6.2)
   await msg.delete()
   await ctx.send(ctx.author.mention, embed=embed, file=f)
 
@@ -467,7 +463,7 @@ async def embed_gamble(ctx, u, amnt, _type):
     u.resin -= 10
     await commission.check_target_complete(ctx, u, "gamble", 1)
     if _type == "p":
-        userXPReward = int(amnt / 50)
+        userXPReward = int(amnt / 5)
         if userXPReward > (u.world_level+1)*100:
             userXPReward = int((u.world_level+1)*100)
     else:

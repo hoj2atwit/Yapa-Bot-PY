@@ -109,7 +109,7 @@ def get_four_star_characters():
   return chars
 
 async def embed_level_up_character(ctx, char, old_level):
-  embed = discord.Embed(title="Character Level Up!", color=discord.Color.gold(),description = f"{char.name} has leveled up from {old_level} to {char.level}")
+  embed = discord.Embed(title="Character Level Up!", color=discord.Color.gold(),description = f"{char.name} has leveled up from **{old_level}** to **{char.level}**")
   f = discord.File(char.URL_icon, f"{char.URL_name}-icon.png")
   embed.set_thumbnail(url=f"attachment://{char.URL_name}-icon.png")
   await ctx.send(embed=embed, file=f)
