@@ -139,12 +139,12 @@ async def embed_show_shop(ctx, u, _type):
     textList.append(f"{x}x {y} ")
     if spacer_amnt > 0:
       for x in range(spacer_amnt):
-        textList.append("-")
+        textList.append("=")
     textList.append(f" {z} {ct}")
     text = "".join(textList)
 
     if shop.inventory[i]["amount"] == 0:
-      textList = [text, " SOLDOUT"]
+      textList = [formatter.strike(text), " SOLDOUT"]
       text = "".join(textList)
 
     if shop.inventory[i]["cost_type"] == "p":

@@ -1,5 +1,5 @@
 import discord
-from discord.ext.commands.core import command
+from discord.ext.commands.core import command, is_owner
 import database_mongo
 from discord.ext import commands
 from discord.ext import tasks
@@ -26,7 +26,7 @@ load_dotenv()
 
 
 
-bot = commands.Bot(f"{pre}", case_insensitive=True)
+bot = commands.Bot(f"{pre}", case_insensitive=True, owner_id=int(os.getenv('OWNER_ID')))
 bot.remove_command("help") # Removing the default help command
 dbl_token = os.getenv('TOP_TOKEN')  # set this to your bot's top.gg token
 bot.dblpy = dbl.DBLClient(bot, dbl_token, webhook_path='/dblwebhook', webhook_auth="yapa_pass", webhook_port=5000)
@@ -108,8 +108,8 @@ def not_DM(ctx):
 def user_already_exists(ctx):
   return not user.does_exist(ctx.author.id)
 
-def user_is_me(ctx):
-  return str(ctx.author.id) == os.getenv('OWNER_ID')
+async def user_is_me(ctx):
+  return await bot.is_owner(ctx.author)
 
 async def not_started(ctx):
   await ctx.send(f"{ctx.author.mention}, Use **[{pre}start]** to begin your adventure")
@@ -877,10 +877,10 @@ async def help(ctx,arg1=None):
   embed.set_footer(text=f"Page 2/2")
   embedList.append(embed)
 
-  if arg1.lower() == "p":
+  if arg1 == "p":
     await formatter.pages(ctx, bot, embedList)
-  elif arg1.lower() == "a":
-    if user_is_me(ctx):
+  elif arg1 == "a":
+    if await user_is_me(ctx):
       embed = discord.Embed(title="Admin Commands", color=discord.Color.dark_red())
       text = f"**[{pre}update] | [w, c, u, com, shop] | [i]**\n"
       text += f"**[{pre}stats]**\n"
@@ -903,8 +903,7 @@ async def help(ctx,arg1=None):
 async def update_stats():
     #"""This function runs every 30 minutes to automatically update your server count."""
     try:
-        await bot.dblpy.post_guild_count()
-        print(f'Posted server count ({bot.dblpy.guild_count()})')
+        await bot.dblpy.post_guild_count(shard_count=bot.shard_count)
     except Exception as e:
         print('Failed to post server count\n{}: {}'.format(type(e).__name__, e))
 
