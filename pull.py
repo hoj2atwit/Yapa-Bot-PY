@@ -10,6 +10,7 @@ import commission
 import asyncio
 import error
 
+sixStarChars = character.get_six_star_characters()
 fiveStarChars = character.get_five_star_characters()
 fourStarChars = character.get_four_star_characters()
 fiveStarWeaps = weapon.get_five_star_weapons()
@@ -24,6 +25,7 @@ threeStarWishGifSingle = "Images/Gifs/SingleThreeStar.gif"
 fiveStarWishGifTen = "Images/Gifs/TenFiveStar.gif"
 fourStarWishGifTen = "Images/Gifs/TenFourStar.gif"
 
+wishDelayTime = 7.8
 
 #types
 #A = artifact
@@ -232,7 +234,7 @@ async def embed_single_pull(ctx, u):
     e.set_image(url="attachment://SingleThreeStar.gif")
     
   msg = await ctx.send(embed=e, file=f)
-  await asyncio.sleep(7)
+  await asyncio.sleep(wishDelayTime)
   await msg.delete()
   await ctx.send(ctx.author.mention, embed=embed, file=file)
 
@@ -282,7 +284,7 @@ async def embed_free_single_pull(ctx, name):
     e.set_image(url="attachment://SingleThreeStar.gif")
 
   msg = await ctx.send(embed=e, file=file)
-  await asyncio.sleep(6.2)
+  await asyncio.sleep(wishDelayTime)
   await msg.delete()
   await ctx.send(ctx.author.mention, embed=embed, file=f)
 
@@ -317,7 +319,7 @@ async def embed_free_ten_pull(ctx, name):
     e.set_image(url="attachment://TenFourStar.gif")
   
   msg = await ctx.send(embed=e, file=file)
-  await asyncio.sleep(6.2)
+  await asyncio.sleep(wishDelayTime)
   await msg.delete()
   await ctx.send(ctx.author.mention, embed=embed, file=f)
 
@@ -354,12 +356,12 @@ async def embed_ten_pull(ctx, u):
     e.set_image(url="attachment://TenFourStar.gif")
   
   msg = await ctx.send(embed=e, file=file)
-  await asyncio.sleep(6.2)
+  await asyncio.sleep(wishDelayTime)
   await msg.delete()
   await ctx.send(ctx.author.mention, embed=embed, file=f)
 
 async def embed_gamble(ctx, u, amnt, _type):
-    if u.resin < 10:
+    if u.resin < 5:
         await error.embed_not_enough_resin(ctx)
         return
     if _type == "m":
@@ -421,14 +423,18 @@ async def embed_gamble(ctx, u, amnt, _type):
 
     if _type == "m":
         if jackpot:
-            u.mora += amnt*10
+            u.mora += amnt*100
             embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Mora")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*100)}x** Mora")
         elif six:
-            u.mora += amnt*5
+            u.mora += amnt*10
             embed = discord.Embed(title="MINI-JACKPOT----MINI-JACKPOT", description=f"{u.nickname} won the mini-jackpot!")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Mora")
+        elif quadruple:
+            u.mora += amnt*5
+            embed = discord.Embed(title=f"{u.nickname} Won Big!")
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*5)}x** Mora")
-        elif quadruple or doubleTriple or triplePair:
+        elif doubleTriple or triplePair:
             u.mora += amnt*2
             embed = discord.Embed(title=f"{u.nickname} Won!")
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Mora")
@@ -440,12 +446,16 @@ async def embed_gamble(ctx, u, amnt, _type):
             embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Mora.")
     elif _type == "p":
         if jackpot:
-            u.primogems += amnt*10
+            u.primogems += amnt*100
             embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Primogems")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*100)}x** Primogems")
         elif six:
-            u.primogems += amnt*5
+            u.primogems += amnt*10
             embed = discord.Embed(title="MINI-JACKPOT----MINI-JACKPOT", description=f"{u.nickname} won the mini-jackpot!")
+            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Primogems")
+        elif quadruple:
+            u.primogems += amnt*5
+            embed = discord.Embed(title=f"{u.nickname} Won Big!")
             embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*5)}x** Primogems")
         elif quadruple or doubleTriple or triplePair:
             u.primogems += amnt*2
@@ -460,7 +470,7 @@ async def embed_gamble(ctx, u, amnt, _type):
 
 
     embed.add_field(name="Rolls", value=f"{rolls[0]}, {rolls[1]}, {rolls[2]}, {rolls[3]}, {rolls[4]}, {rolls[5]}")
-    u.resin -= 10
+    u.resin -= 5
     await commission.check_target_complete(ctx, u, "gamble", 1)
     if _type == "p":
         userXPReward = int(amnt / 5)

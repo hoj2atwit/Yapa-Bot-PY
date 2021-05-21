@@ -153,7 +153,7 @@ class User:
     return int(120 + (20 * self.world_level))
 
   def get_resin_recharge(self):
-    return int(20 + (5 * self.world_level))
+    return int(20 + (5 * int(self.world_level/2)))
 
   async def add_experience(self, xp, ctx):
     maxXP = self.get_max_experience()
@@ -611,11 +611,11 @@ def recharge_all_resin():
     database_mongo.save_user(u)
 
 async def embed_adventure_rank_up(ctx, u, old_level):
-  embed = discord.Embed(title="Adventure Rank Up", color=discord.Color.green(), description=f"{u.nickname}\'s Adventure Rank has increased from **{old_level}** to **{u.adventure_rank}**")
+  embed = discord.Embed(title="Adventure Rank Up", color=discord.Color.green(), description=f"{u.nickname}\'s Adventure Rank has increased from **AR {old_level} ➟ AR {u.adventure_rank}**")
   await ctx.send(embed=embed)
 
 async def embed_world_level_up(ctx, u, old_level):
-  embed = discord.Embed(title="World Level Increase", color=discord.Color.green(), description=f"{u.nickname}\'s World Level has increased from **{old_level}** to **{u.world_level}**\n Your adventuring rewards will increase.")
+  embed = discord.Embed(title="World Level Increase", color=discord.Color.green(), description=f"{u.nickname}\'s World Level has increased! **WL {old_level} ➟ WL {u.world_level}**\n Your adventuring rewards will increase.")
   await ctx.send(embed=embed)
 
 async def embed_show_team(ctx, u, teamNum):

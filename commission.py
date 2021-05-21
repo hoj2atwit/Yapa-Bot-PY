@@ -178,7 +178,7 @@ def make_adventure_commission(ID, amnt):
 def make_gamble_commission(ID, amnt):
   t = Target("gamble", amnt, 0)
   targets = {"gamble" : t.get_dict()}
-  return Quest(ID, f"The Gambler's Frenzy- G{amnt}", f"Gamble {amnt} times.", targets, int(20*amnt), int(500*amnt), int(10*amnt), False)
+  return Quest(ID, f"The Gambler's Frenzy - G{amnt}", f"Gamble {amnt} times.", targets, int(20*amnt), int(500*amnt), int(10*amnt), False)
 
 async def show_commissions(ctx, u):
   embed = discord.Embed(title = f"{u.nickname}\'s Commissions", color=discord.Color.green(),description="Resets everyday at Midnight and Noon EST.")
@@ -208,6 +208,7 @@ async def show_commissions(ctx, u):
         embed.add_field(name=f"{b.title}",value=f"~~{b.desc}~~ - **Completed**\n", inline=False)
       else:
         embed.add_field(name=f"{b.title}",value=f"{b.desc}\n{list_targets(b.targets)}", inline=False)
+  embed.set_footer(text="Use ?t [ID] [answer] to answer trivia commissions.")
   f = discord.File("Images/Other/Adventurers_Guild.png", "Adventurers_Guild.png")
   embed.set_thumbnail(url="attachment://Adventurers_Guild.png")
   await ctx.send(embed=embed, file=f)

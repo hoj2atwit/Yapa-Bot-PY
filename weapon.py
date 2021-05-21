@@ -72,7 +72,7 @@ def get_weapon(name):
   return Weapon(w["name"], w["URL_name"], w["URL_icon"], w["weapon_type"], w["total"], w["rarity"], w["refinement"], w["attack"], w["substat"], w["substat_value"], w["level"], w["xp"])
 
 async def embed_level_up_weapon(ctx, weap, old_level):
-  embed = discord.Embed(title="Weapon Level Up!", color=discord.Color.gold(),description = f"{weap.name} has leveled up from **{old_level}** to **{weap.level}**")
+  embed = discord.Embed(title="Weapon Level Up!", color=discord.Color.gold(),description = f"{weap.name} has leveled up! **Lvl {old_level} ➟ Lvl {weap.level}**")
   f = discord.File(weap.URL_icon, f"{weap.URL_name}-icon.png")
   embed.set_thumbnail(url=f"attachment://{weap.URL_name}-icon.png")
   await ctx.send(embed=embed, file=f)

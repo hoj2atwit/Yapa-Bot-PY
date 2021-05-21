@@ -129,6 +129,9 @@ def shop_exists(ctx):
     shop.generate_shop(ctx.author.id)
     return True
 
+def is_minimum_WL(ctx):
+  return user.get_user(ctx.author.id).world_level >= 2
+
 #When bot turns on
 @bot.event
 async def on_ready():
@@ -157,7 +160,7 @@ async def update(ctx, arg1, arg2=None):
         if arg1.lower() == "c":
           if arg2 == None:
             await ctx.send(f"{ctx.author.mention}, Searching new character data.")
-            await updater.update_all_characters_DB(ctx)
+            updater.update_all_characters_DB()
             await ctx.send(f"{ctx.author.mention}, New character data downloaded.")
           elif arg2.lower() == "i":
             await ctx.send(f"{ctx.author.mention}, Searching for new character images.")
@@ -167,7 +170,7 @@ async def update(ctx, arg1, arg2=None):
         elif arg1.lower() == "w":
           if arg2 == None:
             await ctx.send(f"{ctx.author.mention}, Searching for new weapon data.")
-            await updater.update_weapons_DB(ctx)
+            updater.update_weapons_DB()
             await ctx.send(f"{ctx.author.mention}, New weapon data downloaded.")
           elif arg2.lower() == "i":
             await ctx.send(f"{ctx.author.mention}, Searching for new weapon images.")
@@ -175,9 +178,18 @@ async def update(ctx, arg1, arg2=None):
             await ctx.send(f"{ctx.author.mention}, Weapon images have been downloaded.")
             
         elif arg1.lower() == "u":
-          await ctx.send(f"{ctx.author.mention}, Updating All Users.")
-          user.update_users()
-          await ctx.send(f"{ctx.author.mention}, All users have been updated.")
+          if arg2 == None:
+            await ctx.send(f"{ctx.author.mention}, Updating All Users.")
+            user.update_users()
+            await ctx.send(f"{ctx.author.mention}, All users have been updated.")
+          elif arg2.lower() == "c":
+            await ctx.send(f"{ctx.author.mention}, Updating All User Characters.")
+            updater.update_user_characters()
+            await ctx.send(f"{ctx.author.mention}, All User Characters have been updated.")
+          elif arg2.lower() == "w":
+            await ctx.send(f"{ctx.author.mention}, Updating All User Weapons.")
+            updater.update_user_weapons()
+            await ctx.send(f"{ctx.author.mention}, All User Weapons have been updated.")
         elif arg1.lower() == "com":
           await ctx.send(f"{ctx.author.mention}, Updating All Commissions.")
           commission.generate_all_commissions()
@@ -223,13 +235,14 @@ async def stats(ctx):
 @commands.check(lock_exists)
 async def test(ctx):
     async with locks[str(ctx.author.id)]:
-      list = []
-      num = 5
-      list.append(f"{num} ")
-      for i in range(20):
-        list.append("-")
-      list.append(f" {num}")
-      print("".join(list))
+      pages = await ctx.send("Hello")
+      cur_index = 0
+      rock_emoji = "🪨"
+      paper_emoji = "◻️"
+      scissor_emoji = "✂️"
+      await pages.add_reaction(str(rock_emoji))
+      await pages.add_reaction(str(paper_emoji))
+      await pages.add_reaction(str(scissor_emoji))
 
 #Resets a users timers or commissions
 @bot.command(name="reset")
@@ -630,6 +643,7 @@ async def equip(ctx, *args):
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
+@commands.check(is_minimum_WL)
 async def givem(ctx, mention, amnt):
   async with locks[str(ctx.author.id)]:
       giver = user.get_user(ctx.author.id)
@@ -650,6 +664,7 @@ async def givem(ctx, mention, amnt):
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
+@commands.check(is_minimum_WL)
 async def givep(ctx, mention, amnt):
   async with locks[str(ctx.author.id)]:
       giver = user.get_user(ctx.author.id)
@@ -820,42 +835,47 @@ async def vote(ctx):
 async def help(ctx,arg1=None):
   embedList = []
   embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())
-  text = f"**[{pre}start]** Allows you to start your Yappa Experience.\n"
-  text += f"**[{pre}server]** Sends the invite link to the official Yapa-Bot support server.\n"
-  text += f"**[{pre}daily]** Allows you to claim daily rewards.\n"
-  text += f"**[{pre}weekly]** Allows you to claim weekly rewards.\n"
-  text += f"**[{pre}adventure] | [char_name] | [{pre}cn {pre}cn {pre}cn]** Allows you to go on an adventure with up to 4 of your characters at the cost of 20 resin. You must have atleast 1 character to adventure.\n"
-  text += f"**[{pre}resin]** Allows you to look at your current resin.\n"
-  text += f"**[{pre}condense] | [amnt#]** Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
-  text += f"**[{pre}condense use] | [amnt#]** Allows you use stored resin.\n"
-  text += f"**[{pre}listw] | [pg# or weap_name]** Allows you to look at your personal weapon collection.\n_ _\n_ _"
+  text = f"**{pre}start** | Allows you to start your Yappa Experience.\n_ _\n"
+  text += f"**{pre}server** | Sends the invite link to the official Yapa-Bot support server.\n"
+  text += f"**{pre}daily** | Allows you to claim daily rewards.\n"
+  text += f"**{pre}weekly** | Allows you to claim weekly rewards.\n"
+  text += f"**{pre}vote** | Allows you to vote for the bot on top.gg and earn another daily claim.\n_ _\n_ _\n_ _"
   embed.add_field(name="Basic Commands", value = text, inline=False)
 
+  text = f"**{pre}a [char_name] {pre}[cn] {pre}[cn] {pre}[cn]** | Allows you to go on an adventure with up to 4 of your characters at the cost of 20 resin. You must have atleast 1 character to adventure.\n"
+  text += f"**{pre}a t[team#]** | Allows you to go on an adventure with a preassigned party.\n_ _\n"
+  text += f"**{pre}teams** | Allows you to look at all of your teams.\n"
+  text += f"**{pre}teams [team#]** | Allows you to look at who is in a specific team.\n"
+  text += f"**{pre}teams [team#] [char_name] {pre}[cn] {pre}[cn] {pre}[cn]** | Allows you to put up to 4 characters you own into their own party.\n_ _\n_ _\n_ _"
+  embed.add_field(name=":sunrise_over_mountains: Adventure Commands", value = text, inline=False)
 
-  text = f"**[{pre}wish] | [10]** Allows you to pull for your favorite genshin wishes at the cost of 160 primogems per wish.\n"
-  text += f"**[{pre}free] | [10]** Allows you to pull for your favorite genshin wishes for free. These wishes will not be added to your collection.\n_ _\n_ _"
-  embed.add_field(name="Wishing Commands", value = text, inline=False)
+  text = f"**{pre}r** | Allows you to look at your current resin.\n"
+  text += f"**{pre}con [amnt#]** | Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
+  text += f"**{pre}con use [amnt#]** | Allows you use stored resin.\n_ _\n_ _\n_ _"
+  embed.add_field(name=":crescent_moon: Resin Commands", value = text, inline=False)
+
+  text = f"**{pre}w** | Allows you to wish for your favorite genshin wishes at the cost of 160 primogems per wish.\n"
+  text += f"**{pre}w 10** | Allows you to wish for your favorite genshin wishes 10 at a time!\n"
+  text += f"**{pre}free** | Allows you to wish for your favorite genshin wishes for free. These wishes will not be added to your collection.\n"
+  text += f"**{pre}free 10** | Allows you to wish for your favorite 10 genshin wishes for free. These wishes will not be added to your collection.\n_ _\n_ _\n_ _"
+  embed.add_field(name=":stars: Wishing Commands", value = text, inline=False)
 
 
-  text = f"**[{pre}balance]** Allows you to look at your collected currencies.\n"
-  text += f"**[{pre}givem] | [amnt#] | [@user]** Allows you to donate mora to another user.\n"
-  text += f"**[{pre}givep] | [amnt#] | [@user]** Allows you to donate primogems to another user.\n_ _\n_ _"
-  embed.add_field(name="Economic Commands", value = text, inline=False)
+
+  text = f"**{pre}b** | Allows you to look at your collected currencies.\n_ _\n"
+  text += f"**{pre}shop [p, m, sg or sd]** | Allows user to see their shop.\n"
+  text += f"**{pre}buy [item_name] [amount]** | Allows user to buy from the shop as long as they have enough of the right currency.\n_ _\n"
+  text += f"**{pre}g [p or m] [amount]** | Allows you to use your mora or primogems to gamble, having a chance to win x2 or even x10 of waht you put it.\n_ _\n"
+  text += f"**{pre}givem [@user] [amnt#]** | Allows you to donate mora to another user.\n"
+  text += f"**{pre}givep [@user] [amnt#]** | Allows you to donate primogems to another user.\n_ _\n_ _\n_ _"
+  embed.add_field(name=":moneybag: Economic Commands", value = text, inline=False)
 
 
-  text = f"**[{pre}listc] | [pg# or char_name]** Allows you to look at your personal character collection.\n"
-  text += f"**[{pre}teams]** Allows you to look at all of your teams.\n"
-  text += f"**[{pre}teams] | [team #]** Allows you to look at who is in a specific team.\n"
-  text += f"**[{pre}teams] | [team #] | [char_name ?char_name ?char_name ?char_name]** Allows you to put up to 4 characters you own into their own party.\n"
-  text += f"**[{pre}equip] | [char_name] | [{pre}weap_name, {pre}none]** Allows you to equip a weapon to a chracter. You can only equip things you own.\n_ _\n_ _"
-  embed.add_field(name="Character Commands", value = text, inline=False)
-
-
-  text = f"**[{pre}profile] | [@user]** Allows you to look at your or other user data.\n"
-  text += f"**[{pre}profile] | [favorite] | [char_name]** Allows you to set your favorite character. Character must be owned before favoriting.\n"
-  text += f"**[{pre}profile] | [description] | [desc...]** Allows you set your profile description.\n"
-  text += f"**[{pre}profile] | [nickname] | [nick...]** Allows you set your profile description."
-  embed.add_field(name="Profile Commands", value = text, inline=False)
+  text = f"**{pre}p [@user]** | Allows you to look at your or other user data.\n"
+  text += f"**{pre}p [favorite] [char_name]** | Allows you to set your favorite character. Character must be owned before favoriting.\n"
+  text += f"**{pre}p [description] [desc...]** | Allows you set your profile description.\n"
+  text += f"**{pre}p [nickname] [nick...]** | Allows you set your profile description."
+  embed.add_field(name=":person_bald: Profile Commands", value = text, inline=False)
 
 
   embed.set_footer(text=f"Page 1/2")
@@ -863,16 +883,19 @@ async def help(ctx,arg1=None):
 
 
   embed = discord.Embed(title = "Yapa Bot Commands 2", color=discord.Color.dark_red())
-  text = f"**[{pre}commission]** Allows you to look at your commissions and their descriptions.\n"
-  text += f"**[{pre}trivia] | [triviaID] | [answer]** Allows you to answer your trivia commissions. Trivia id can be found in the () before every trivia commission."
-  embed.add_field(name="Commission Commands", value = text, inline=False)
 
-  text = f"**[{pre}gamble] | [primo or mora] | [amount]** Allows you to use your mora or primogems to gamble, having a chance to win x2 or even x10 of waht you put it.\n"
-  embed.add_field(name="Gambling Commands", value = text, inline=False)
+  text = f"**{pre}lc [pg#]** | Allows you to look at your personal character collection.\n"
+  text += f"**{pre}lc [char_name]** | Allows you to look at a specific character in your collection.\n"
+  text += f"**{pre}e [char_name] {pre}[weap_name or none]** | Allows you to equip a weapon to a chracter. You can only equip things you own.\n_ _\n_ _\n_ _"
+  embed.add_field(name=":people_wrestling: Character Commands", value = text, inline=False)
+  
+  text = f"**{pre}lw [pg#]** | Allows you to look at your personal weapon collection.\n"
+  text += f"**{pre}lw [weap_name]** | Allows you to look at a specific weapon in your collection.\n_ _\n_ _\n_ _"
+  embed.add_field(name=":crossed_swords: Weapon Commands", value = text, inline=False)
 
-  text = f"**[{pre}shop] | [p, m, sg, sd]** Allows user to see their shop.\n"
-  text += f"**[{pre}buy] | [item_name] | [amount]** Allows user to buy from the shop as long as they have enough of the right currency.\n"
-  embed.add_field(name="Shop Commands", value = text, inline=False)
+  text = f"**{pre}c** | Allows you to look at your commissions and their descriptions.\n"
+  text += f"**{pre}t [triviaID] [answer]** | Allows you to answer your trivia commissions. Trivia id can be found in the () before every trivia commission."
+  embed.add_field(name=":diamond_shape_with_a_dot_inside: Commission Commands", value = text, inline=False)
 
   embed.set_footer(text=f"Page 2/2")
   embedList.append(embed)
@@ -882,16 +905,16 @@ async def help(ctx,arg1=None):
   elif arg1 == "a":
     if await user_is_me(ctx):
       embed = discord.Embed(title="Admin Commands", color=discord.Color.dark_red())
-      text = f"**[{pre}update] | [w, c, u, com, shop] | [i]**\n"
-      text += f"**[{pre}stats]**\n"
-      text += f"**[{pre}clear shop_items]**\n"
-      text += f"**[{pre}test] | [?]**\n"
-      text += f"**[{pre}reset] | [level, t, com] | [@user or all]**\n"
-      text += f"**[{pre}delete] | [@user]**\n"
-      text += f"**[{pre}rob] | [@user]**\n"
-      text += f"**[{pre}giftxp] | [@user] | [amnt]**\n"
-      text += f"**[{pre}giftp] | [@user] | [amnt]**\n"
-      text += f"**[{pre}giftm] | [@user] | [amnt]**\n"
+      text = f"**{pre}update [w, c, u, com, shop] [i]**\n"
+      text += f"**{pre}stats**\n"
+      text += f"**{pre}clear [shop_items]**\n"
+      text += f"**{pre}test [?]**\n"
+      text += f"**{pre}reset [level, t, com] [@user or all]**\n"
+      text += f"**{pre}delete [@user]**\n"
+      text += f"**{pre}rob [@user]**\n"
+      text += f"**{pre}giftxp [@user] [amnt]**\n"
+      text += f"**{pre}giftp [@user] [amnt]**\n"
+      text += f"**{pre}giftm [@user] [amnt]**\n"
       embed.add_field(name="Admin Commands", value=text)
       await ctx.send(embed=embed)
   else:
