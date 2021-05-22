@@ -71,9 +71,19 @@ async def embed_failed_donation_mora(ctx):
   embed.add_field(name = "Mora not found", value = "This User does not have enough mora to give away.")
   await ctx.send(ctx.author.mention, embed=embed)
 
+async def embed_failed_donation_mora_tax(ctx):
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Donation Error", value = "You did not give the minimum amount of mora to cover transfer tax. (1000 Mora)")
+  await ctx.send(ctx.author.mention, embed=embed)
+
 async def embed_failed_donation_primo(ctx):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Primo not found", value = "This User does not have enough primogems to give away.")
+  await ctx.send(ctx.author.mention, embed=embed)
+
+async def embed_failed_donation_primo_tax(ctx):
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Donation Error", value = "You did not give the minimum amount of primogems to cover transfer tax. (100 Primo)")
   await ctx.send(ctx.author.mention, embed=embed)
 
 async def embed_too_early(ctx, waitTime):

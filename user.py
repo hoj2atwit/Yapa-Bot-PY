@@ -178,17 +178,39 @@ class User:
 
   def give_mora(self, u, amnt):
     if self.mora < amnt:
-      return 0, False
-    u.mora += amnt
-    self.mora -= amnt
-    return amnt, True
+      return 0, 0, False, "b"
+    if amnt > 15000:
+      tax = int(0.05 * amnt)
+      real_amnt = amnt - tax
+    else:
+      tax = 1000
+      real_amnt = amnt - tax
+    if real_amnt > 0:
+      u.mora += real_amnt
+      self.mora -= amnt
+      database_mongo.add_to_jackpot_mora(tax)
+      return real_amnt, tax, True, ""
+    else:
+      return 0, tax, False, "t"
+
 
   def give_primo(self, u, amnt):
     if self.primogems < amnt:
-      return 0, False
-    u.primogems += amnt
-    self.primogems -= amnt
-    return amnt, True
+      return 0, 0, False, "b"
+
+    if amnt > 1600:
+      tax = int(0.05 * amnt)
+      real_amnt = amnt - tax
+    else:
+      tax = 100
+      real_amnt = amnt - tax
+    if real_amnt > 0:
+      u.primogems += real_amnt
+      self.primogems -= amnt
+      database_mongo.add_to_jackpot_primo(tax)
+      return real_amnt, tax, True, ""
+    else:
+      return 0, tax, False, "t"
 
   def rob(self, u):
     if u.mora < 5000:
@@ -456,14 +478,17 @@ async def embed_give_primo(ctx, u, primo, member):
 #Shows donation of primo to user
 async def embed_donate_primo(ctx, giver, u, primo, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift from {giver.nickname}", color=discord.Color.blurple())
-  amnt, given = giver.give_primo(u, primo)
+  amnt, tax, given, reason = giver.give_primo(u, primo)
   if given:
-    embed.add_field(name = f"Primogems x{formatter.number_format(primo)}", value = "_ _")
+    embed.add_field(name = f"Primogems x{formatter.number_format(amnt)}", value = f"{formatter.number_format(tax)} Primogems has been taxed.")
     f = discord.File("Images/Other/Primogem.png", "Primogem.png")
     embed.set_thumbnail(url="attachment://Primogem.png")
     await ctx.send(member.mention, embed=embed, file=f)
   else:
-    await error.embed_failed_donation_primo(ctx)
+    if reason == "b":
+      await error.embed_failed_donation_primo(ctx)
+    else:
+      await error.embed_failed_donation_primo_tax(ctx)
   
 #Shows gift of mora to user
 async def embed_give_mora(ctx, u, mora, member):
@@ -477,14 +502,17 @@ async def embed_give_mora(ctx, u, mora, member):
 #Shows donation of mora to user
 async def embed_donate_mora(ctx, giver, u, mora, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift from {giver.nickname}", color=discord.Color.gold())
-  amnt, given = giver.give_mora(u, mora)
+  amnt, tax, given, reason = giver.give_mora(u, mora)
   if given:
-    embed.add_field(name = f"Mora x{formatter.number_format(mora)}", value = "_ _")
+    embed.add_field(name = f"Mora x{formatter.number_format(amnt)}", value = f"{formatter.number_format(tax)} Mora has been taxed")
     f = discord.File("Images/Other/Mora.png", "Mora.png")
     embed.set_thumbnail(url="attachment://Mora.png")
     await ctx.send(member.mention, embed=embed, file=f)
   else:
-    await error.embed_failed_donation_mora(ctx)
+    if reason == "b":
+      await error.embed_failed_donation_mora(ctx)
+    else:
+      await error.embed_failed_donation_mora_tax(ctx)
 
 #Shows user owned character info
 async def embed_show_char_info(ctx, u, c):

@@ -203,6 +203,19 @@ async def update(ctx, arg1, arg2=None):
             await ctx.send(f"{ctx.author.mention}, Updating All Shop Items.")
             shop.generate_shop_items()
             await ctx.send(f"{ctx.author.mention}, All Shop Items have been updated.")
+        elif arg1.lower() == "jp":
+          if arg2 == None:
+            await ctx.send(f"{ctx.author.mention}, Resetting All Jackpots.")
+            database_mongo.setup_jackpot()
+            await ctx.send(f"{ctx.author.mention}, All jackpots have been reset.")
+          if arg2.lower() == "m":
+            await ctx.send(f"{ctx.author.mention}, Resetting Mora Jackpots.")
+            database_mongo.reset_jackpot_mora()
+            await ctx.send(f"{ctx.author.mention}, Mora jackpot have been reset.")
+          if arg2.lower() == "p":
+            await ctx.send(f"{ctx.author.mention}, Resetting Primo Jackpots.")
+            database_mongo.reset_jackpot_primo()
+            await ctx.send(f"{ctx.author.mention}, Primo jackpot have been reset.")
 
 @bot.command(name="clear")
 @commands.check(not_DM)
@@ -235,14 +248,9 @@ async def stats(ctx):
 @commands.check(lock_exists)
 async def test(ctx):
     async with locks[str(ctx.author.id)]:
-      pages = await ctx.send("Hello")
-      cur_index = 0
-      rock_emoji = "🪨"
-      paper_emoji = "◻️"
-      scissor_emoji = "✂️"
-      await pages.add_reaction(str(rock_emoji))
-      await pages.add_reaction(str(paper_emoji))
-      await pages.add_reaction(str(scissor_emoji))
+      u = user.get_user(ctx.author.id)
+      channel = bot.get_channel(int(os.getenv('JACKPOT_CHANNEL')))
+      await pull.embed_jackpot_won_primo(u, 0, channel)
 
 #Resets a users timers or commissions
 @bot.command(name="reset")
@@ -777,7 +785,8 @@ async def gamble(ctx, _type, amount):
     if _type.lower() in typeList:
       if amount.isdigit():
         u = user.get_user(ctx.author.id)
-        await pull.embed_gamble(ctx, u, int(amount), str(_type)[0].lower())
+        channel = bot.get_channel(int(os.getenv('JACKPOT_CHANNEL')))
+        await pull.embed_gamble(ctx, u, int(amount), str(_type)[0].lower(), channel)
         database_mongo.save_user(u)
     
 
@@ -830,6 +839,12 @@ async def vote(ctx):
     await user.embed_vote(ctx, u)
     database_mongo.save_user(u)
 
+@bot.command(name="jackpot", aliases=["jp"])
+@commands.check(not_DM)
+@commands.check(user_exists)
+async def vote(ctx):
+  await pull.embed_jackpot(ctx)
+
 @bot.command(name="help", aliases=["h"])
 @commands.check(not_DM)
 async def help(ctx,arg1=None):
@@ -865,7 +880,8 @@ async def help(ctx,arg1=None):
   text = f"**{pre}b** | Allows you to look at your collected currencies.\n_ _\n"
   text += f"**{pre}shop [p, m, sg or sd]** | Allows user to see their shop.\n"
   text += f"**{pre}buy [item_name] [amount]** | Allows user to buy from the shop as long as they have enough of the right currency.\n_ _\n"
-  text += f"**{pre}g [p or m] [amount]** | Allows you to use your mora or primogems to gamble, having a chance to win x2 or even x10 of waht you put it.\n_ _\n"
+  text += f"**{pre}g [p or m] [amount]** | Allows you to use your mora or primogems to gamble, having a chance to win x2 or even x10 of waht you put it.\n"
+  text += f"**{pre}jp** | Allows you to see the current total jackpots.\n_ _\n"
   text += f"**{pre}givem [@user] [amnt#]** | Allows you to donate mora to another user.\n"
   text += f"**{pre}givep [@user] [amnt#]** | Allows you to donate primogems to another user.\n_ _\n_ _\n_ _"
   embed.add_field(name=":moneybag: Economic Commands", value = text, inline=False)

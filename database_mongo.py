@@ -10,6 +10,10 @@ def get_time_collection():
   db_mongo = get_cluster().Yapa
   return db_mongo["Time"]
 
+def get_gambling_collection():
+  db_mongo = get_cluster().Yapa
+  return db_mongo["Gamble"]
+
 def get_commission_collection():
   db_mongo = get_cluster().Yapa
   return db_mongo["Commissions"]
@@ -96,7 +100,9 @@ def save_shop(shop):
   shop_collection = get_shop_collection()
   shop_collection.replace_one({"_id" : shop._id}, shop.get_dict(), upsert=True)
 
-
+def setup_jackpot():
+  gambling_collection = get_gambling_collection()
+  gambling_collection.replace_one({}, {"jackpot_primo": 10000, "jackpot_mora": 10000000}, upsert=True)
 
 
 ###GETTERS###
@@ -195,7 +201,15 @@ def get_last_resin_time():
   times = time_collection.find_one({})
   return times["last_resin_time"]
 
+def get_jackpot_primo():
+  gambling_collection = get_gambling_collection()
+  jackpots = gambling_collection.find_one({})
+  return jackpots["jackpot_primo"]
 
+def get_jackpot_mora():
+  gambling_collection = get_gambling_collection()
+  jackpots = gambling_collection.find_one({})
+  return jackpots["jackpot_mora"]
 
 
 
@@ -203,3 +217,19 @@ def get_last_resin_time():
 def update_last_resin_time(time):
   time_collection = get_time_collection()
   time_collection.update_one({}, {"$set":{"last_resin_time": time}})
+
+def add_to_jackpot_primo(amnt):
+  gambling_collection = get_gambling_collection()
+  gambling_collection.update_one({}, {"$inc":{"jackpot_primo": amnt}})
+
+def add_to_jackpot_mora(amnt):
+  gambling_collection = get_gambling_collection()
+  gambling_collection.update_one({}, {"$inc":{"jackpot_mora": amnt}})
+
+def reset_jackpot_mora():
+  gambling_collection = get_gambling_collection()
+  gambling_collection.update_one({}, {"$set":{"jackpot_mora": 10000000}})
+
+def reset_jackpot_primo():
+  gambling_collection = get_gambling_collection()
+  gambling_collection.update_one({}, {"$set":{"jackpot_primo": 10000}})

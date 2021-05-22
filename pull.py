@@ -1,3 +1,4 @@
+import database_mongo
 import character
 import weapon
 import random
@@ -360,128 +361,150 @@ async def embed_ten_pull(ctx, u):
   await msg.delete()
   await ctx.send(ctx.author.mention, embed=embed, file=f)
 
-async def embed_gamble(ctx, u, amnt, _type):
-    if u.resin < 5:
-        await error.embed_not_enough_resin(ctx)
-        return
-    if _type == "m":
-        if amnt > u.mora:
-            await error.embed_not_enough_mora(ctx)
-            return
-        else:
-            u.mora -= amnt
-            await ctx.send(f"You spent {formatter.number_format(amnt)}x Mora to gamble.")
-    elif _type == "p":
-        if amnt > u.primogems:
-            await error.embed_not_enough_primo(ctx)
-            return
-        else:
-            u.primogems -= amnt
-            await ctx.send(f"You spent {formatter.number_format(amnt)}x Primogems to gamble.")
+async def embed_gamble(ctx, u, amnt, _type, channel):
+  if u.resin < 5:
+      await error.embed_not_enough_resin(ctx)
+      return
+  if _type == "m":
+      if amnt > u.mora:
+          await error.embed_not_enough_mora(ctx)
+          return
+      else:
+          u.mora -= amnt
+          await ctx.send(f"You spent {formatter.number_format(amnt)}x Mora to gamble.")
+  elif _type == "p":
+      if amnt > u.primogems:
+          await error.embed_not_enough_primo(ctx)
+          return
+      else:
+          u.primogems -= amnt
+          await ctx.send(f"You spent {formatter.number_format(amnt)}x Primogems to gamble.")
 
-    rolls = [random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6)]
-    jackpot = False
-    triple = False
-    double = False
-    triplePair = False
-    doublePair = False
-    doubleTriple = False
-    quadruple = False
-    six = False
-    counter = 0
-    last = 0
-    for i in range(len(rolls)):
-        counter = 0
-        if rolls[i] != last:
-            last = rolls[i]
-            for x in range(len(rolls) - i):
-                if rolls[i] == rolls[i+x]:
-                    counter += 1
-            if counter == 6:
-                if rolls[i] == 6:
-                    jackpot = True
-                    break
-                else:
-                    six = True
-                    break
-            elif counter >= 4:
-                quadruple = True
-                break
-            elif counter >= 3:
-                if triple:
-                    doubleTriple = True
-                else:
-                    triple = True
-            elif counter >= 2:
-                if double:
-                    if doublePair:
-                        triplePair = True
-                    else:
-                        doublePair = True
-                else:
-                    double = True
+  rolls = [random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6), random.randint(1, 6)]
+  jackpot = False
+  triple = False
+  double = False
+  triplePair = False
+  doublePair = False
+  doubleTriple = False
+  quadruple = False
+  six = False
+  counter = 0
+  last = 0
+  for i in range(len(rolls)):
+      counter = 0
+      if rolls[i] != last:
+          last = rolls[i]
+          for x in range(len(rolls) - i):
+              if rolls[i] == rolls[i+x]:
+                  counter += 1
+          if counter == 6:
+              if rolls[i] == 6:
+                  jackpot = True
+                  break
+              else:
+                  six = True
+                  break
+          elif counter >= 4:
+              quadruple = True
+              break
+          elif counter >= 3:
+              if triple:
+                  doubleTriple = True
+              else:
+                  triple = True
+          elif counter >= 2:
+              if double:
+                  if doublePair:
+                      triplePair = True
+                  else:
+                      doublePair = True
+              else:
+                  double = True
 
-    if _type == "m":
-        if jackpot:
-            u.mora += amnt*100
-            embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*100)}x** Mora")
-        elif six:
-            u.mora += amnt*10
-            embed = discord.Embed(title="MINI-JACKPOT----MINI-JACKPOT", description=f"{u.nickname} won the mini-jackpot!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Mora")
-        elif quadruple:
-            u.mora += amnt*5
-            embed = discord.Embed(title=f"{u.nickname} Won Big!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*5)}x** Mora")
-        elif doubleTriple or triplePair:
-            u.mora += amnt*2
-            embed = discord.Embed(title=f"{u.nickname} Won!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Mora")
-        elif triple or doublePair:
-            u.mora += amnt
-            embed = discord.Embed(title=f"{u.nickname} Won?")
-            embed.add_field(name="Winnings", value=f"You got your mora back.")
-        else:
-            embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Mora.")
-    elif _type == "p":
-        if jackpot:
-            u.primogems += amnt*100
-            embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*100)}x** Primogems")
-        elif six:
-            u.primogems += amnt*10
-            embed = discord.Embed(title="MINI-JACKPOT----MINI-JACKPOT", description=f"{u.nickname} won the mini-jackpot!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Primogems")
-        elif quadruple:
-            u.primogems += amnt*5
-            embed = discord.Embed(title=f"{u.nickname} Won Big!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*5)}x** Primogems")
-        elif quadruple or doubleTriple or triplePair:
-            u.primogems += amnt*2
-            embed = discord.Embed(title=f"{u.nickname} Won!")
-            embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Primogems")
-        elif triple or doublePair:
-            u.primogems += amnt
-            embed = discord.Embed(title=f"{u.nickname} Won?")
-            embed.add_field(name="Winnings", value=f"You got your primogems back.")
-        else:
-            embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Primogems.")
+  if _type == "m":
+      if jackpot:
+          u.mora += amnt*100 + database_mongo.get_jackpot_mora()
+          embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
+          embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*100 + database_mongo.get_jackpot_mora())}x** Mora")
+          embed_jackpot_won_mora(u, (amnt*100+database_mongo.get_jackpot_mora()), channel)
+          database_mongo.reset_jackpot_primo()
+      elif six:
+          u.mora += amnt*10
+          embed = discord.Embed(title="MINI-JACKPOT----MINI-JACKPOT", description=f"{u.nickname} won the mini-jackpot!")
+          embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Mora")
+      elif quadruple:
+          u.mora += amnt*5
+          embed = discord.Embed(title=f"{u.nickname} Won Big!")
+          embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*5)}x** Mora")
+      elif doubleTriple or triplePair:
+          u.mora += amnt*2
+          embed = discord.Embed(title=f"{u.nickname} Won!")
+          embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Mora")
+      elif triple or doublePair:
+          u.mora += amnt
+          embed = discord.Embed(title=f"{u.nickname} Won?")
+          embed.add_field(name="Winnings", value=f"You got your mora back.")
+      else:
+          embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Mora.")
+  elif _type == "p":
+      if jackpot:
+          u.primogems += amnt*100 + database_mongo.get_jackpot_primo()
+          embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
+          embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*100 + database_mongo.get_jackpot_primo())}x** Primogems")
+          embed_jackpot_won_mora(u, (amnt*100+database_mongo.get_jackpot_primo()), channel)
+          database_mongo.reset_jackpot_primo()
+      elif six:
+          u.primogems += amnt*10
+          embed = discord.Embed(title="MINI-JACKPOT----MINI-JACKPOT", description=f"{u.nickname} won the mini-jackpot!")
+          embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*10)}x** Primogems")
+      elif quadruple:
+          u.primogems += amnt*5
+          embed = discord.Embed(title=f"{u.nickname} Won Big!")
+          embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*5)}x** Primogems")
+      elif quadruple or doubleTriple or triplePair:
+          u.primogems += amnt*2
+          embed = discord.Embed(title=f"{u.nickname} Won!")
+          embed.add_field(name="Winnings", value=f"**{formatter.number_format(amnt*2)}x** Primogems")
+      elif triple or doublePair:
+          u.primogems += amnt
+          embed = discord.Embed(title=f"{u.nickname} Won?")
+          embed.add_field(name="Winnings", value=f"You got your primogems back.")
+      else:
+          embed = discord.Embed(title=f"{u.nickname} Lost!", description=f"{u.nickname} didn't win any Primogems.")
 
 
-    embed.add_field(name="Rolls", value=f"{rolls[0]}, {rolls[1]}, {rolls[2]}, {rolls[3]}, {rolls[4]}, {rolls[5]}")
-    u.resin -= 5
-    await commission.check_target_complete(ctx, u, "gamble", 1)
-    if _type == "p":
-        userXPReward = int(amnt / 5)
-        if userXPReward > (u.world_level+1)*100:
-            userXPReward = int((u.world_level+1)*100)
-    else:
-        userXPReward = int(amnt / 1000)
-        if userXPReward > (u.world_level+1)*50:
-            userXPReward = int((u.world_level+1)*50)
-    if userXPReward > 0:
-        await u.add_experience(userXPReward, ctx)
-        embed.add_field(name="Experience Gained", value=f"**{userXPReward}** Adventure Experience")
-    embed.set_footer(text=f"You have {formatter.number_format(u.resin)} Resin left.")
-    await ctx.send(ctx.author.mention, embed=embed)
+  embed.add_field(name="Rolls", value=f"{rolls[0]}, {rolls[1]}, {rolls[2]}, {rolls[3]}, {rolls[4]}, {rolls[5]}")
+  u.resin -= 5
+  await commission.check_target_complete(ctx, u, "gamble", 1)
+  if _type == "p":
+    database_mongo.add_to_jackpot_primo(amnt)
+    userXPReward = int(amnt / 5)
+    if userXPReward > (u.world_level+1)*100:
+        userXPReward = int((u.world_level+1)*100)
+  else:
+    database_mongo.add_to_jackpot_mora(amnt)
+    userXPReward = int(amnt / 1000)
+    if userXPReward > (u.world_level+1)*50:
+        userXPReward = int((u.world_level+1)*50)
+  if userXPReward > 0:
+    await u.add_experience(userXPReward, ctx)
+    embed.add_field(name="Experience Gained", value=f"**{userXPReward}** Adventure Experience")
+  embed.set_footer(text=f"You have {formatter.number_format(u.resin)} Resin left.")
+  await ctx.send(ctx.author.mention, embed=embed)
+  
+async def embed_jackpot(ctx):
+  embed = discord.Embed(title="Current Jackpots", color=discord.Color.dark_gold())
+  embed.add_field(name="Mora Jackpot", value=formatter.number_format(database_mongo.get_jackpot_mora()))
+  embed.add_field(name="Primo Jackpot", value=formatter.number_format(database_mongo.get_jackpot_primo()))
+  await ctx.send(embed=embed)
+
+async def embed_jackpot_won_primo(u, amount, channel):
+  embed = discord.Embed(title=f"{u.nickname} WON THE PRIMOGEMS JACKPOT!", color=discord.Color.blue())
+  embed.add_field(name=f"Total Earnings", value=f"{formatter.number_format(amount)}x Primogems")
+  await channel.send(f"<@!{u._id}>", embed=embed)
+
+async def embed_jackpot_won_mora(u, amount, channel):
+  embed = discord.Embed(title=f"{u.nickname} WON THE PRIMOGEMS JACKPOT!", color=discord.Color.gold())
+  embed.add_field(name=f"Total Earnings", value=f"{formatter.number_format(amount)}x Mora")
+  await channel.send(f"<@!{u._id}>", embed=embed)
