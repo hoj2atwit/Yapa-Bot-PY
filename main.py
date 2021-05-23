@@ -249,9 +249,11 @@ async def stats(ctx):
 @commands.check(lock_exists)
 async def test(ctx):
     async with locks[str(ctx.author.id)]:
-      u = user.get_user(ctx.author.id)
-      channel = bot.get_channel(int(os.getenv('JACKPOT_CHANNEL')))
-      await pull.embed_jackpot_won_primo(u, 0, channel)
+      embed = discord.Embed(title="Vote for Yapa-Bot on Top.gg")
+      embed.add_field(name="Vote for Yapa-Bot here: https://top.gg/bot/827279423321276457/vote", value="Rewards for voting are:\n**800** Primogems\n**10,000** Mora\n**3** Condensed Resin")
+      url = formatter.get_avatar(bot.user)
+      embed.set_thumbnail(url=url)
+      await ctx.send(f"{ctx.author.mention}", embed=embed)
 
 #Resets a users timers or commissions
 @bot.command(name="reset")
@@ -837,7 +839,7 @@ async def buy(ctx, name, amnt=None):
 async def vote(ctx):
   async with locks[str(ctx.author.id)]:
     u = user.get_user(ctx.author.id)
-    await user.embed_vote(ctx, u)
+    await user.embed_vote(ctx, u, bot.user)
     database_mongo.save_user(u)
 
 @bot.command(name="jackpot", aliases=["jp"])
@@ -981,6 +983,18 @@ async def on_dbl_vote(data):
     u.mora += 10000
     u.update_vote()
     database_mongo.save_user(u)
+    embed = discord.Embed(title="Voting successful!")
+    text = ""
+    if user.does_exist(int(data["user"])):
+      text = "<@{}> Thank you for voting for the Yapa Bot."
+      embed.add_field(name="Rewards", value="**800** Primogems\n**10,000** Mora\n**3** Condensed Resin")
+    else:
+      text = "<@{}> Thank you for voting for the Yapa Bot.\nSince you have not started yet, you will not gain any rewards."
+      embed.add_field(name="Rewards Would Have Been", value="**800** Primogems\n**10,000** Mora\n**3** Condensed Resin\n**12hr 1.5x*** Experience Boost")
+    f = discord.File("Images/Other/Gift.png", "Gift.png")
+    embed.set_thumbnail(url="attachment://Gift.png")
+    fetched_user = await bot.fetch_user(int(data["user"]))
+    await fetched_user.send(text.format(data["user"]), embed=embed, file=f)
 
 @bot.event
 async def on_dbl_test(data):

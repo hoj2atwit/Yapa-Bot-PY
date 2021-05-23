@@ -576,10 +576,14 @@ async def embed_daily(ctx, u):
   else:
     await error.embed_too_early(ctx, timeLeft)
 
-async def embed_vote(ctx, u):
+async def embed_vote(ctx, u, member:discord.Member):
   can, timeLeft = u.can_vote()
   if can:
-    await ctx.send(f"{ctx.author.mention} Vote here, https://top.gg/bot/827279423321276457/vote")
+    embed = discord.Embed(title="Vote for Yapa-Bot on Top.gg")
+    embed.add_field(name="Vote for Yapa-Bot here: https://top.gg/bot/827279423321276457/vote", value="Rewards for voting are:\n**800** Primogems\n**10,000** Mora\n**3** Condensed Resin\n**12hr 1.5x** Experience Boost")
+    url = formatter.get_avatar(member)
+    embed.set_thumbnail(url=url)
+    await ctx.send(f"{ctx.author.mention}", embed=embed)
   else:
     await error.embed_too_early(ctx, timeLeft)
 

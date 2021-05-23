@@ -480,13 +480,15 @@ async def embed_gamble(ctx, u, amnt, _type, channel):
   u.resin -= 5
   await commission.check_target_complete(ctx, u, "gamble", 1)
   if _type == "p":
-    userXPReward = int(amnt / 5)
+    can, timeLeft = u.can_vote()
+    userXPReward = int((amnt / 5)*(1.5**(not can)))
     if userXPReward > (u.world_level+1)*100:
-        userXPReward = int((u.world_level+1)*100)
+        userXPReward = int((u.world_level+1)*100*(1.5**(not can)))
   else:
-    userXPReward = int(amnt / 1000)
+    can, timeLeft = u.can_vote()
+    userXPReward = int((amnt / 1000) * (1.5**(not can)))
     if userXPReward > (u.world_level+1)*50:
-        userXPReward = int((u.world_level+1)*50)
+        userXPReward = int((u.world_level+1)*50*(1.5**(not can)))
   if userXPReward > 0:
     await u.add_experience(userXPReward, ctx)
     embed.add_field(name="Experience Gained", value=f"**{userXPReward}** Adventure Experience")

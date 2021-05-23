@@ -317,7 +317,8 @@ async def completed_commission(ctx, u, c):
   e = discord.Embed(title="Commission Complete!", color=discord.Color.blurple(), description=f"{u.nickname} has completed a commission.")
   text = ""
   if c.xp > 0:
-    realXP = int(c.xp * (u.world_level+1))
+    can, timeLeft = u.can_vote()
+    realXP = int(c.xp * (u.world_level+1)*(1.5**(not can)))
     await u.add_experience(realXP, ctx)
     text += f"**{formatter.number_format(realXP)}** Adventurer\'s Experience\n"
   if c.moraReward > 0:
@@ -350,7 +351,8 @@ async def all_commissions_completed(ctx, u):
     else:
       return
 
-  realXP = int(200 * (u.world_level + 1))
+  can, timeLeft = u.can_vote()
+  realXP = int(200 * (u.world_level + 1)*(1.5**(not can)))
   await u.add_experience(realXP, ctx)
   realPrimo = int(800 * (u.world_level + 1))
   u.primogems += realPrimo

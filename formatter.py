@@ -3,7 +3,8 @@ import discord
 import prefix
 import datetime
 import asyncio
-def get_avatar(avamember : discord.Member=None):
+
+def get_avatar(avamember):
   return avamember.avatar_url
 
 def name_formatter(name):
