@@ -898,6 +898,7 @@ async def help(ctx,arg1=None):
   text += f"**{pre}shop [p, m, sg or sd]** | Allows user to see their shop.\n"
   text += f"**{pre}buy [item_name] [amount]** | Allows user to buy from the shop as long as they have enough of the right currency.\n_ _\n"
   text += f"**{pre}g [p or m] [amount]** | Allows you to use your mora or primogems to gamble, having a chance to win x2 or even x10 of waht you put it.\n"
+  text += f"**{pre}bj [p or m] [amount]** | Allows you to use your mora or primogems to gamble in black jack! Play for a chance to double your money!\n"
   text += f"**{pre}jp** | Allows you to see the current total jackpots.\n_ _\n"
   text += f"**{pre}givem [@user] [amnt#]** | Allows you to donate mora to another user.\n"
   text += f"**{pre}givep [@user] [amnt#]** | Allows you to donate primogems to another user.\n_ _\n_ _\n_ _"
