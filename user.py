@@ -89,7 +89,9 @@ class User:
       return True, "Now"
     old = tz.localize(formatter.get_DateTime(self.last_vote), is_dst=None)
     difference = now-old
-    if difference.seconds >= (43200):
+    minutes, seconds = divmod(difference.seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    if seconds + (minutes*60) + (hours*60*60)*(difference.days*24*60*60) >= (43200):
       return True, "Now"
     else:
       differenceDate = old + timedelta(hours=12)
@@ -391,7 +393,8 @@ async def embed_profile(ctx, u, member):
 
   url = formatter.get_avatar(member)
   embed.set_thumbnail(url=url)
-
+  if not can:
+    embed.set_footer(text=f"🔥 Boost Active")
   await ctx.send(embed=embed)
 
 async def embed_char_list(ctx, u, pg, bot):

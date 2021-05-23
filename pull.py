@@ -492,7 +492,10 @@ async def embed_gamble(ctx, u, amnt, _type, channel):
   if userXPReward > 0:
     await u.add_experience(userXPReward, ctx)
     embed.add_field(name="Experience Gained", value=f"**{userXPReward}** Adventure Experience")
-  embed.set_footer(text=f"You have {formatter.number_format(u.resin)} Resin left.")
+  if can:
+    embed.set_footer(text=f"You have {formatter.number_format(u.resin)} Resin left.")
+  else:
+    embed.set_footer(text=f"🔥 Boost Active | You have {formatter.number_format(u.resin)} Resin left.")
   await ctx.send(ctx.author.mention, embed=embed)
   
 async def embed_jackpot(ctx):

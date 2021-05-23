@@ -321,6 +321,8 @@ async def completed_commission(ctx, u, c):
     realXP = int(c.xp * (u.world_level+1)*(1.5**(not can)))
     await u.add_experience(realXP, ctx)
     text += f"**{formatter.number_format(realXP)}** Adventurer\'s Experience\n"
+    if not can:
+      e.set_footer(text="🔥 Boost Active")
   if c.moraReward > 0:
     realMora = int(c.moraReward * (u.world_level + 1))
     u.mora += realMora
@@ -366,6 +368,8 @@ async def all_commissions_completed(ctx, u):
   e.add_field(name=f"Daily Commissions Reward", value=text)
   f = discord.File("Images/Other/Commission.png", "Commission.png")
   e.set_thumbnail(url="attachment://Commission.png")
+  if not can:
+    e.set_footer(text="🔥 Boost Active")
   await ctx.send(embed=e, file=f)
 
 def dict_to_quest(d):

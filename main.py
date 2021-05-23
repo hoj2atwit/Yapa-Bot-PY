@@ -845,7 +845,7 @@ async def vote(ctx):
 @bot.command(name="jackpot", aliases=["jp"])
 @commands.check(not_DM)
 @commands.check(user_exists)
-async def vote(ctx):
+async def jackp(ctx):
   await pull.embed_jackpot(ctx)
 
 @bot.command(name="blackj", aliases=["bj", "blackjack"])
