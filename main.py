@@ -18,6 +18,7 @@ import shop
 import dbl
 from dotenv import load_dotenv
 import pytz
+import blackjack
 from datetime import datetime, timedelta
 
 tz = pytz.timezone("America/New_York")
@@ -844,6 +845,22 @@ async def vote(ctx):
 @commands.check(user_exists)
 async def vote(ctx):
   await pull.embed_jackpot(ctx)
+
+@bot.command(name="blackj", aliases=["bj", "blackjack"])
+@commands.check(not_DM)
+@commands.check(user_exists)
+@commands.check(lock_exists)
+async def blackj(ctx, _type, amount):
+  type_list_primo = ["p", "primo", "primogems", "primogem"]
+  type_list_mora = ["m", "mora"]
+  async with locks[str(ctx.author.id)]:
+    u = user.get_user(ctx.author.id)
+    if _type.lower() in type_list_primo:
+      if amount.isdigit():
+        await blackjack.embed_blackjack(ctx, bot, u, int(amount), "p")
+    elif _type.lower() in type_list_mora:
+      if amount.isdigit():
+        await blackjack.embed_blackjack(ctx, bot, u, int(amount), "m")
 
 @bot.command(name="help", aliases=["h"])
 @commands.check(not_DM)
