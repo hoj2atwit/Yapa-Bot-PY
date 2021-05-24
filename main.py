@@ -1,3 +1,4 @@
+from random import randint
 import discord
 from discord.ext.commands.core import command, is_owner
 import database_mongo
@@ -130,8 +131,19 @@ def shop_exists(ctx):
     shop.generate_shop(ctx.author.id)
     return True
 
-def is_minimum_WL(ctx):
-  return user.get_user(ctx.author.id).world_level >= 2
+async def is_minimum_WL_donate(ctx):
+  if user.get_user(ctx.author.id).world_level >= 2:
+    return True
+  else:
+    await error.embed_world_level_requirement_error(ctx, 2)
+    return False
+
+async def is_minimum_WL_trade(ctx):
+  if user.get_user(ctx.author.id).world_level >= 5:
+    return True
+  else:
+    await error.embed_world_level_requirement_error(ctx, 5)
+    return False
 
 #When bot turns on
 @bot.event
@@ -247,13 +259,29 @@ async def stats(ctx):
 @commands.check(not_DM)
 @commands.check(user_is_me)
 @commands.check(lock_exists)
-async def test(ctx):
-    async with locks[str(ctx.author.id)]:
-      embed = discord.Embed(title="Vote for Yapa-Bot on Top.gg")
-      embed.add_field(name="Vote for Yapa-Bot here: https://top.gg/bot/827279423321276457/vote", value="Rewards for voting are:\n**800** Primogems\n**10,000** Mora\n**3** Condensed Resin")
-      url = formatter.get_avatar(bot.user)
-      embed.set_thumbnail(url=url)
-      await ctx.send(f"{ctx.author.mention}", embed=embed)
+async def test(ctx, mention):
+  global locks
+  async with locks[str(ctx.author.id)]:
+    u = user.get_user(ctx.author.id)
+    receiver_id = formatter.get_id_from_mention(mention)
+    if user.does_exist(receiver_id) and receiver_id != u._id:
+      if str(receiver_id) not in locks.keys():
+        locks_copy = locks
+        locks_copy[str(receiver_id)] = asyncio.Lock()
+        locks = locks_copy
+      async with locks[str(receiver_id)]:
+        receiver = user.get_user(receiver_id)
+        asyncio.get_event_loop().create_task(user.embed_char_list(ctx, u, 1, bot))
+        confirm, char1_name = await formatter.request_character_name(ctx, bot, u)
+        if not confirm:
+          await ctx.send("Trade Cancelled.")
+          return
+        asyncio.get_event_loop().create_task(user.embed_char_list(ctx, receiver, 1, bot))
+        confirm, char2_name = await formatter.request_character_name(ctx, bot, receiver)
+        if not confirm:
+          await ctx.send("Trade Cancelled.")
+          return
+        await user.embed_exchange(ctx, bot, u, char1_name, receiver, char2_name)
 
 #Resets a users timers or commissions
 @bot.command(name="reset")
@@ -654,7 +682,7 @@ async def equip(ctx, *args):
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
-@commands.check(is_minimum_WL)
+@commands.check(is_minimum_WL_donate)
 async def givem(ctx, mention, amnt):
   async with locks[str(ctx.author.id)]:
       giver = user.get_user(ctx.author.id)
@@ -675,7 +703,7 @@ async def givem(ctx, mention, amnt):
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
-@commands.check(is_minimum_WL)
+@commands.check(is_minimum_WL_donate)
 async def givep(ctx, mention, amnt):
   async with locks[str(ctx.author.id)]:
       giver = user.get_user(ctx.author.id)
@@ -864,11 +892,49 @@ async def blackj(ctx, _type, amount):
       if amount.isdigit():
         await blackjack.embed_blackjack(ctx, bot, u, int(amount), "m")
 
+@bot.command(name="trade", aliases=["exchange", "ex"])
+@commands.check(not_DM)
+@commands.check(user_exists)
+@commands.check(lock_exists)
+@commands.check(is_minimum_WL_trade)
+async def trade(ctx, mention):
+  global locks
+  responses = ["What are you doin that for? Those are the same you buffoons.", "Yea? You both think thats funny don't you. Get a life.", "Alright, I'm gettin me mallet! You'd better stop that before something happens."]
+  async with locks[str(ctx.author.id)]:
+    u = user.get_user(ctx.author.id)
+    receiver_id = formatter.get_id_from_mention(mention)
+    if user.does_exist(receiver_id) and receiver_id != u._id:
+      if str(receiver_id) not in locks.keys():
+        locks_copy = locks
+        locks_copy[str(receiver_id)] = asyncio.Lock()
+        locks = locks_copy
+      async with locks[str(receiver_id)]:
+        receiver = user.get_user(receiver_id)
+        if receiver.world_level < 5:
+          await error.embed_world_level_requirement_error(ctx, 5, receiver)
+          return
+        asyncio.get_event_loop().create_task(user.embed_char_list(ctx, u, 1, bot))
+        confirm, char1_name = await formatter.request_character_name(ctx, bot, u)
+        if not confirm:
+          await ctx.send("Trade Cancelled.")
+          return
+        asyncio.get_event_loop().create_task(user.embed_char_list(ctx, receiver, 1, bot))
+        confirm, char2_name = await formatter.request_character_name(ctx, bot, receiver)
+        if not confirm:
+          await ctx.send("Trade Cancelled.")
+          return
+        if formatter.name_formatter(char1_name) == formatter.name_formatter(char2_name):
+          await ctx.send(f"{ctx.author.mention}<@{receiver._id}>\n{responses[randint(0, len(responses)-1)]}")
+          await ctx.send("Trade Cancelled.")
+        else:
+          await user.embed_exchange(ctx, bot, u, char1_name, receiver, char2_name)
+
 @bot.command(name="help", aliases=["h"])
 @commands.check(not_DM)
 async def help(ctx,arg1=None):
   embedList = []
   embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())
+
   text = f"**{pre}start** | Allows you to start your Yappa Experience.\n_ _\n"
   text += f"**{pre}server** | Sends the invite link to the official Yapa-Bot support server.\n"
   text += f"**{pre}daily** | Allows you to claim daily rewards.\n"
@@ -877,24 +943,28 @@ async def help(ctx,arg1=None):
   embed.add_field(name="Basic Commands", value = text, inline=False)
 
   text = f"**{pre}a [char_name] {pre}[cn] {pre}[cn] {pre}[cn]** | Allows you to go on an adventure with up to 4 of your characters at the cost of 20 resin. You must have atleast 1 character to adventure.\n"
-  text += f"**{pre}a t[team#]** | Allows you to go on an adventure with a preassigned party.\n_ _\n"
+  text += f"**{pre}a t[#]** | Allows you to go on an adventure with a preassigned party.\n_ _\n"
   text += f"**{pre}teams** | Allows you to look at all of your teams.\n"
-  text += f"**{pre}teams [team#]** | Allows you to look at who is in a specific team.\n"
-  text += f"**{pre}teams [team#] [char_name] {pre}[cn] {pre}[cn] {pre}[cn]** | Allows you to put up to 4 characters you own into their own party.\n_ _\n_ _\n_ _"
+  text += f"**{pre}teams [#]** | Allows you to look at who is in a specific team.\n"
+  text += f"**{pre}teams [#] [char_name] {pre}[cn] {pre}[cn] {pre}[cn]** | Allows you to put up to 4 characters you own into their own party.\n_ _\n_ _\n_ _"
   embed.add_field(name=":sunrise_over_mountains: Adventure Commands", value = text, inline=False)
 
   text = f"**{pre}r** | Allows you to look at your current resin.\n"
-  text += f"**{pre}con [amnt#]** | Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
-  text += f"**{pre}con use [amnt#]** | Allows you use stored resin.\n_ _\n_ _\n_ _"
+  text += f"**{pre}con [amount]** | Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
+  text += f"**{pre}con use [amount]** | Allows you use stored resin.\n_ _\n_ _\n_ _"
   embed.add_field(name=":crescent_moon: Resin Commands", value = text, inline=False)
 
   text = f"**{pre}w** | Allows you to wish for your favorite genshin wishes at the cost of 160 primogems per wish.\n"
   text += f"**{pre}w 10** | Allows you to wish for your favorite genshin wishes 10 at a time!\n"
   text += f"**{pre}free** | Allows you to wish for your favorite genshin wishes for free. These wishes will not be added to your collection.\n"
-  text += f"**{pre}free 10** | Allows you to wish for your favorite 10 genshin wishes for free. These wishes will not be added to your collection.\n_ _\n_ _\n_ _"
+  text += f"**{pre}free 10** | Allows you to wish for your favorite 10 genshin wishes for free. These wishes will not be added to your collection."
   embed.add_field(name=":stars: Wishing Commands", value = text, inline=False)
 
+  embed.set_footer(text=f"Page 1/3")
+  embedList.append(embed)
 
+
+  embed = discord.Embed(title = "Yapa Bot Commands 2", color=discord.Color.dark_red())
 
   text = f"**{pre}b** | Allows you to look at your collected currencies.\n_ _\n"
   text += f"**{pre}shop [p, m, sg or sd]** | Allows user to see their shop.\n"
@@ -910,30 +980,33 @@ async def help(ctx,arg1=None):
   text = f"**{pre}p [@user]** | Allows you to look at your or other user data.\n"
   text += f"**{pre}p [favorite] [char_name]** | Allows you to set your favorite character. Character must be owned before favoriting.\n"
   text += f"**{pre}p [description] [desc...]** | Allows you set your profile description.\n"
-  text += f"**{pre}p [nickname] [nick...]** | Allows you set your profile description."
+  text += f"**{pre}p [nickname] [nick...]** | Allows you set your profile description.\n_ _\n_ _\n_ _"
   embed.add_field(name=":person_bald: Profile Commands", value = text, inline=False)
 
 
-  embed.set_footer(text=f"Page 1/2")
+  text = f"**{pre}lc [pg#]** | Allows you to look at your personal character collection.\n"
+  text += f"**{pre}lc [char_name]** | Allows you to look at a specific character in your collection.\n"
+  text += f"**{pre}e [char_name] {pre}[weap_name or none]** | Allows you to equip a weapon to a chracter. You can only equip things you own."
+  embed.add_field(name=":people_wrestling: Character Commands", value = text, inline=False)
+
+  embed.set_footer(text=f"Page 2/3")
   embedList.append(embed)
 
 
-  embed = discord.Embed(title = "Yapa Bot Commands 2", color=discord.Color.dark_red())
+  embed = discord.Embed(title = "Yapa Bot Commands 3", color=discord.Color.dark_red())
 
-  text = f"**{pre}lc [pg#]** | Allows you to look at your personal character collection.\n"
-  text += f"**{pre}lc [char_name]** | Allows you to look at a specific character in your collection.\n"
-  text += f"**{pre}e [char_name] {pre}[weap_name or none]** | Allows you to equip a weapon to a chracter. You can only equip things you own.\n_ _\n_ _\n_ _"
-  embed.add_field(name=":people_wrestling: Character Commands", value = text, inline=False)
-  
   text = f"**{pre}lw [pg#]** | Allows you to look at your personal weapon collection.\n"
   text += f"**{pre}lw [weap_name]** | Allows you to look at a specific weapon in your collection.\n_ _\n_ _\n_ _"
   embed.add_field(name=":crossed_swords: Weapon Commands", value = text, inline=False)
 
   text = f"**{pre}c** | Allows you to look at your commissions and their descriptions.\n"
-  text += f"**{pre}t [triviaID] [answer]** | Allows you to answer your trivia commissions. Trivia id can be found in the () before every trivia commission."
+  text += f"**{pre}t [triviaID] [answer]** | Allows you to answer your trivia commissions. Trivia id can be found in the () before every trivia commission.\n_ _\n_ _\n_ _"
   embed.add_field(name=":diamond_shape_with_a_dot_inside: Commission Commands", value = text, inline=False)
 
-  embed.set_footer(text=f"Page 2/2")
+  text = f"**{pre}trade [@user]** | Allows you to trade characters with another user."
+  embed.add_field(name="🤝 Trading Commands", value = text, inline=False)
+
+  embed.set_footer(text=f"Page 3/3")
   embedList.append(embed)
 
   if arg1 == "p":

@@ -1,3 +1,4 @@
+from user import User
 import discord
 import formatter
 
@@ -126,7 +127,7 @@ async def embed_get_character_suggestions(ctx, u, attempt):
   if name_list_string != "":
     embed = discord.Embed()
     embed.add_field(name="Suggestions", value=f"Did you mean: {name_list_string}?")
-    await ctx.send(ctx.author.mention, embed=embed)
+    await ctx.send(f"<@{u._id}>", embed=embed)
   else:
     await embed_char_is_not_owned(ctx, attempt)
 
@@ -135,9 +136,17 @@ async def embed_get_weapon_suggestions(ctx, u, attempt):
   if name_list_string != "":
     embed = discord.Embed()
     embed.add_field(name="Suggestions", value=f"Did you mean: {name_list_string}?")
-    await ctx.send(ctx.author.mention, embed=embed)
+    await ctx.send(f"<@{u._id}>", embed=embed)
   else:
     await embed_weap_is_not_owned(ctx, attempt)
+
+async def embed_world_level_requirement_error(ctx, requirement, u=None):
+  embed = discord.Embed(color=discord.Color.red())
+  if u == None:
+    embed.add_field(name = "World Level Error", value = f"You do not meet the required world level.\n**World Level {requirement} is required.**")
+  else:
+    embed.add_field(name = "World Level Error", value = f"{u.nickname} does not meet the required world level.\n**World Level {requirement} is required.**")
+  await ctx.send(ctx.author.mention, embed=embed)
 
 async def embed_dublicate_characters(ctx):
   embed = discord.Embed()

@@ -3,6 +3,7 @@ import discord
 import prefix
 import datetime
 import asyncio
+import error
 
 def get_avatar(avamember):
   return avamember.avatar_url
@@ -249,8 +250,8 @@ async def pages(ctx, bot, embedList):
         except asyncio.TimeoutError:
             break
 
-async def confirmation(ctx, bot):
-  await ctx.send(f"{ctx.author.mention}, Are you sure you want to do this?(y/n)")
+async def confirmation(ctx, bot, disclaimer):
+  await ctx.send(f"{ctx.author.mention}, Are you sure you want to do this?(y/n)\n**Disclaimer:** {disclaimer}")
   def check(response):
         confirmation = ["yes","no","y","n"]
         return response.author == ctx.author and str(response.content.lower()) in confirmation
@@ -266,6 +267,58 @@ async def confirmation(ctx, bot):
         except asyncio.TimeoutError:
             await ctx.send("Response timeout.")
             return False
+
+async def confirmation_specific(ctx, bot, u:discord.User, disclaimer):
+  await ctx.send(f"{u.mention}, Are you sure you want to do this?(y/n)\n**Disclaimer:** {disclaimer}")
+  def check(response):
+        confirmation = ["yes","no","y","n"]
+        return response.author == u and str(response.content.lower()) in confirmation
+  while True:
+        try:
+            response = await bot.wait_for(event = 'message', timeout=30, check=check)
+
+            if str(response.content.lower()) == "yes" or str(response.content.lower()) == "y":
+                return True
+
+            elif str(response.content.lower()) == "no" or str(response.content.lower()) == "n":
+                return False
+        except asyncio.TimeoutError:
+            await ctx.send("Response timeout.")
+            return False
+
+async def confirmation_custom(ctx, bot, u:discord.User, custom_prompt):
+  await ctx.send(f"{u.mention}, {custom_prompt}")
+  def check(response):
+    confirmation = ["yes","no","y","n"]
+    return response.author == u and str(response.content.lower()) in confirmation
+  while True:
+    try:
+      response = await bot.wait_for(event = 'message', timeout=30, check=check)
+
+      if str(response.content.lower()) == "yes" or str(response.content.lower()) == "y":
+        return True
+
+      elif str(response.content.lower()) == "no" or str(response.content.lower()) == "n":
+        return False
+    except asyncio.TimeoutError:
+      await ctx.send("Response timeout.")
+      return False
+
+async def request_character_name(ctx, bot, u):
+  await ctx.send(f"<@{u._id}>, Please enter the name of the character you wish to trade with.")
+  def check(response):
+    return response.author.id == u._id
+  while True:
+    try:
+      response = await bot.wait_for(event = 'message', timeout=30, check=check)
+      confirmation = u.characters.keys()
+      if name_formatter(str(response.content)) in confirmation:
+        return True, str(response.content)
+      else:
+        await error.embed_get_character_suggestions(ctx, u, str(response.content))
+    except asyncio.TimeoutError:
+        await ctx.send("Response timeout.")
+        return False, ""
 
 def strike(text):
     result = ''
