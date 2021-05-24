@@ -91,7 +91,7 @@ class User:
     difference = now-old
     minutes, seconds = divmod(difference.seconds, 60)
     hours, minutes = divmod(minutes, 60)
-    if seconds + (minutes*60) + (hours*60*60)*(difference.days*24*60*60) >= (43200):
+    if seconds + (minutes*60) + (hours*60*60) + (difference.days*24*60*60) >= (43200):
       return True, "Now"
     else:
       differenceDate = old + timedelta(hours=12)

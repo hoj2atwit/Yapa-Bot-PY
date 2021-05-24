@@ -987,7 +987,7 @@ async def on_dbl_vote(data):
     text = ""
     if user.does_exist(int(data["user"])):
       text = "<@{}> Thank you for voting for the Yapa Bot."
-      embed.add_field(name="Rewards", value="**800** Primogems\n**10,000** Mora\n**3** Condensed Resin")
+      embed.add_field(name="Rewards", value="**800** Primogems\n**10,000** Mora\n**3** Condensed Resin\n**12hr 1.5x** Experience Boost")
     else:
       text = "<@{}> Thank you for voting for the Yapa Bot.\nSince you have not started yet, you will not gain any rewards."
       embed.add_field(name="Rewards Would Have Been", value="**800** Primogems\n**10,000** Mora\n**3** Condensed Resin\n**12hr 1.5x*** Experience Boost")
