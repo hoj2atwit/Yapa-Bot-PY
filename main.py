@@ -897,7 +897,7 @@ async def blackj(ctx, _type, amount):
 @commands.check(user_exists)
 @commands.check(lock_exists)
 @commands.check(is_minimum_WL_trade)
-async def trade(ctx, mention):
+async def trade(ctx, _type, mention):
   global locks
   responses = ["What are you doin that for? Those are the same you buffoons.", "Yea? You both think thats funny don't you. Get a life.", "Alright, I'm gettin me mallet! You'd better stop that before something happens."]
   async with locks[str(ctx.author.id)]:
@@ -913,21 +913,38 @@ async def trade(ctx, mention):
         if receiver.world_level < 5:
           await error.embed_world_level_requirement_error(ctx, 5, receiver)
           return
-        asyncio.get_event_loop().create_task(user.embed_char_list(ctx, u, 1, bot))
-        confirm, char1_name = await formatter.request_character_name(ctx, bot, u)
-        if not confirm:
-          await ctx.send("Trade Cancelled.")
-          return
-        asyncio.get_event_loop().create_task(user.embed_char_list(ctx, receiver, 1, bot))
-        confirm, char2_name = await formatter.request_character_name(ctx, bot, receiver)
-        if not confirm:
-          await ctx.send("Trade Cancelled.")
-          return
-        if formatter.name_formatter(char1_name) == formatter.name_formatter(char2_name):
-          await ctx.send(f"{ctx.author.mention}<@{receiver._id}>\n{responses[randint(0, len(responses)-1)]}")
-          await ctx.send("Trade Cancelled.")
-        else:
-          await user.embed_exchange(ctx, bot, u, char1_name, receiver, char2_name)
+        if _type == "c":
+          asyncio.get_event_loop().create_task(user.embed_char_list(ctx, u, 1, bot))
+          confirm, char1_name = await formatter.request_character_name(ctx, bot, u)
+          if not confirm:
+            await ctx.send("Trade Cancelled.")
+            return
+          asyncio.get_event_loop().create_task(user.embed_char_list(ctx, receiver, 1, bot))
+          confirm, char2_name = await formatter.request_character_name(ctx, bot, receiver)
+          if not confirm:
+            await ctx.send("Trade Cancelled.")
+            return
+          if formatter.name_formatter(char1_name) == formatter.name_formatter(char2_name):
+            await ctx.send(f"{ctx.author.mention}<@{receiver._id}>\n{responses[randint(0, len(responses)-1)]}")
+            await ctx.send("Trade Cancelled.")
+          else:
+            await user.embed_exchange_character(ctx, bot, u, char1_name, receiver, char2_name)
+        elif _type == "w":
+          asyncio.get_event_loop().create_task(user.embed_weap_list(ctx, u, 1, bot))
+          confirm, weap1_name = await formatter.request_weapon_name(ctx, bot, u)
+          if not confirm:
+            await ctx.send("Trade Cancelled.")
+            return
+          asyncio.get_event_loop().create_task(user.embed_weap_list(ctx, receiver, 1, bot))
+          confirm, weap2_name = await formatter.request_weapon_name(ctx, bot, receiver)
+          if not confirm:
+            await ctx.send("Trade Cancelled.")
+            return
+          if formatter.name_formatter(weap1_name) == formatter.name_formatter(weap2_name):
+            await ctx.send(f"{ctx.author.mention}<@{receiver._id}>\n{responses[randint(0, len(responses)-1)]}")
+            await ctx.send("Trade Cancelled.")
+          else:
+            await user.embed_exchange_weapon(ctx, bot, u, weap1_name, receiver, weap2_name)
 
 @bot.command(name="help", aliases=["h"])
 @commands.check(not_DM)
@@ -1003,7 +1020,8 @@ async def help(ctx,arg1=None):
   text += f"**{pre}t [triviaID] [answer]** | Allows you to answer your trivia commissions. Trivia id can be found in the () before every trivia commission.\n_ _\n_ _\n_ _"
   embed.add_field(name=":diamond_shape_with_a_dot_inside: Commission Commands", value = text, inline=False)
 
-  text = f"**{pre}trade [@user]** | Allows you to trade characters with another user."
+  text = f"**{pre}trade c [@user]** | Allows you to trade characters with another user.\n"
+  text += f"**{pre}trade w [@user]** | Allows you to trade weapons with another user."
   embed.add_field(name="🤝 Trading Commands", value = text, inline=False)
 
   embed.set_footer(text=f"Page 3/3")

@@ -320,6 +320,22 @@ async def request_character_name(ctx, bot, u):
         await ctx.send("Response timeout.")
         return False, ""
 
+async def request_weapon_name(ctx, bot, u):
+  await ctx.send(f"<@{u._id}>, Please enter the name of the weapon you wish to trade with.")
+  def check(response):
+    return response.author.id == u._id
+  while True:
+    try:
+      response = await bot.wait_for(event = 'message', timeout=30, check=check)
+      confirmation = u.weapons.keys()
+      if name_formatter(str(response.content)) in confirmation:
+        return True, str(response.content)
+      else:
+        await error.embed_get_weapon_suggestions(ctx, u, str(response.content))
+    except asyncio.TimeoutError:
+        await ctx.send("Response timeout.")
+        return False, ""
+
 def strike(text):
     result = ''
     for c in text:

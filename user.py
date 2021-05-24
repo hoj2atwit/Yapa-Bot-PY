@@ -243,6 +243,17 @@ class User:
       self.characters[formatter.name_formatter(charName)] = c.get_dict()
     else:
       del self.characters[formatter.name_formatter(charName)]
+
+  def remove_weapon(self, weapName):
+    w = weapon.get_weapon_from_dict(self.weapons, formatter.name_formatter(weapName))
+    if w.total > 1:
+      if w.total <= 5:
+        w.refinement -= 1
+      w.total -= 1
+      self.weapons[formatter.name_formatter(weapName)] = w.get_dict()
+    else:
+      del self.weapons[formatter.name_formatter(weapName)]
+    self.update_equiped_weapons()
       
   def equip_weapon(self, charName, weapName):
     if not self.does_character_exist(charName):
@@ -265,7 +276,10 @@ class User:
     for w in self.weapons.keys():
       for c in self.characters.keys():
         if len(self.characters[c]["weapon_equiped"]) > 0:
-          if self.characters[c]["weapon_equiped"]["URL_name"] == w:
+          if self.characters[c]["weapon_equiped"]["URL_name"] not in self.weapons.keys():
+            self.characters[c]["weapon_equiped"] = {}
+            break
+          elif self.characters[c]["weapon_equiped"]["URL_name"] == w:
             self.characters[c]["weapon_equiped"] = self.weapons[w]
             break
 
@@ -703,7 +717,7 @@ async def embed_set_team(ctx, u, teamNum, charList):
             embed = discord.Embed(title = "Team set Successfull", description=f"Team {teamNum} has successfully been set.")
             await ctx.send(ctx.author.mention, embed=embed)
 
-async def embed_exchange(ctx, bot, u:User, char1_name, receiver:User, char2_name):
+async def embed_exchange_character(ctx, bot, u:User, char1_name, receiver:User, char2_name):
   disclaimer = "Character info does not carry through trades."
   if not u.does_character_exist(char1_name):
     await error.embed_get_character_suggestions(ctx, u, char1_name)
@@ -732,7 +746,37 @@ async def embed_exchange(ctx, bot, u:User, char1_name, receiver:User, char2_name
   embed.add_field(name=f"{u.nickname}'s Exchange Summary:", value=f"{u_c.name} ➟ {r_c.name}",inline=False)
   embed.add_field(name=f"{receiver.nickname}'s Exchange Summary:", value=f"{r_c.name} ➟ {u_c.name}",inline=False)
   await ctx.send(f"{ctx.author.mention}{receiver_user.mention}", embed=embed)
-  
+
+async def embed_exchange_weapon(ctx, bot, u:User, weap1_name, receiver:User, weap2_name):
+  disclaimer = "Character info does not carry through trades."
+  if not u.does_weapon_exist(weap1_name):
+    await error.embed_get_weapon_suggestions(ctx, u, weap1_name)
+    return
+  if not receiver.does_weapon_exist(weap2_name):
+    await error.embed_get_weapon_suggestions(ctx, receiver, weap2_name)
+    return
+  u_c = u.get_character(weap1_name)
+  r_c = receiver.get_character(weap2_name)
+  confirm = await formatter.confirmation(ctx, bot, disclaimer)
+  if not confirm:
+    await ctx.send("Trade Cancelled.")
+    return
+  receiver_user = await bot.fetch_user(receiver._id)
+  confirm = await formatter.confirmation_specific(ctx, bot, receiver_user, disclaimer)
+  if not confirm:
+    await ctx.send("Trade Cancelled.")
+    return
+  u.remove_weapon(weap1_name)
+  receiver.remove_weapon(weap2_name)
+  u.add_weapon(weapon.get_weapon(weap2_name))
+  receiver.add_weapon(weapon.get_weapon(weap1_name))
+  database_mongo.save_user(u)
+  database_mongo.save_user(receiver)
+  embed = discord.Embed(title="Exchange Successful!", color=discord.Color.green())
+  embed.add_field(name=f"{u.nickname}'s Exchange Summary:", value=f"{u_c.name} ➟ {r_c.name}",inline=False)
+  embed.add_field(name=f"{receiver.nickname}'s Exchange Summary:", value=f"{r_c.name} ➟ {u_c.name}",inline=False)
+  await ctx.send(f"{ctx.author.mention}{receiver_user.mention}", embed=embed)
+
 def reset_timers(_id):
   u = get_user(_id)
   u.last_daily = ""
