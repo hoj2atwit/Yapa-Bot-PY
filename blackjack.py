@@ -2,7 +2,7 @@ import discord
 import formatter
 import error
 import database_mongo
-import random
+import card
 import asyncio
 import commission
 
@@ -27,10 +27,10 @@ def check_21(hand):
       else:
         total += 11
 
-  if total != 21:
-    return False, total
-  else:
+  if total == 21:
     return True, total
+  else:
+    return False, total
 
 def embed_create_blackjack(u, bot_hand, player_hand):
   embed = discord.Embed(title=f"{u.nickname}'s BlackJack Game")
@@ -109,43 +109,6 @@ def bot_decision(hand, deck):
     return True
   else:
     return False
-
-def make_deck():
-  deck = []
-  for i in range(4):
-    suit = ""
-    if i == 0:
-      suit = "♦️"
-    elif i == 1:
-      suit = "♣️"
-    elif i == 2:
-      suit = "♥️"
-    else:
-      suit = "♠️"
-    for x in range(13):
-      num = ""
-      if x == 0:
-        num = "A"
-      elif x == 10:
-        num = "J"
-      elif x == 11:
-        num = "Q"
-      elif x == 12:
-        num = "K"
-      else:
-        num = f"{x+1}"
-      
-      deck.append(f"{num}{suit}")
-  return deck
-
-def shuffle(deck):
-  for i in range(len(deck)-1, 0, -1):
-      
-    # Pick a random index from 0 to i 
-    j = random.randint(0, i + 1) 
-    
-    # Swap arr[i] with the element at random index 
-    deck[i], deck[j] = deck[j], deck[i] 
     
 async def embed_blackjack(ctx, bot, u, amount, _type):
   if _type == "p":
@@ -156,10 +119,10 @@ async def embed_blackjack(ctx, bot, u, amount, _type):
     if u.mora < amount:
       await error.embed_not_enough_mora(ctx)
       return
-  deck = make_deck()
-  shuffle(deck)
-  shuffle(deck)
-  shuffle(deck)
+  deck = card.make_deck()
+  card.shuffle(deck)
+  card.shuffle(deck)
+  card.shuffle(deck)
   bot_hand = []
   player_hand = []
 
@@ -215,7 +178,7 @@ async def embed_blackjack(ctx, bot, u, amount, _type):
           elif bot_win:
             await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "y", amount, _type))
           else:
-            if total > 21 or bot_total > 21:
+            if total >= 21 or bot_total >= 21:
               if total > 21 and bot_total > 21:
                 await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "b", amount, _type))
               elif total > 21 and bot_total <= 21:
