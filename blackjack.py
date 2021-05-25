@@ -190,7 +190,8 @@ async def embed_blackjack(ctx, bot, u, amount, _type):
                 await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "u", amount, _type))
               elif bot_total > total:
                 await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "y", amount, _type))
-
+              else:
+                await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "b", amount, _type))
           await game.clear_reactions()
           break
         else:
