@@ -187,49 +187,48 @@ def ten_pull(u):
   arr = formatter.reward_list_organizer(arr)
   return (arr, fiveStar)
 
-async def embed_single_pull(ctx, lock):
-  async with lock:
-    u = user.get_user(ctx.author.id)
-    if u.primogems < 160:
-      await error.embed_not_enough_primo(ctx)
-      return
+async def embed_single_pull(ctx):
+  u = user.get_user(ctx.author.id)
+  if u.primogems < 160:
+    await error.embed_not_enough_primo(ctx)
+    return
 
-    if u.five_pity >= 89:
-      (p, t), five, four = pull(False, True, u)
-    elif u.four_pity >= 9:
-      (p, t), five, four = pull(True, False, u)
-    else:
-      (p, t), five, four = pull(False, False, u)
-    text = ""
+  if u.five_pity >= 89:
+    (p, t), five, four = pull(False, True, u)
+  elif u.four_pity >= 9:
+    (p, t), five, four = pull(True, False, u)
+  else:
+    (p, t), five, four = pull(False, False, u)
+  text = ""
 
-    if five:
-      color = discord.Color.gold()
-      text =  prefix.fiveStarPrefix + p.name
-      u.five_pity = 0
-      u.four_pity = 0
-    elif four:
-      color = discord.Color.purple()
-      text =  prefix.fourStarPrefix + p.name
-      u.five_pity += 1
-      u.four_pity = 0
-    else:
-      color = discord.Color.blue()
-      text =  prefix.threeStarPrefix + p.name
-      u.five_pity += 1
-      u.four_pity += 1
-    if t == "c":
-      file = discord.File(p.URL_portrait, f"{p.URL_name}-portrait.png")
-      embed = discord.Embed(title=text, color=color)
-      embed.set_image(url=f"attachment://{p.URL_name}-portrait.png")
-    else:
-      file = discord.File(p.URL_icon, f"{p.URL_name}-icon.png")
-      embed = discord.Embed(title=text, color=color)
-      embed.set_image(url=f"attachment://{p.URL_name}-icon.png")
-    u.primogems -= 160
-    u.update_equiped_weapons()
-    await commission.check_wish_complete(ctx, u, 1)
-    database_mongo.save_user(u)
-    asyncio.get_event_loop().create_task(display_pull(ctx, embed, file, p.rarity, True))
+  if five:
+    color = discord.Color.gold()
+    text =  prefix.fiveStarPrefix + p.name
+    u.five_pity = 0
+    u.four_pity = 0
+  elif four:
+    color = discord.Color.purple()
+    text =  prefix.fourStarPrefix + p.name
+    u.five_pity += 1
+    u.four_pity = 0
+  else:
+    color = discord.Color.blue()
+    text =  prefix.threeStarPrefix + p.name
+    u.five_pity += 1
+    u.four_pity += 1
+  if t == "c":
+    file = discord.File(p.URL_portrait, f"{p.URL_name}-portrait.png")
+    embed = discord.Embed(title=text, color=color)
+    embed.set_image(url=f"attachment://{p.URL_name}-portrait.png")
+  else:
+    file = discord.File(p.URL_icon, f"{p.URL_name}-icon.png")
+    embed = discord.Embed(title=text, color=color)
+    embed.set_image(url=f"attachment://{p.URL_name}-icon.png")
+  u.primogems -= 160
+  u.update_equiped_weapons()
+  await commission.check_wish_complete(ctx, u, 1)
+  database_mongo.save_user(u)
+  asyncio.get_event_loop().create_task(display_pull(ctx, embed, file, p.rarity, True))
 
 async def embed_free_single_pull(ctx, name):
   u = user.User(0,name,name,"","none",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","","",{},{},{},{"1":[], "2":[], "3":[], "4":[]})
@@ -265,21 +264,7 @@ async def embed_free_single_pull(ctx, name):
     embed = discord.Embed(title=text, color=color, description="Free pulls will not be added to your collection.")
     embed.set_image(url=f"attachment://{p.URL_name}-icon.png")
   
-  e = discord.Embed()
-  if p.rarity == 5:
-    file = discord.File(fiveStarWishGifSingle, "SingleFiveStar.gif")
-    e.set_image(url="attachment://SingleFiveStar.gif")
-  elif p.rarity == 4:
-    file = discord.File(fourStarWishGifSingle, "SingleThreeStar.gif")
-    e.set_image(url="attachment://SingleThreeStar.gif")
-  else:
-    file = discord.File(threeStarWishGifSingle, "SingleThreeStar.gif")
-    e.set_image(url="attachment://SingleThreeStar.gif")
-
-  msg = await ctx.send(embed=e, file=file)
-  await asyncio.sleep(wishDelayTime)
-  await msg.delete()
-  await ctx.send(ctx.author.mention, embed=embed, file=f)
+  asyncio.get_event_loop().create_task(display_pull(ctx, embed, f, p.rarity, True))
 
 async def embed_free_ten_pull(ctx, name):
   u = user.User(0,name,name,"","none",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","","",{},{},{},{"1":[], "2":[], "3":[], "4":[]})
@@ -302,58 +287,44 @@ async def embed_free_ten_pull(ctx, name):
       text += prefix.threeStarPrefix
     text += i.name + "\n"
   embed.add_field(name = "_ _", value = text, inline=False)
+  asyncio.get_event_loop().create_task(display_pull(ctx, embed, f, pulls[0].rarity, False))
 
-  e = discord.Embed()
-  if pulls[0].rarity == 5:
-    file = discord.File(fiveStarWishGifTen, "TenFiveStar.gif")
-    e.set_image(url="attachment://TenFiveStar.gif")
+async def embed_ten_pull(ctx):
+  u = user.get_user(ctx.author.id)
+  if u.primogems < 1600:
+    await error.embed_not_enough_primo(ctx)
+    return
+
+  pulls, five = ten_pull(u)
+  if five:
+    color = discord.Color.gold()
   else:
-    file = discord.File(fourStarWishGifTen, "TenFourStar.gif")
-    e.set_image(url="attachment://TenFourStar.gif")
-  
-  msg = await ctx.send(embed=e, file=file)
-  await asyncio.sleep(wishDelayTime)
-  await msg.delete()
-  await ctx.send(ctx.author.mention, embed=embed, file=f)
+    color = discord.Color.purple()
 
-async def embed_ten_pull(ctx, lock):
-  async with lock:
-    u = user.get_user(ctx.author.id)
-    if u.primogems < 1600:
-      await error.embed_not_enough_primo(ctx)
-      return
-
-    pulls, five = ten_pull(u)
-    if five:
-      color = discord.Color.gold()
-    else:
-      color = discord.Color.purple()
-
-    f = discord.File(pulls[0].URL_icon, f"{pulls[0].URL_name}-icon.png")
-    embed = discord.Embed(title=f"{u.nickname}\'s 10x Wish", color=color)
-    embed.set_thumbnail(url=f"attachment://{pulls[0].URL_name}-icon.png")
-    text = ""
-    for i in pulls:
-      if i.rarity == 5:
-        text += prefix.fiveStarPrefix
-      if i.rarity == 4:
-        text += prefix.fourStarPrefix
-      if i.rarity == 3:
-        text += prefix.threeStarPrefix
-      text += i.name + "\n"
-    embed.add_field(name = "_ _", value = text, inline=False)
-    u.primogems -= 1600
-    u.update_equiped_weapons()
-    await commission.check_wish_complete(ctx, u, 10)
-    database_mongo.save_user(u)
-    asyncio.get_event_loop().create_task(display_pull(ctx, embed, f, pulls[0].rarity, False))
+  f = discord.File(pulls[0].URL_icon, f"{pulls[0].URL_name}-icon.png")
+  embed = discord.Embed(title=f"{u.nickname}\'s 10x Wish", color=color)
+  embed.set_thumbnail(url=f"attachment://{pulls[0].URL_name}-icon.png")
+  text = ""
+  for i in pulls:
+    if i.rarity == 5:
+      text += prefix.fiveStarPrefix
+    if i.rarity == 4:
+      text += prefix.fourStarPrefix
+    if i.rarity == 3:
+      text += prefix.threeStarPrefix
+    text += i.name + "\n"
+  embed.add_field(name = "_ _", value = text, inline=False)
+  u.primogems -= 1600
+  u.update_equiped_weapons()
+  await commission.check_wish_complete(ctx, u, 10)
+  database_mongo.save_user(u)
+  asyncio.get_event_loop().create_task(display_pull(ctx, embed, f, pulls[0].rarity, False))
 
   
 
 async def display_pull(ctx, embed:discord.Embed, f:discord.File, rarity:int, single:bool):
   e = discord.Embed()
   if single:
-    e = discord.Embed()
     if rarity == 5:
       file = discord.File(fiveStarWishGifSingle, "SingleFiveStar.gif")
       e.set_image(url="attachment://SingleFiveStar.gif")

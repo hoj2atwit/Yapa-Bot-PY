@@ -135,14 +135,7 @@ def shop_exists(ctx):
     shop.generate_shop(ctx.author.id)
     return True
 
-async def is_minimum_WL_donate(ctx):
-  if user.get_user(ctx.author.id).world_level >= 2:
-    return True
-  else:
-    await error.embed_world_level_requirement_error(ctx, 2)
-    return False
-
-async def is_minimum_WL_trade(ctx):
+async def is_minimum_WL(ctx):
   if user.get_user(ctx.author.id).world_level >= 5:
     return True
   else:
@@ -559,11 +552,12 @@ async def weekly(ctx):
 @commands.check(user_exists)
 @commands.check(lock_exists)
 async def wish(ctx, arg=None):
-  if arg == "10":
-    await pull.embed_ten_pull(ctx, locks[str(ctx.author.id)])
-  else:
-    await pull.embed_single_pull(ctx, locks[str(ctx.author.id)])
-      
+  async with locks[str(ctx.author.id)]:
+    if arg == "10":
+      await pull.embed_ten_pull(ctx)
+    else:
+      await pull.embed_single_pull(ctx)
+        
       
 
 @bot.command(name="free", aliases=["f"])
@@ -681,7 +675,7 @@ async def equip(ctx, *args):
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
-@commands.check(is_minimum_WL_donate)
+@commands.check(is_minimum_WL)
 async def givem(ctx, mention, amnt):
   async with locks[str(ctx.author.id)]:
       giver = user.get_user(ctx.author.id)
@@ -702,7 +696,7 @@ async def givem(ctx, mention, amnt):
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
-@commands.check(is_minimum_WL_donate)
+@commands.check(is_minimum_WL)
 async def givep(ctx, mention, amnt):
   async with locks[str(ctx.author.id)]:
       giver = user.get_user(ctx.author.id)
@@ -895,7 +889,7 @@ async def blackj(ctx, _type, amount):
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
-@commands.check(is_minimum_WL_trade)
+@commands.check(is_minimum_WL)
 async def trade(ctx, _type, mention):
   global locks
   responses = ["What are you doin that for? Those are the same you buffoons.", "Yea? You both think thats funny don't you. Get a life.", "Alright, I'm gettin me mallet! You'd better stop that before something happens."]
@@ -982,7 +976,7 @@ async def help(ctx, arg1=None):
   embed.add_field(name=":crescent_moon: **Resin Commands**", value = text)
   text = "`wish`, `free`"
   embed.add_field(name=":stars: **Wishing Commands**", value = text)
-  text = "`balance`, `shop`, `buy`, `gamble`, `blackjack`, `jackpot`,\n`givemora`, `giveprimo`"
+  text = "`balance`, `shop`, `buy`, `gamble`, `blackjack`, `jackpot`, `givemora`, `giveprimo`"
   embed.add_field(name=":moneybag: **Economic Commands**", value = text)
   text = "`profile`, `leaderboards`"
   embed.add_field(name=":person_bald: **Social Commands**", value = text)
@@ -1002,16 +996,16 @@ async def help(ctx, arg1=None):
   elif arg1.lower() == "a":
     if await user_is_me(ctx):
       embed = discord.Embed(title="Admin Commands", color=discord.Color.dark_red())
-      text = f"**{pre}update [w, c, u, com, shop] [i]**\n"
-      text += f"**{pre}stats**\n"
-      text += f"**{pre}clear [shop_items]**\n"
-      text += f"**{pre}test [?]**\n"
-      text += f"**{pre}reset [level, t, com] [@user or all]**\n"
-      text += f"**{pre}delete [@user]**\n"
-      text += f"**{pre}rob [@user]**\n"
-      text += f"**{pre}giftxp [@user] [amnt]**\n"
-      text += f"**{pre}giftp [@user] [amnt]**\n"
-      text += f"**{pre}giftm [@user] [amnt]**\n"
+      text = f"**`{pre}update` `w, c, u, com, shop, jp, lb` `i, p, m`**\n"
+      text += f"**`{pre}stats`**\n"
+      text += f"**`{pre}clear` `shop_items`**\n"
+      text += f"**`{pre}test` `?`**\n"
+      text += f"**`{pre}reset` `level, t, com` `@user or all`**\n"
+      text += f"**`{pre}delete` `@user`**\n"
+      text += f"**`{pre}rob` `@user`**\n"
+      text += f"**`{pre}giftxp` `@user` `amnt`**\n"
+      text += f"**`{pre}giftp` `@user` `amnt`**\n"
+      text += f"**`{pre}giftm` `@user` `amnt`**\n"
       embed.add_field(name="Admin Commands", value=text)
       await ctx.send(embed=embed)
   elif arg1.lower() == "p":
@@ -1071,10 +1065,10 @@ async def help(ctx, arg1=None):
   elif arg1.lower() == "jackpot":
     await embed_help_summary(ctx, f"{pre}jackpot", bot.get_command("jackpot").aliases, "Allows you to see the current total jackpots.")
   elif arg1.lower() == "givemora":
-    await embed_help_summary(ctx, f"{pre}givemora", bot.get_command("givemora").aliases, "A lovely donation of mora. Must be World Level 2 or above to use.",
+    await embed_help_summary(ctx, f"{pre}givemora", bot.get_command("givemora").aliases, "A lovely donation of mora. Must be World Level 5 or above to use.",
     {f"`{pre}givemora` `@user` `#`":"Allows you to donate mora to another user."})
   elif arg1.lower() == "giveprimo":
-    await embed_help_summary(ctx, f"{pre}giveprimo", bot.get_command("giveprimo").aliases, "A lovely donation of primogems. Must be World Level 2 or above to use.",
+    await embed_help_summary(ctx, f"{pre}giveprimo", bot.get_command("giveprimo").aliases, "A lovely donation of primogems. Must be World Level 5 or above to use.",
     {f"`{pre}giveprimo` `@user` `#`":"Allows you to donate primogems to another user."})
   elif arg1.lower() == "profile":
     await embed_help_summary(ctx, f"{pre}profile", bot.get_command("profile").aliases, "_ _",
@@ -1099,7 +1093,7 @@ async def help(ctx, arg1=None):
     await embed_help_summary(ctx, f"{pre}trivia", bot.get_command("trivia").aliases, "_ _",
     {f"`{pre}trivia` `trivia_ID` `answer...`":"Allows you to answer your trivia commissions. Trivia_id can be found in the () before the name of every trivia commission."})
   elif arg1.lower() == "trade":
-    await embed_help_summary(ctx, f"{pre}trade", bot.get_command("trade").aliases, "_ _",
+    await embed_help_summary(ctx, f"{pre}trade", bot.get_command("trade").aliases, "Allows trading with other users. Requires World Level 5 or higher to use.",
     {"`{pre}trade` `c` `@user`":"Allows you to trade characters with another user.",
     "`{pre}trade` `w` `@user`":"Allows you to trade weapons with another user."})
   elif arg1.lower() == "leaderboards":
