@@ -975,25 +975,25 @@ async def embed_help_summary(ctx, command, aliases, description, usage={}):
 async def help(ctx, arg1=None):
   embed = discord.Embed(title = "Yapa Bot Commands", color=discord.Color.greyple(), description="Use `?help command` to see more details about a particular command.")
   text = "`start`, `server`, `daily`, `weekly`, `vote`"
-  embed.add_field(name="Basic Commands", value = text)
+  embed.add_field(name="**Basic Commands**", value = text)
   text = "`adventure`"
-  embed.add_field(name=":sunrise_over_mountains: Adventure Commands", value = text)
+  embed.add_field(name=":sunrise_over_mountains: **Adventure Commands**", value = text)
   text = "`resin`, `condense`"
-  embed.add_field(name=":crescent_moon: Resin Commands", value = text)
+  embed.add_field(name=":crescent_moon: **Resin Commands**", value = text)
   text = "`wish`, `free`"
-  embed.add_field(name=":stars: Wishing Commands", value = text)
+  embed.add_field(name=":stars: **Wishing Commands**", value = text)
   text = "`balance`, `shop`, `buy`, `gamble`, `blackjack`, `jackpot`,\n`givemora`, `giveprimo`"
-  embed.add_field(name=":moneybag: Economic Commands", value = text)
+  embed.add_field(name=":moneybag: **Economic Commands**", value = text)
   text = "`profile`, `leaderboards`"
-  embed.add_field(name=":person_bald: Social Commands", value = text)
+  embed.add_field(name=":person_bald: **Social Commands**", value = text)
   text = "`listcharacters`, `equip`, `teams`"
-  embed.add_field(name=":people_wrestling: Character Commands", value = text)
+  embed.add_field(name=":people_wrestling: **Character Commands**", value = text)
   text = "`listweapons`"
-  embed.add_field(name=":crossed_swords: Weapon Commands", value = text)
+  embed.add_field(name=":crossed_swords: **Weapon Commands**", value = text)
   text = "`commissions`, `trivia`"
-  embed.add_field(name=":diamond_shape_with_a_dot_inside: Commission Commands", value = text)
+  embed.add_field(name=":diamond_shape_with_a_dot_inside: **Commission Commands**", value = text)
   text = "`trade`"
-  embed.add_field(name="🤝 Trading Commands", value = text)
+  embed.add_field(name="🤝 **Trading Commands**", value = text)
 
   if arg1 == None:
     await ctx.message.add_reaction("📧")

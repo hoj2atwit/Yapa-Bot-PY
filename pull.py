@@ -404,7 +404,7 @@ async def embed_gamble(ctx, u, amnt, _type, channel):
   doublePair = False
   doubleTriple = False
   quadruple = False
-  pentuple = True
+  pentuple = False
   six = False
   counter = 0
   last = 0
@@ -422,18 +422,18 @@ async def embed_gamble(ctx, u, amnt, _type, channel):
               else:
                   six = True
                   break
-          elif counter >= 5:
+          elif counter == 5:
             pentuple = True
             break
-          elif counter >= 4:
+          elif counter == 4:
             quadruple = True
             break
-          elif counter >= 3:
+          elif counter == 3:
             if triple:
               doubleTriple = True
             else:
               triple = True
-          elif counter >= 2:
+          elif counter == 2:
             if double:
               if doublePair:
                 triplePair = True
