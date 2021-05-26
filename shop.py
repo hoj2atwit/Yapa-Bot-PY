@@ -184,7 +184,7 @@ async def embed_show_shop(ctx, u, _type):
     embed.add_field(name="Stardust Shop",value=sd_text, inline=False)
   elif _type == "sg":
     embed.add_field(name="Starglitter Shop",value=sg_text, inline=False)
-  
+  embed.set_footer(text="Shop resets at 00:00 Monday EST")
   await ctx.send(embed=embed)
 
 def does_exist(_id):

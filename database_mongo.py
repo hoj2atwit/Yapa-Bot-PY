@@ -10,6 +10,10 @@ def get_time_collection():
   db_mongo = get_cluster().Yapa
   return db_mongo["Time"]
 
+def get_leaderboards_collection():
+  db_mongo = get_cluster().Yapa
+  return db_mongo["Leaderboards"]
+
 def get_gambling_collection():
   db_mongo = get_cluster().Yapa
   return db_mongo["Gamble"]
@@ -103,6 +107,10 @@ def save_shop(shop):
 def setup_jackpot():
   gambling_collection = get_gambling_collection()
   gambling_collection.replace_one({}, {"jackpot_primo": 10000, "jackpot_mora": 10000000}, upsert=True)
+
+def setup_leaderboard():
+  leaderboards_collection = get_leaderboards_collection()
+  leaderboards_collection.replace_one({}, {"top_10":{}}, upsert=True)
 
 
 ###GETTERS###
@@ -211,7 +219,10 @@ def get_jackpot_mora():
   jackpots = gambling_collection.find_one({})
   return jackpots["jackpot_mora"]
 
-
+def get_leaderboards():
+  leaderboards_collection = get_leaderboards_collection()
+  leaderboard = leaderboards_collection.find_one({})
+  return leaderboard["top_10"]
 
 ###UPDATING###
 def update_last_resin_time(time):
@@ -233,3 +244,7 @@ def reset_jackpot_mora():
 def reset_jackpot_primo():
   gambling_collection = get_gambling_collection()
   gambling_collection.update_one({}, {"$set":{"jackpot_primo": 10000}})
+
+def update_leaderboards(top_10_dicts):
+  leaderboards_collection = get_leaderboards_collection()
+  leaderboards_collection.update_one({}, {"$set":{"top_10": top_10_dicts}})

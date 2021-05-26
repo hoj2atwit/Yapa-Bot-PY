@@ -167,3 +167,8 @@ async def embed_out_of_stock(ctx):
   embed = discord.Embed()
   embed.add_field(name="Shop Error", value="That item is out of stock.")
   await ctx.send(ctx.author.mention, embed=embed)
+
+async def embed_command_does_not_exist(ctx):
+  embed = discord.Embed()
+  embed.add_field(name="Command Error", value="Command does not exist.")
+  await ctx.send(ctx.author.mention, embed=embed)

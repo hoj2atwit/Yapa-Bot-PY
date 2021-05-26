@@ -777,6 +777,45 @@ async def embed_exchange_weapon(ctx, bot, u:User, weap1_name, receiver:User, wea
   embed.add_field(name=f"{receiver.nickname}'s Exchange Summary:", value=f"{r_c.name} ➟ {u_c.name}",inline=False)
   await ctx.send(f"{ctx.author.mention}{receiver_user.mention}", embed=embed)
 
+async def embed_leader_boards(ctx):
+  top10_user_dicts = database_mongo.get_leaderboards()
+  text = ""
+  count = 1
+  for u_name in top10_user_dicts.keys():
+    text += "**{c}**: **{n}** | WL: **{w}** | EXP: **{e}**\n".format(c=count, n=top10_user_dicts[u_name]["nickname"], w=formatter.number_format(top10_user_dicts[u_name]["world_level"]), e=formatter.number_format(top10_user_dicts[u_name]["experience"]))
+    count += 1
+  if text == "":
+    text = "None"
+  embed = discord.Embed(title="Top 10 Yapa-Players", color=discord.Color.blue(), description=text)
+  embed.set_footer(text="Leader boards update every week 00:00 Monday EST")
+  await ctx.send(embed=embed)
+
+def update_leaderboards():
+  users_ids = database_mongo.get_all_users_list_ids()
+  top10Users = []
+  for i in range(len(users_ids)):
+    u = get_user(users_ids[i])
+    if len(top10Users) < 1:
+      top10Users.append(u)
+    else:
+      for x in range(len(top10Users)):
+        inListUser = top10Users[x]
+        if inListUser.world_level < u.world_level:
+          top10Users[x] = u
+          u = inListUser
+        elif inListUser.world_level == u.world_level:
+          if u.experience > inListUser.experience:
+            top10Users[x] = u
+            u = inListUser
+          elif len(top10Users) < 10 and x == (len(top10Users)-1):
+            top10Users.append(u)
+        elif len(top10Users) < 10 and x == (len(top10Users)-1):
+          top10Users.append(u)
+  top10Users_dicts = {}
+  for u in top10Users:
+    top10Users_dicts[u.name] = u.get_dict()
+  database_mongo.update_leaderboards(top10Users_dicts)
+
 def reset_timers(_id):
   u = get_user(_id)
   u.last_daily = ""

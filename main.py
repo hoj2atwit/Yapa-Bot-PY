@@ -43,10 +43,14 @@ def update_commissions_check():
   now = utc_now.astimezone(tz)
 
   current_time = now.strftime("%H:%M:%S")
-
+  weekno = now.weekday()
   if(current_time == '00:00:00' or current_time == '12:00:00'):
     print("Updating Commissions")
     user.generate_all_user_commissions()
+    if current_time == '00:00:00':
+      if weekno == 0:
+        user.update_leaderboards()
+        shop.generate_all_shops()
 
 def update_counter():
   while True:
@@ -229,6 +233,11 @@ async def update(ctx, arg1, arg2=None):
             await ctx.send(f"{ctx.author.mention}, Resetting Primo Jackpots.")
             database_mongo.reset_jackpot_primo()
             await ctx.send(f"{ctx.author.mention}, Primo jackpot have been reset.")
+        elif arg1.lower() == "lb":
+          await ctx.send(f"{ctx.author.mention}, Updating Leader Boards")
+          database_mongo.setup_leaderboard()
+          user.update_leaderboards()
+          await ctx.send(f"{ctx.author.mention}, All leader Boards have been updated.")
 
 @bot.command(name="clear")
 @commands.check(not_DM)
@@ -589,7 +598,7 @@ async def resin(ctx):
     e.set_footer(text=f"Only {get_next_resin_time()} till your next {u.get_resin_recharge()} Resin.")
     await ctx.send(embed=e, file=f)
 
-@bot.command(name="listCharacter", aliases=["listc", "lc", "listchar"])
+@bot.command(name="listCharacters", aliases=["listc", "lc", "listchar"])
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
@@ -621,7 +630,7 @@ async def listc(ctx, *args):
             return
       await user.embed_char_list(ctx, u, pg, bot)
 
-@bot.command(name="listWeapon", aliases=["listw", "lw"])
+@bot.command(name="listWeapons", aliases=["listw", "lw"])
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
@@ -946,90 +955,61 @@ async def trade(ctx, _type, mention):
           else:
             await user.embed_exchange_weapon(ctx, bot, u, weap1_name, receiver, weap2_name)
 
+@bot.command(name="leaderboards", aliases=["leaderboard", "lb", "leader"])
+@commands.check(user_exists)
+async def leader_boards(ctx, arg1=None):
+  try:
+    await user.embed_leader_boards(ctx)
+  except Exception as e:
+    print(e)
+
+async def embed_help_summary(ctx, command, aliases, description, usage={}):
+  embed = discord.Embed(title = f"Command Summary: `{command}`", description=description, color=discord.Color.light_grey())
+  SCtext = ""
+  for shortcut in aliases:
+    if SCtext == "":
+      SCtext += f"`{shortcut}`"
+    else:
+      SCtext += f", `{shortcut}`"
+  usage_text = ""
+  for u in usage.keys():
+    usage_text += f"{u}\n{usage[u]}\n"
+  if SCtext != "":
+    embed.add_field(name="Shortcuts", value=SCtext, inline=False)
+  if usage_text != "":
+    embed.add_field(name="Usage", value=usage_text,inline=False)
+  embed.set_footer(text="Optional Parameters are shown in italics.")
+  await ctx.send(embed=embed)
+
 @bot.command(name="help", aliases=["h"])
-@commands.check(not_DM)
-async def help(ctx,arg1=None):
-  embedList = []
-  embed = discord.Embed(title = "Yapa Bot Commands 1", color=discord.Color.dark_red())
+async def help(ctx, arg1=None):
+  embed = discord.Embed(title = "Yapa Bot Commands", color=discord.Color.greyple(), description="Use `?help command` to see more details about a particular command.")
+  text = "`start`, `server`, `daily`, `weekly`, `vote`"
+  embed.add_field(name="Basic Commands", value = text)
+  text = "`adventure`"
+  embed.add_field(name=":sunrise_over_mountains: Adventure Commands", value = text)
+  text = "`resin`, `condense`"
+  embed.add_field(name=":crescent_moon: Resin Commands", value = text)
+  text = "`wish`, `free`"
+  embed.add_field(name=":stars: Wishing Commands", value = text)
+  text = "`balance`, `shop`, `buy`, `gamble`, `blackjack`, `jackpot`,\n`givemora`, `giveprimo`"
+  embed.add_field(name=":moneybag: Economic Commands", value = text)
+  text = "`profile`, `leaderboards`"
+  embed.add_field(name=":person_bald: Social Commands", value = text)
+  text = "`listcharacters`, `equip`, `teams`"
+  embed.add_field(name=":people_wrestling: Character Commands", value = text)
+  text = "`listweapons`"
+  embed.add_field(name=":crossed_swords: Weapon Commands", value = text)
+  text = "`commissions`, `trivia`"
+  embed.add_field(name=":diamond_shape_with_a_dot_inside: Commission Commands", value = text)
+  text = "`trade`"
+  embed.add_field(name="🤝 Trading Commands", value = text)
 
-  text = f"**{pre}start** | Allows you to start your Yappa Experience.\n_ _\n"
-  text += f"**{pre}server** | Sends the invite link to the official Yapa-Bot support server.\n"
-  text += f"**{pre}daily** | Allows you to claim daily rewards.\n"
-  text += f"**{pre}weekly** | Allows you to claim weekly rewards.\n"
-  text += f"**{pre}vote** | Allows you to vote for the bot on top.gg and earn another daily claim.\n_ _\n_ _\n_ _"
-  embed.add_field(name="Basic Commands", value = text, inline=False)
-
-  text = f"**{pre}a [char_name] {pre}[cn] {pre}[cn] {pre}[cn]** | Allows you to go on an adventure with up to 4 of your characters at the cost of 20 resin. You must have atleast 1 character to adventure.\n"
-  text += f"**{pre}a t[#]** | Allows you to go on an adventure with a preassigned party.\n_ _\n"
-  text += f"**{pre}teams** | Allows you to look at all of your teams.\n"
-  text += f"**{pre}teams [#]** | Allows you to look at who is in a specific team.\n"
-  text += f"**{pre}teams [#] [char_name] {pre}[cn] {pre}[cn] {pre}[cn]** | Allows you to put up to 4 characters you own into their own party.\n_ _\n_ _\n_ _"
-  embed.add_field(name=":sunrise_over_mountains: Adventure Commands", value = text, inline=False)
-
-  text = f"**{pre}r** | Allows you to look at your current resin.\n"
-  text += f"**{pre}con [amount]** | Allows you to store resin in 40 resin capsules. You can only store up to 10 condensed.\n"
-  text += f"**{pre}con use [amount]** | Allows you use stored resin.\n_ _\n_ _\n_ _"
-  embed.add_field(name=":crescent_moon: Resin Commands", value = text, inline=False)
-
-  text = f"**{pre}w** | Allows you to wish for your favorite genshin wishes at the cost of 160 primogems per wish.\n"
-  text += f"**{pre}w 10** | Allows you to wish for your favorite genshin wishes 10 at a time!\n"
-  text += f"**{pre}free** | Allows you to wish for your favorite genshin wishes for free. These wishes will not be added to your collection.\n"
-  text += f"**{pre}free 10** | Allows you to wish for your favorite 10 genshin wishes for free. These wishes will not be added to your collection."
-  embed.add_field(name=":stars: Wishing Commands", value = text, inline=False)
-
-  embed.set_footer(text=f"Page 1/3")
-  embedList.append(embed)
-
-
-  embed = discord.Embed(title = "Yapa Bot Commands 2", color=discord.Color.dark_red())
-
-  text = f"**{pre}b** | Allows you to look at your collected currencies.\n_ _\n"
-  text += f"**{pre}shop [p, m, sg or sd]** | Allows user to see their shop.\n"
-  text += f"**{pre}buy [item_name] [amount]** | Allows user to buy from the shop as long as they have enough of the right currency.\n_ _\n"
-  text += f"**{pre}g [p or m] [amount]** | Allows you to use your mora or primogems to gamble, having a chance to win x2 or even x10 of waht you put it.\n"
-  text += f"**{pre}bj [p or m] [amount]** | Allows you to use your mora or primogems to gamble in black jack! Play for a chance to double your money!\n"
-  text += f"**{pre}jp** | Allows you to see the current total jackpots.\n_ _\n"
-  text += f"**{pre}givem [@user] [amnt#]** | Allows you to donate mora to another user.\n"
-  text += f"**{pre}givep [@user] [amnt#]** | Allows you to donate primogems to another user.\n_ _\n_ _\n_ _"
-  embed.add_field(name=":moneybag: Economic Commands", value = text, inline=False)
-
-
-  text = f"**{pre}p [@user]** | Allows you to look at your or other user data.\n"
-  text += f"**{pre}p [favorite] [char_name]** | Allows you to set your favorite character. Character must be owned before favoriting.\n"
-  text += f"**{pre}p [description] [desc...]** | Allows you set your profile description.\n"
-  text += f"**{pre}p [nickname] [nick...]** | Allows you set your profile description.\n_ _\n_ _\n_ _"
-  embed.add_field(name=":person_bald: Profile Commands", value = text, inline=False)
-
-
-  text = f"**{pre}lc [pg#]** | Allows you to look at your personal character collection.\n"
-  text += f"**{pre}lc [char_name]** | Allows you to look at a specific character in your collection.\n"
-  text += f"**{pre}e [char_name] {pre}[weap_name or none]** | Allows you to equip a weapon to a chracter. You can only equip things you own."
-  embed.add_field(name=":people_wrestling: Character Commands", value = text, inline=False)
-
-  embed.set_footer(text=f"Page 2/3")
-  embedList.append(embed)
-
-
-  embed = discord.Embed(title = "Yapa Bot Commands 3", color=discord.Color.dark_red())
-
-  text = f"**{pre}lw [pg#]** | Allows you to look at your personal weapon collection.\n"
-  text += f"**{pre}lw [weap_name]** | Allows you to look at a specific weapon in your collection.\n_ _\n_ _\n_ _"
-  embed.add_field(name=":crossed_swords: Weapon Commands", value = text, inline=False)
-
-  text = f"**{pre}c** | Allows you to look at your commissions and their descriptions.\n"
-  text += f"**{pre}t [triviaID] [answer]** | Allows you to answer your trivia commissions. Trivia id can be found in the () before every trivia commission.\n_ _\n_ _\n_ _"
-  embed.add_field(name=":diamond_shape_with_a_dot_inside: Commission Commands", value = text, inline=False)
-
-  text = f"**{pre}trade c [@user]** | Allows you to trade characters with another user.\n"
-  text += f"**{pre}trade w [@user]** | Allows you to trade weapons with another user."
-  embed.add_field(name="🤝 Trading Commands", value = text, inline=False)
-
-  embed.set_footer(text=f"Page 3/3")
-  embedList.append(embed)
-
-  if arg1 == "p":
-    await formatter.pages(ctx, bot, embedList)
-  elif arg1 == "a":
+  if arg1 == None:
+    await ctx.message.add_reaction("📧")
+    await ctx.send("**?help** will dm you commands. If you have dms disabled, use **?help p**.")
+    await ctx.author.send(embed=embed)
+  elif arg1.lower() == "a":
     if await user_is_me(ctx):
       embed = discord.Embed(title="Admin Commands", color=discord.Color.dark_red())
       text = f"**{pre}update [w, c, u, com, shop] [i]**\n"
@@ -1044,10 +1024,99 @@ async def help(ctx,arg1=None):
       text += f"**{pre}giftm [@user] [amnt]**\n"
       embed.add_field(name="Admin Commands", value=text)
       await ctx.send(embed=embed)
+  elif arg1.lower() == "p":
+    await ctx.send(embed=embed)
+  elif arg1.lower() == "start":
+    await embed_help_summary(ctx, f"{pre}start", bot.get_command("start").aliases, "Allows you to start your Yapa Experience.")
+  elif arg1.lower() == "server":
+    await embed_help_summary(ctx, f"{pre}server", bot.get_command("server").aliases, "Sends the invite link to the official Yapa-Bot support server.")
+  elif arg1.lower() == "daily":
+    await embed_help_summary(ctx, f"{pre}daily", bot.get_command("daily").aliases, "Allows you to claim daily rewards.")
+  elif arg1.lower() == "weekly":
+    await embed_help_summary(ctx, f"{pre}weekly", bot.get_command("weekly").aliases, "Allows you to claim weekly rewards.")
+  elif arg1.lower() == "vote":
+    await embed_help_summary(ctx, f"{pre}vote", bot.get_command("vote").aliases, "Allows you to vote for the bot on top.gg and earn another daily claim.")
+  elif arg1.lower() == "adventure":
+    await embed_help_summary(ctx, f"{pre}adventure", bot.get_command("adventure").aliases, "Allows you to adventure with characters for experience and loot at the cost of 20 resin.",
+    {f"`{pre}adventure` `char_name` *`{pre}char_name`* *`{pre}char_name`* *`{pre}char_name`*":"Allows you to go on an adventure with up to 4 of your characters. You must have atleast 1 character to adventure.",
+    f"`{pre}adventure` `t#`":"Allows you to go on an adventure with a preassigned party."})
+  elif arg1.lower() == "teams":
+    await embed_help_summary(ctx, f"{pre}teams", bot.get_command("teams").aliases, "_ _",
+    {f"`{pre}teams`":"Allows you to look at all of your teams at once.",
+    f"`{pre}teams` `#`":"Allows you to look at who is in a specific team.",
+    f"`{pre}teams` `#` `char_name` *`{pre}char_name`* *`{pre}char_name`* *`{pre}char_name`*":"Allows you to put up to 4 characters you own into a team."})
+  elif arg1.lower() == "resin":
+    await embed_help_summary(ctx, f"{pre}resin", bot.get_command("resin").aliases, "Allows you to look at your resin related information.")
+  elif arg1.lower() == "condense":
+    await embed_help_summary(ctx, f"{pre}condense", bot.get_command("condense").aliases, "_ _",
+     {f"`{pre}condense` *`#`*":"Allows you to store resin in 40 resin capsules. You can only make up to 10 condensed.",
+     f"`{pre}condense` `use` *`#`*":"Allows you use stored resin."})
+  elif arg1.lower() == "wish":
+    await embed_help_summary(ctx, f"{pre}wish", bot.get_command("wish").aliases, "_ _",
+    {f"`{pre}wish` *`10`*":"Allows you to wish for your favorite genshin wishes at the cost of 160 primogems per wish."})
+  elif arg1.lower() == "free":
+    await embed_help_summary(ctx, f"{pre}free", bot.get_command("free").aliases, "_ _",
+    {f"`{pre}free` *`10`*":"Allows you to wish for your favorite genshin wishes for free. These wishes will not be added to your collection."})
+  elif arg1.lower() == "balance":
+    await embed_help_summary(ctx, f"{pre}balance", bot.get_command("balance").aliases, "Allows you to look at your collected currencies.")
+  elif arg1.lower() == "shop":
+    await embed_help_summary(ctx, f"{pre}shop", bot.get_command("shop").aliases, "Allows you see your shop.",
+    {f"`{pre}shop`":"Allows you to see your entire shop.",
+    f"`{pre}shop` `p`":"Allows you to see your Primogems shop.",
+    f"`{pre}shop` `m`":"Allows you to see your Mora shop.",
+    f"`{pre}shop` `sd`":"Allows you to see your Stardust shop.",
+    f"`{pre}shop` `sg`":"Allows you to see your StarGlitter shop.",
+    })
+  elif arg1.lower() == "buy":
+    await embed_help_summary(ctx, f"{pre}buy", bot.get_command("buy").aliases, "_ _",
+    {"`{pre}buy` `item_name` `#`":"Allows user to buy from the shop as long as they have enough of the right currency."})
+  elif arg1.lower() == "gamble":
+    await embed_help_summary(ctx, f"{pre}gamble", bot.get_command("gamble").aliases, "Roll all 6's to get the jackpot.",
+    {"`{pre}gamble` `p` `#`":"Allows you to use your primogems to gamble in a game of dices. Must bid at least 160 primogems for a chance to earn the jackpot.",
+    "`{pre}gamble` `m` `#`":"Allows you to use your mora to gamble in a game of dices. Must bid at least 10,000 mora for a chance to win the jackpot."})
+  elif arg1.lower() == "blackjack":
+    await embed_help_summary(ctx, f"{pre}blackjack", bot.get_command("blackjack").aliases, "Play a nice game of blackjack against Yapa. Win to double your money.",
+    {"`{pre}blackjack` `p` `#`":"Allows you to bid primogems in a game of blackjack.",
+    "`{pre}blackjack` `p` `#`":"Allows you to bid mora in a game of blackjack."})
+  elif arg1.lower() == "jackpot":
+    await embed_help_summary(ctx, f"{pre}jackpot", bot.get_command("jackpot").aliases, "Allows you to see the current total jackpots.")
+  elif arg1.lower() == "givemora":
+    await embed_help_summary(ctx, f"{pre}givemora", bot.get_command("givemora").aliases, "A lovely donation of mora. Must be World Level 2 or above to use.",
+    {f"`{pre}givemora` `@user` `#`":"Allows you to donate mora to another user."})
+  elif arg1.lower() == "giveprimo":
+    await embed_help_summary(ctx, f"{pre}giveprimo", bot.get_command("giveprimo").aliases, "A lovely donation of primogems. Must be World Level 2 or above to use.",
+    {f"`{pre}giveprimo` `@user` `#`":"Allows you to donate primogems to another user."})
+  elif arg1.lower() == "profile":
+    await embed_help_summary(ctx, f"{pre}profile", bot.get_command("profile").aliases, "_ _",
+    {f"`{pre}profile` *`@user`*":"Allows you to look at your or other user data.",
+    f"`{pre}profile` `favorite` `char_name`":"Allows you to set your favorite character. Character must be owned before favoriting.",
+    f"`{pre}profile` `description` `desc...`":"Allows you set your profile description.",
+    f"`{pre}profile` `nickname` `nick...`":"Allows you set your profile description."})
+  elif arg1.lower() == "listcharacters":
+    await embed_help_summary(ctx, f"{pre}listcharacters", bot.get_command("listcharacters").aliases, "_ _",
+    {"`{pre}listcharacters` *`#`*":"Allows you to look at your personal character collection.",
+    "`{pre}listcharacters` `char_name`":"Allows you to look at a specific character in your collection."})
+  elif arg1.lower() == "equip":
+    await embed_help_summary(ctx, f"{pre}equip", bot.get_command("equip").aliases, "_ _",
+    {f"`{pre}equip` `char_name` `{pre}weap_name`":"Allows you to equip a weapon to a chracter. You can only equip things you own. Put none into weap_name to unequip a weapon."})
+  elif arg1.lower() == "listweapons":
+    await embed_help_summary(ctx, f"{pre}listweapons", bot.get_command("listweapons").aliases, "_ _",
+    {"`{pre}listweapons` *`#`*":"Allows you to look at your personal weapon collection.",
+    "`{pre}listweapons` `weap_name`":"Allows you to look at a specific weapon in your collection."})
+  elif arg1.lower() == "commissions":
+    await embed_help_summary(ctx, f"{pre}commissions", bot.get_command("commissions").aliases, "Allows you to look at your commissions and their descriptions.")
+  elif arg1.lower() == "trivia":
+    await embed_help_summary(ctx, f"{pre}trivia", bot.get_command("trivia").aliases, "_ _",
+    {f"`{pre}trivia` `trivia_ID` `answer...`":"Allows you to answer your trivia commissions. Trivia_id can be found in the () before the name of every trivia commission."})
+  elif arg1.lower() == "trade":
+    await embed_help_summary(ctx, f"{pre}trade", bot.get_command("trade").aliases, "_ _",
+    {"`{pre}trade` `c` `@user`":"Allows you to trade characters with another user.",
+    "`{pre}trade` `w` `@user`":"Allows you to trade weapons with another user."})
+  elif arg1.lower() == "leaderboards":
+    await embed_help_summary(ctx, f"{pre}leaderboards", bot.get_command("leaderboards").aliases, "Gets the top 10 players of Yapa-Bot.")
   else:
-      await ctx.message.add_reaction("📧")
-      for e in embedList:
-        await ctx.author.send(embed=e)
+    await error.embed_command_does_not_exist(ctx)
+
 
 @tasks.loop(minutes=30)
 async def update_stats():
