@@ -400,7 +400,7 @@ async def embed_profile(ctx, u, member):
   embed.add_field(name="Favorite Character", value=f"{u.favorite_character}", inline=False)
   embed.add_field(name="Adventure Rank", value=f"{formatter.number_format(u.adventure_rank)}", inline=True)
   embed.add_field(name="World Level", value=f"{formatter.number_format(u.world_level)}", inline=True)
-  embed.add_field(name="Current XP:", value=f"{formatter.number_format(u.experience)}/{formatter.number_format(u.get_max_experience())}", inline=False)
+  embed.add_field(name="Current XP:", value=f"**{formatter.number_format(u.experience)}**/{formatter.number_format(u.get_max_experience())}", inline=False)
   embed.add_field(name="Pity:", value=f"5:star: | **{u.five_pity}/90**\n4:star: | **{u.four_pity}/10**", inline=False)
   embed.add_field(name="Currency:", value=f"Primogems: {formatter.number_format(u.primogems)}\nMora: {formatter.number_format(u.mora)}\nStar Glitter: {formatter.number_format(u.star_glitter)}\nStar Dust: {formatter.number_format(u.star_dust)}", inline=True)
   embed.add_field(name="Resin", value = f"{formatter.number_format(u.resin)}/{formatter.number_format(u.get_resin_cap())}\nCondensed: {formatter.number_format(u.condensed)}")
@@ -787,7 +787,7 @@ async def embed_leader_boards(ctx):
   if text == "":
     text = "None"
   embed = discord.Embed(title="Top 10 Yapa-Players", color=discord.Color.blue(), description=text)
-  embed.set_footer(text="Leader boards update every week 00:00 Monday EST")
+  embed.set_footer(text="Leader boards update every day Midnight EST")
   await ctx.send(embed=embed)
 
 def update_leaderboards():

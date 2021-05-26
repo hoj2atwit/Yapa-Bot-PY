@@ -48,8 +48,8 @@ def update_commissions_check():
     print("Updating Commissions")
     user.generate_all_user_commissions()
     if current_time == '00:00:00':
+      user.update_leaderboards()
       if weekno == 0:
-        user.update_leaderboards()
         shop.generate_all_shops()
 
 def update_counter():
@@ -559,20 +559,10 @@ async def weekly(ctx):
 @commands.check(user_exists)
 @commands.check(lock_exists)
 async def wish(ctx, arg=None):
-    async with locks[str(ctx.author.id)]:
-      u = user.get_user(ctx.author.id)
-      if arg == "10":
-        if u.primogems < 1600:
-          await error.embed_not_enough_primo(ctx)
-          return
-        await pull.embed_ten_pull(ctx, u)
-        database_mongo.save_user(u)
-      else:
-        if u.primogems < 160:
-          await error.embed_not_enough_primo(ctx)
-          return
-        await pull.embed_single_pull(ctx, u)
-        database_mongo.save_user(u)
+  if arg == "10":
+    await pull.embed_ten_pull(ctx, locks[str(ctx.author.id)])
+  else:
+    await pull.embed_single_pull(ctx, locks[str(ctx.author.id)])
       
       
 
