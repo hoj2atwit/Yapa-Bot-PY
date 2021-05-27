@@ -47,8 +47,8 @@ def update_commissions_check():
   if(current_time == '00:00:00' or current_time == '12:00:00'):
     print("Updating Commissions")
     user.generate_all_user_commissions()
+    user.update_leaderboards()
     if current_time == '00:00:00':
-      user.update_leaderboards()
       if weekno == 0:
         shop.generate_all_shops()
 
@@ -231,6 +231,13 @@ async def update(ctx, arg1, arg2=None):
           database_mongo.setup_leaderboard()
           user.update_leaderboards()
           await ctx.send(f"{ctx.author.mention}, All leader Boards have been updated.")
+        elif arg1.lower() == "replace":
+          await ctx.send(f"{ctx.author.mention}, Replacing with correct thing.")
+          try:
+            user.replace_weapon_name(None, None, None)
+          except Exception as e:
+            print(e)
+          await ctx.send(f"{ctx.author.mention}, Replacing with correct thing.")
 
 @bot.command(name="clear")
 @commands.check(not_DM)

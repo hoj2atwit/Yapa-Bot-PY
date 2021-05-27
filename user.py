@@ -782,7 +782,7 @@ async def embed_leader_boards(ctx):
   text = ""
   count = 1
   for u_name in top10_user_dicts.keys():
-    text += "**{c}**: **{n}** | WL: **{w}** | EXP: **{e}**\n".format(c=count, n=top10_user_dicts[u_name]["nickname"], w=formatter.number_format(top10_user_dicts[u_name]["world_level"]), e=formatter.number_format(top10_user_dicts[u_name]["experience"]))
+    text += "**{c}**: **`{n}`** | AR: **`{a}`** | EXP: **`{e}`**\n".format(c=count, n=top10_user_dicts[u_name]["nickname"], a=formatter.number_format(top10_user_dicts[u_name]["adventure_rank"]), e=formatter.number_format(top10_user_dicts[u_name]["experience"]))
     count += 1
   if text == "":
     text = "None"
@@ -800,10 +800,10 @@ def update_leaderboards():
     else:
       for x in range(len(top10Users)):
         inListUser = top10Users[x]
-        if inListUser.world_level < u.world_level:
+        if inListUser.adventure_rank < u.adventure_rank:
           top10Users[x] = u
           u = inListUser
-        elif inListUser.world_level == u.world_level:
+        elif inListUser.adventure_rank == u.adventure_rank:
           if u.experience > inListUser.experience:
             top10Users[x] = u
             u = inListUser
@@ -835,6 +835,25 @@ def generate_all_user_commissions():
     u = get_user(users_ids[i])
     u.commissions = {}
     u.commissions = commission.make_user_commissions()
+    database_mongo.save_user(u)
+
+def replace_weapon_name(old_URL_name, correct_URL_name, correct_name):
+  users_ids = database_mongo.get_all_users_list_ids()
+  for _id in users_ids:
+    u = get_user(_id)
+    user_weapons = u.weapons
+    if old_URL_name in user_weapons.keys():
+      dict = user_weapons[old_URL_name]
+      vortex = weapon.Weapon(correct_name, correct_URL_name, f"Images/Weapons/{correct_URL_name}-icon.png", dict["weapon_type"], dict["total"], dict["rarity"], dict["refinement"], dict["attack"], dict["substat"], dict["substat_value"], dict["level"], dict["xp"])
+      del user_weapons[old_URL_name]
+      user_weapons[correct_URL_name] = vortex.get_dict()
+      u.weapons = user_weapons
+    for c in u.characters.keys():
+      char = character.dict_to_char(u.characters[c])
+      if len(char.weapon_equiped.keys()) > 0:
+        if char.weapon_equiped["URL_name"] == old_URL_name:
+          char.weapon_equiped = u.weapons[correct_URL_name]
+          u.characters[c] = char.get_dict()
     database_mongo.save_user(u)
 
 def update_users():
