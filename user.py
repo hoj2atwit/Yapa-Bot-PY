@@ -787,7 +787,7 @@ async def embed_leader_boards(ctx):
   if text == "":
     text = "None"
   embed = discord.Embed(title="Top 10 Yapa-Players", color=discord.Color.blue(), description=text)
-  embed.set_footer(text="Leader boards update every day Midnight EST")
+  embed.set_footer(text="Leader boards update every day at Noon and Midnight-EST")
   await ctx.send(embed=embed)
 
 def update_leaderboards():
@@ -803,13 +803,23 @@ def update_leaderboards():
         if inListUser.adventure_rank < u.adventure_rank:
           top10Users[x] = u
           u = inListUser
+          print(f"replacing {u.nickname} with {top10Users[x].nickname}")
+          if x == len(top10Users)-1 and len(top10Users) < 10:
+            print(f"Adding {u.nickname}")
+            top10Users.append(u)
         elif inListUser.adventure_rank == u.adventure_rank:
           if u.experience > inListUser.experience:
             top10Users[x] = u
             u = inListUser
-          elif len(top10Users) < 10 and x == (len(top10Users)-1):
+            print(f"replacing {u.nickname} with {top10Users[x].nickname}")
+            if x == len(top10Users)-1 and len(top10Users) < 10:
+              print(f"Adding {u.nickname}")
+              top10Users.append(u)
+          elif len(top10Users) < 10 and x == len(top10Users)-1:
+            print(f"Adding {u.nickname}")
             top10Users.append(u)
-        elif len(top10Users) < 10 and x == (len(top10Users)-1):
+        elif len(top10Users) < 10 and x == len(top10Users)-1:
+          print(f"Adding {u.nickname}")
           top10Users.append(u)
   top10Users_dicts = {}
   for u in top10Users:
