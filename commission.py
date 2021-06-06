@@ -393,12 +393,22 @@ async def answer_trivia(ctx, u, cid, answer):
     if coms[cid]["t"] == "T":
       t = dict_to_trivia(coms[cid]["commission"])
       if not t.completed:
-        for key in t.answer.keys():
-          if t.answer[key].lower() == answer.lower():
-            t.completed = True
-            await completed_commission(ctx, u, t)
-            coms[cid]["commission"] = t.get_dict()
-            u.commissions = coms
-            await all_commissions_completed(ctx, u)
-            return
-        await error.embed_wrong_answer(ctx)
+        if isinstance(t.answer, str):
+          if t.answer.lower() == answer.lower():
+              t.completed = True
+              await completed_commission(ctx, u, t)
+              coms[cid]["commission"] = t.get_dict()
+              u.commissions = coms
+              await all_commissions_completed(ctx, u)
+          else:
+            await error.embed_wrong_answer(ctx)
+        else:
+          for key in t.answer.keys():
+            if t.answer[key].lower() == answer.lower():
+              t.completed = True
+              await completed_commission(ctx, u, t)
+              coms[cid]["commission"] = t.get_dict()
+              u.commissions = coms
+              await all_commissions_completed(ctx, u)
+              return
+          await error.embed_wrong_answer(ctx)
