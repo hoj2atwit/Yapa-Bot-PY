@@ -72,15 +72,24 @@ class Character:
 def get_character_from_dict(charsDict, name):
   n = formatter.name_formatter(name)
   c = charsDict[n]
-  return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], c["constellation_name"], c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
+  if isinstance(c["constellation_name"], str):
+    return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], {"1":c["constellation_name"]}, c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
+  else:
+    return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], c["constellation_name"], c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
 
 def get_character(name):
   c = database_mongo.get_character_dict(name)
-  return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], c["constellation_name"], c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
+  if isinstance(c["constellation_name"], str):
+    return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], {"1":c["constellation_name"]}, c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
+  else:
+    return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], c["constellation_name"], c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
 
 def dict_to_char(charDict):
   c = charDict
-  return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], c["constellation_name"], c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
+  if isinstance(c["constellation_name"], str):
+    return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], {"1":c["constellation_name"]}, c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
+  else:
+    return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], c["constellation_name"], c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
 
 def get_all_characters():
   allChars = []

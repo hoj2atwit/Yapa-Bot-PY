@@ -114,7 +114,7 @@ def get_all_characters_API():
       rarity = int("{}".format(json_data['rarity']), base = 10)
       element = formatter.name_unformatter("{}".format(json_data['vision']))
       weaponType = "{}".format(json_data['weapon_type'])
-      constName = "{}".format(json_data['constellation'])
+      constName = {"1":"{}".format(json_data['constellation'])}
       constellations = constellation.get_all_constillations(rarity, json_data)
       allChars.append(Character(name, URL_name, iconURL, portraitURL, description, rarity, element, {}, weaponType, constName, constellations, {}, 1, 0, 0, 0, 5, 100, 0, 50, 20))
       print("finished {} data".format(i))
@@ -147,6 +147,8 @@ async def get_all_character_images_API(ctx):
 def update_all_characters_DB():
   allChars = get_all_characters_API()
   for c in allChars:
+    if c.name.lower().startswith("traveler"):
+      c.constellation_name["2"] = "Viator"
     database_mongo.save_character(c)
 
 def update_user_characters():

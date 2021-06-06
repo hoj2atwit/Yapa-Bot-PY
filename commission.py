@@ -30,7 +30,7 @@ class Trivia:
   ID = ""
   title = ""
   question = ""
-  answer = ""
+  answer = {}
   primoReward = 0
   moraReward = 0
   xp = 0
@@ -146,10 +146,10 @@ def insert_character_trivia(triviaDict, startingIndex):
   allCharDicts = database_mongo.get_all_characters_list()
   for char in allCharDicts:
     c = char
-    triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What element is {}?".format(c["name"]), "{}".format(c["element"]), 30, 500, 30, False)
+    triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What element is {}?".format(c["name"]), {"1":"{}".format(c["element"])}, 30, 500, 30, False)
     newTrivDict[f"T{newestIndex}"] = triv.get_dict()
     newestIndex += 1
-    triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What weapon type does {} use?".format(c["name"]), "{}".format(c["weapon_type"]), 30, 500, 30, False)
+    triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What weapon type does {} use?".format(c["name"]), {"1":"{}".format(c["weapon_type"])}, 30, 500, 30, False)
     newTrivDict[f"T{newestIndex}"] = triv.get_dict()
     newestIndex += 1
     triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What is the name of {}\'s Constellation?".format(c["name"]), "{}".format(c["constellation_name"]), 160, 1000, 50, False)
@@ -393,11 +393,12 @@ async def answer_trivia(ctx, u, cid, answer):
     if coms[cid]["t"] == "T":
       t = dict_to_trivia(coms[cid]["commission"])
       if not t.completed:
-        if t.answer.lower() == answer.lower():
-          t.completed = True
-          await completed_commission(ctx, u, t)
-          coms[cid]["commission"] = t.get_dict()
-          u.commissions = coms
-          await all_commissions_completed(ctx, u)
-        else:
-          await error.embed_wrong_answer(ctx)
+        for key in t.answer.keys():
+          if t.answer[key].lower() == answer.lower():
+            t.completed = True
+            await completed_commission(ctx, u, t)
+            coms[cid]["commission"] = t.get_dict()
+            u.commissions = coms
+            await all_commissions_completed(ctx, u)
+            return
+        await error.embed_wrong_answer(ctx)

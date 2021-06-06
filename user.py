@@ -560,7 +560,13 @@ async def embed_show_char_info(ctx, u, c):
     color = discord.Color.orange()
   elif c["element"] == "Cryo":
     color = discord.Color.blue()
-
+  const_names_dict = c["constellation_name"]
+  const_names = ""
+  for key in const_names_dict.keys():
+    if const_names == "":
+      const_names += const_names_dict[key]
+    else:
+      const_names += " or " + const_names_dict[key]
   embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = c["name"]), color=color, description=c["description"])
   level = formatter.number_format(c["level"])
   currXP = formatter.number_format(c["xp"])
@@ -572,7 +578,7 @@ async def embed_show_char_info(ctx, u, c):
   else:
     text = c["weapon_equiped"]["name"]
   embed.add_field(name="Equiped Weapon", value=text)
-  embed.add_field(name="Trivia Info", value="**Element:** {e}\n**Constellation:** {c}\n**Weapon Type:** {w}".format(e = c["element"], c = c["constellation_name"], w=formatter.name_unformatter(formatter.name_formatter(c["weapon_type"]))))
+  embed.add_field(name="Trivia Info", value="**Element:** {e}\n**Constellation:** {c}\n**Weapon Type:** {w}".format(e = c["element"], c = const_names, w=formatter.name_unformatter(formatter.name_formatter(c["weapon_type"]))))
   f = []
   f.append(discord.File(c["URL_icon"], "{}-icon.png".format(c["URL_name"])))
   f.append(discord.File(c["URL_portrait"], "{}-portrait.png".format(c["URL_name"])))
@@ -865,4 +871,9 @@ def update_users():
   users_ids = database_mongo.get_all_users_list_ids()
   for i in range(len(users_ids)):
     u = get_user(users_ids[i])
+    for char_key in u.characters.keys():
+      char = character.get_character_from_dict(u.characters, char_key)
+      if char.name.lower().startswith("traveler"):
+        char.constellation_name["2"] = "Viator"
+      u.characters[char_key] = char.get_dict()
     database_mongo.save_user(u)
