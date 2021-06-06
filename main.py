@@ -234,7 +234,7 @@ async def update(ctx, arg1, arg2=None):
         elif arg1.lower() == "replace":
           await ctx.send(f"{ctx.author.mention}, Replacing with correct thing.")
           try:
-            user.replace_weapon_name(None, None, None)
+            user.replace_weapon_name("prototype-grudge", "prototype-starglitter", "Prototype Starglitter")
           except Exception as e:
             print(e)
           await ctx.send(f"{ctx.author.mention}, Replacing with correct thing.")
@@ -864,10 +864,17 @@ async def buy(ctx, name, amnt=None):
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
-async def vote(ctx):
+async def vote(ctx, toggle:str=""):
   async with locks[str(ctx.author.id)]:
     u = user.get_user(ctx.author.id)
-    await user.embed_vote(ctx, u, bot.user)
+    if toggle.lower() == "toggle":
+      u.vote_toggle = (not u.vote_toggle)
+      if u.vote_toggle:
+        await ctx.send(f"{ctx.author.mention}, Vote DM enabled.")
+      else:
+        await ctx.send(f"{ctx.author.mention}, Vote DM disabled.")
+    else:
+      await user.embed_vote(ctx, u, bot.user)
     database_mongo.save_user(u)
 
 @bot.command(name="jackpot", aliases=["jp"])
@@ -1026,7 +1033,8 @@ async def help(ctx, arg1=None):
   elif arg1.lower() == "weekly":
     await embed_help_summary(ctx, f"{pre}weekly", bot.get_command("weekly").aliases, "Allows you to claim weekly rewards.")
   elif arg1.lower() == "vote":
-    await embed_help_summary(ctx, f"{pre}vote", bot.get_command("vote").aliases, "Allows you to vote for the bot on top.gg and earn another daily claim.")
+    await embed_help_summary(ctx, f"{pre}vote", bot.get_command("vote").aliases, "Allows you to vote for the bot on top.gg and earn another daily claim.", 
+    {f"`{pre}vote` `toggle`":"Allows you to toggle the vote DM confirmation."})
   elif arg1.lower() == "adventure":
     await embed_help_summary(ctx, f"{pre}adventure", bot.get_command("adventure").aliases, "Allows you to adventure with characters for experience and loot at the cost of 20 resin.",
     {f"`{pre}adventure` `char_name` *`{pre}char_name`* *`{pre}char_name`* *`{pre}char_name`*":"Allows you to go on an adventure with up to 4 of your characters. You must have atleast 1 character to adventure.",
@@ -1035,7 +1043,7 @@ async def help(ctx, arg1=None):
     await embed_help_summary(ctx, f"{pre}teams", bot.get_command("teams").aliases, "_ _",
     {f"`{pre}teams`":"Allows you to look at all of your teams at once.",
     f"`{pre}teams` `#`":"Allows you to look at who is in a specific team.",
-    f"`{pre}teams` `#` `char_name` *`{pre}char_name`* *`{pre}char_name`* *`{pre}char_name`*":"Allows you to put up to 4 characters you own into a team."})
+    f"`{pre}teams` `#` `char_name` *`{pre}char_name`* *`{pre}char_name`* *`{pre}char_name`*":"Allows you to put up to 4 characters you own into a team.\nDoing this on an existing team will replace the team that is currently there."})
   elif arg1.lower() == "resin":
     await embed_help_summary(ctx, f"{pre}resin", bot.get_command("resin").aliases, "Allows you to look at your resin related information.")
   elif arg1.lower() == "condense":
@@ -1128,15 +1136,17 @@ async def on_dbl_vote(data):
     locks_copy[str(data["user"])] = asyncio.Lock()
     locks = locks_copy
   async with locks[str(data["user"])]:
-    u = user.get_user(int(data["user"]))
-    u.primogems += 800
-    u.condensed += 3
-    u.mora += 10000
-    u.update_vote()
-    database_mongo.save_user(u)
+    toggle = True
     embed = discord.Embed(title="Voting successful!")
     text = ""
     if user.does_exist(int(data["user"])):
+      u = user.get_user(int(data["user"]))
+      u.primogems += 800
+      u.condensed += 3
+      u.mora += 10000
+      toggle = u.vote_toggle
+      u.update_vote()
+      database_mongo.save_user(u)
       text = "<@{}> Thank you for voting for the Yapa Bot."
       embed.add_field(name="Rewards", value="**800** Primogems\n**10,000** Mora\n**3** Condensed Resin\n**12hr 1.5x** Experience Boost")
     else:
@@ -1144,8 +1154,10 @@ async def on_dbl_vote(data):
       embed.add_field(name="Rewards Would Have Been", value="**800** Primogems\n**10,000** Mora\n**3** Condensed Resin\n**12hr 1.5x*** Experience Boost")
     f = discord.File("Images/Other/Gift.png", "Gift.png")
     embed.set_thumbnail(url="attachment://Gift.png")
-    fetched_user = await bot.fetch_user(int(data["user"]))
-    await fetched_user.send(text.format(data["user"]), embed=embed, file=f)
+    embed.set_footer(text="Use ?vote toggle to disable DM confirmation.")
+    if not user.does_exist(int(data["user"])) or toggle:
+      fetched_user = await bot.fetch_user(int(data["user"]))
+      await fetched_user.send(text.format(data["user"]), embed=embed, file=f)
 
 @bot.event
 async def on_dbl_test(data):

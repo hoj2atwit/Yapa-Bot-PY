@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 tz = pytz.timezone("America/New_York")
 
 class User:
-  def __init__(self, _id, name, nickname, description, favorite_character, adventure_rank, experience, world_level, resin, five_pity, four_pity, characters, weapons, artifacts, mora, primogems, star_glitter, star_dust, condensed, last_daily, last_weekly, last_vote, bag, gear, commissions, teams):
+  def __init__(self, _id, name, nickname, description, favorite_character, adventure_rank, experience, world_level, resin, five_pity, four_pity, characters, weapons, artifacts, mora, primogems, star_glitter, star_dust, condensed, last_daily, last_weekly, last_vote, bag, gear, commissions, teams, vote_toggle):
     self._id = int(_id)
     self.name = str(name)
     self.nickname = str(nickname)
@@ -44,6 +44,7 @@ class User:
     self.gear = gear
     self.commissions = commissions
     self.teams = teams
+    self.vote_toggle = vote_toggle
 
   def can_daily(self):
     utc_now = pytz.utc.localize(datetime.utcnow())
@@ -362,7 +363,7 @@ class User:
       
 def get_user(_id):
   u = database_mongo.get_user_dict(_id)
-  return User(u["_id"], u["name"], u["nickname"], u["description"], u["favorite_character"], u["adventure_rank"], u["experience"], u["world_level"], u["resin"], u["five_pity"], u["four_pity"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["star_glitter"], u["star_dust"], u["condensed"], u["last_daily"], u["last_weekly"], u["last_vote"], u["bag"], u["gear"], u["commissions"], u["teams"])
+  return User(u["_id"], u["name"], u["nickname"], u["description"], u["favorite_character"], u["adventure_rank"], u["experience"], u["world_level"], u["resin"], u["five_pity"], u["four_pity"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["star_glitter"], u["star_dust"], u["condensed"], u["last_daily"], u["last_weekly"], u["last_vote"], u["bag"], u["gear"], u["commissions"], u["teams"], u["vote_toggle"])
 
 def does_exist(_id):
   u = database_mongo.get_user_dict(_id)
@@ -372,7 +373,7 @@ def does_exist(_id):
     return True
 
 def create_user(name, ID):
-  newU = User(ID, name, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 8000, 0, 0, 0, "", "", "", {}, {}, commission.make_user_commissions(),{"1":{}, "2":{}, "3":{}, "4":{}})
+  newU = User(ID, name, name, "", "none", 1, 0, 0, 240, 0, 0, {}, {}, {}, 50000, 8000, 0, 0, 0, "", "", "", {}, {}, commission.make_user_commissions(),{"1":{}, "2":{}, "3":{}, "4":{}}, True)
   shop.generate_shop(ID)
   traveler = character.get_character("traveler-anemo")
   newU.add_character(traveler)

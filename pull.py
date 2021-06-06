@@ -231,7 +231,7 @@ async def embed_single_pull(ctx):
   asyncio.get_event_loop().create_task(display_pull(ctx, embed, file, p.rarity, True))
 
 async def embed_free_single_pull(ctx, name):
-  u = user.User(0,name,name,"","none",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","","",{},{},{},{"1":[], "2":[], "3":[], "4":[]})
+  u = user.User(0,name,name,"","none",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","","",{},{},{},{"1":[], "2":[], "3":[], "4":[]}, False)
   if u.five_pity >= 89:
     (p, t), five, four = pull(False, True, u)
   elif u.four_pity >= 9:
@@ -267,7 +267,7 @@ async def embed_free_single_pull(ctx, name):
   asyncio.get_event_loop().create_task(display_pull(ctx, embed, f, p.rarity, True))
 
 async def embed_free_ten_pull(ctx, name):
-  u = user.User(0,name,name,"","none",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","","",{},{},{},{"1":[], "2":[], "3":[], "4":[]})
+  u = user.User(0,name,name,"","none",0,0,0,0,0,0,{},{},{},0,0,0,0,0,"","","",{},{},{},{"1":[], "2":[], "3":[], "4":[]}, False)
   pulls, five = ten_pull(u)
   if five:
     color = discord.Color.gold()
