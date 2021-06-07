@@ -152,7 +152,7 @@ def insert_character_trivia(triviaDict, startingIndex):
     triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What weapon type does {} use?".format(c["name"]), {"1":"{}".format(c["weapon_type"])}, 30, 500, 30, False)
     newTrivDict[f"T{newestIndex}"] = triv.get_dict()
     newestIndex += 1
-    triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What is the name of {}\'s Constellation?".format(c["name"]), "{}".format(c["constellation_name"]), 160, 1000, 50, False)
+    triv = Trivia(f"T{newestIndex}", "(T{ni}) Character Quiz - {n}".format(n = c["name"], ni = newestIndex), "What is the name of {}\'s Constellation?".format(c["name"]), c["constellation_name"], 160, 1000, 50, False)
     newTrivDict[f"T{newestIndex}"] = triv.get_dict()
     newestIndex += 1
   return newTrivDict, newestIndex

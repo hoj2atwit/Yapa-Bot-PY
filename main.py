@@ -302,7 +302,7 @@ async def reset(ctx, arg1, arg2):
       if arg1.lower() == "timers" or arg1.lower() == "t":
         mention_id = formatter.get_id_from_mention(arg2)
         if user.does_exist(mention_id):
-          confirm = await formatter.confirmation(ctx, bot)
+          confirm = await formatter.confirmation(ctx, bot, "")
           if confirm:
               user.reset_timers(mention_id)
               await ctx.send(f"<@{mention_id}>\'s User timers reset.")
@@ -312,19 +312,20 @@ async def reset(ctx, arg1, arg2):
           await error.embed_user_does_not_exist(ctx)
 
 
-      elif arg1.lower() == "commissions" or arg1.lower() == "c" or arg1.lower() == "coms":
+      elif arg1.lower() == "commissions" or arg1.lower() == "c" or arg1.lower() == "coms" or arg1.lower() == "com":
         if arg2.lower() == "all":
-          confirm = await formatter.confirmation(ctx, bot)
+          confirm = await formatter.confirmation(ctx, bot, "")
           if confirm:
             user.generate_all_user_commissions()
             await ctx.send(f"{ctx.author.mention}, All commissions have been reset.")
             return
           else:
             await ctx.send("Action Cancelled.")
+            return
 
         mention_id = formatter.get_id_from_mention(arg2)
         if user.does_exist(mention_id):
-          confirm = await formatter.confirmation(ctx, bot)
+          confirm = await formatter.confirmation(ctx, bot, "")
           if confirm:
             user.reset_daily_commissions(mention_id)
             await ctx.send(f"<@{mention_id}>\'s commissions reset.")
@@ -337,7 +338,7 @@ async def reset(ctx, arg1, arg2):
       elif arg1.lower() == "level" or arg1.lower() == "l":
         mention_id = formatter.get_id_from_mention(arg2)
         if user.does_exist(mention_id):
-          confirm = await formatter.confirmation(ctx, bot)
+          confirm = await formatter.confirmation(ctx, bot, "")
           if confirm:
               u = user.get_user(mention_id)
               member = await ctx.guild.fetch_member(str(mention_id))
@@ -359,7 +360,7 @@ async def delete(ctx, memberMention):
     async with locks[str(ctx.author.id)]:
       mention_id = formatter.get_id_from_mention(str(memberMention))
       if user.does_exist(mention_id):
-        confirm = await formatter.confirmation(ctx, bot)
+        confirm = await formatter.confirmation(ctx, bot,"")
         if confirm:
             database_mongo.delete_user(mention_id)
             await ctx.send(f"<@{mention_id}>\'s User data deleted")
