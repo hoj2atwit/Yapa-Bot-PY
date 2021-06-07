@@ -90,7 +90,7 @@ class uno_player():
         return False
 
     def input_valid(self, inputs:List[str]):
-        for 
+        pass
 
 class uno():
     def __init__(self, bot:commands.bot, players:List[uno_player], uno_deck:uno_deck, bet, stacking):
@@ -129,3 +129,4 @@ class uno():
         self.discard = self.uno_deck.draw()
 
 def start_uno():
+    pass
