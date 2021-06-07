@@ -1069,15 +1069,15 @@ async def help(ctx, arg1=None):
     })
   elif arg1.lower() == "buy":
     await embed_help_summary(ctx, f"{pre}buy", bot.get_command("buy").aliases, "_ _",
-    {"`{pre}buy` `item_name` `#`":"Allows user to buy from the shop as long as they have enough of the right currency."})
+    {f"`{pre}buy` `item_name` `#`":"Allows user to buy from the shop as long as they have enough of the right currency."})
   elif arg1.lower() == "gamble":
     await embed_help_summary(ctx, f"{pre}gamble", bot.get_command("gamble").aliases, "Roll all 6's to get the jackpot.",
-    {"`{pre}gamble` `p` `#`":"Allows you to use your primogems to gamble in a game of dices. Must bid at least 160 primogems for a chance to earn the jackpot.",
-    "`{pre}gamble` `m` `#`":"Allows you to use your mora to gamble in a game of dices. Must bid at least 10,000 mora for a chance to win the jackpot."})
+    {f"`{pre}gamble` `p` `#`":"Allows you to use your primogems to gamble in a game of dices. Must bid at least 160 primogems for a chance to earn the jackpot.",
+    f"`{pre}gamble` `m` `#`":"Allows you to use your mora to gamble in a game of dices. Must bid at least 10,000 mora for a chance to win the jackpot."})
   elif arg1.lower() == "blackjack":
     await embed_help_summary(ctx, f"{pre}blackjack", bot.get_command("blackjack").aliases, "Play a nice game of blackjack against Yapa. Win to double your money.",
-    {"`{pre}blackjack` `p` `#`":"Allows you to bid primogems in a game of blackjack.",
-    "`{pre}blackjack` `p` `#`":"Allows you to bid mora in a game of blackjack."})
+    {f"`{pre}blackjack` `p` `#`":"Allows you to bid primogems in a game of blackjack.",
+    f"`{pre}blackjack` `m` `#`":"Allows you to bid mora in a game of blackjack."})
   elif arg1.lower() == "jackpot":
     await embed_help_summary(ctx, f"{pre}jackpot", bot.get_command("jackpot").aliases, "Allows you to see the current total jackpots.")
   elif arg1.lower() == "givemora":
@@ -1094,15 +1094,15 @@ async def help(ctx, arg1=None):
     f"`{pre}profile` `nickname` `nick...`":"Allows you set your profile description."})
   elif arg1.lower() == "listcharacters":
     await embed_help_summary(ctx, f"{pre}listcharacters", bot.get_command("listcharacters").aliases, "_ _",
-    {"`{pre}listcharacters` *`#`*":"Allows you to look at your personal character collection.",
-    "`{pre}listcharacters` `char_name`":"Allows you to look at a specific character in your collection."})
+    {f"`{pre}listcharacters` *`#`*":"Allows you to look at your personal character collection.",
+    f"`{pre}listcharacters` `char_name`":"Allows you to look at a specific character in your collection."})
   elif arg1.lower() == "equip":
     await embed_help_summary(ctx, f"{pre}equip", bot.get_command("equip").aliases, "_ _",
     {f"`{pre}equip` `char_name` `{pre}weap_name`":"Allows you to equip a weapon to a chracter. You can only equip things you own. Put none into weap_name to unequip a weapon."})
   elif arg1.lower() == "listweapons":
     await embed_help_summary(ctx, f"{pre}listweapons", bot.get_command("listweapons").aliases, "_ _",
-    {"`{pre}listweapons` *`#`*":"Allows you to look at your personal weapon collection.",
-    "`{pre}listweapons` `weap_name`":"Allows you to look at a specific weapon in your collection."})
+    {f"`{pre}listweapons` *`#`*":"Allows you to look at your personal weapon collection.",
+    f"`{pre}listweapons` `weap_name`":"Allows you to look at a specific weapon in your collection."})
   elif arg1.lower() == "commissions":
     await embed_help_summary(ctx, f"{pre}commissions", bot.get_command("commissions").aliases, "Allows you to look at your commissions and their descriptions.")
   elif arg1.lower() == "trivia":
@@ -1110,8 +1110,8 @@ async def help(ctx, arg1=None):
     {f"`{pre}trivia` `trivia_ID` `answer...`":"Allows you to answer your trivia commissions. Trivia_id can be found in the () before the name of every trivia commission."})
   elif arg1.lower() == "trade":
     await embed_help_summary(ctx, f"{pre}trade", bot.get_command("trade").aliases, "Allows trading with other users. Requires World Level 5 or higher to use.",
-    {"`{pre}trade` `c` `@user`":"Allows you to trade characters with another user.",
-    "`{pre}trade` `w` `@user`":"Allows you to trade weapons with another user."})
+    {f"`{pre}trade` `c` `@user`":"Allows you to trade characters with another user.",
+    f"`{pre}trade` `w` `@user`":"Allows you to trade weapons with another user."})
   elif arg1.lower() == "leaderboards":
     await embed_help_summary(ctx, f"{pre}leaderboards", bot.get_command("leaderboards").aliases, "Gets the top 10 players of Yapa-Bot.")
   else:

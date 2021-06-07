@@ -873,7 +873,16 @@ def update_users():
     u = get_user(users_ids[i])
     for char_key in u.characters.keys():
       char = character.get_character_from_dict(u.characters, char_key)
-      if char.name.lower().startswith("traveler"):
-        char.constellation_name["2"] = "Viator"
+      char_DB = character.get_character(char.name)
+      char.URL_icon = char_DB.URL_icon
+      char.URL_portrait = char_DB.URL_portrait
+      char.description = char_DB.description
+      char.constellations = char_DB.constellations
+      char.constellation_name = char_DB.constellation_name
       u.characters[char_key] = char.get_dict()
+    for weap_key in u.weapons.keys():
+      weap = weapon.get_weapon_from_dict(u.weapons, weap_key)
+      weap_DB = weapon.get_weapon(weap.name)
+      weap.URL_icon = weap_DB.URL_icon
+      u.weapons[weap_key] = weap.get_dict()
     database_mongo.save_user(u)
