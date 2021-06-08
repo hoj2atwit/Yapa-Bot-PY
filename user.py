@@ -425,20 +425,23 @@ async def embed_profile(ctx, u, member):
     embed.set_footer(text=f"🔥 Boost Active")
   await ctx.send(embed=embed)
 
-async def embed_char_list(ctx, u, pg, bot):
+async def embed_char_list(ctx, u, pg, bot, select_type):
   allChars = formatter.organize_by_rarity(u.characters)
   charlist = []
   text = ""
+  added = 0
   for i in range(len(allChars)):
     char = allChars[i]
-    if char["rarity"] == 5:
-      text += prefix.fiveStarPrefix
-    else:
-      text += prefix.fourStarPrefix
-    text += "{n} **C{con}** x{c}\n".format(n = char["name"], con=char["const_amnt"] ,c = char["total"])
-    if i % 10 == 0 and i != 0:
-      charlist.append(text)
-      text = ""
+    if select_type == "" or select_type.lower() == char["weapon_type"].lower():
+      if char["rarity"] == 5:
+        text += prefix.fiveStarPrefix
+      else:
+        text += prefix.fourStarPrefix
+      text += "{n} **C{con}** x{c}\n".format(n = char["name"], con=char["const_amnt"] ,c = char["total"])
+      added += 1
+      if added % 10 == 0 and added != 0:
+        charlist.append(text)
+        text = ""
   if(len(charlist) == 0 and text == ""):
     text = "none\n"
   if(text != ""):
@@ -457,26 +460,30 @@ async def embed_char_list(ctx, u, pg, bot):
       charListPages.append(embed)
   await formatter.pages(ctx, bot,  charListPages)
 
-async def embed_weap_list(ctx, u, pg, bot):
+async def embed_weap_list(ctx, u, pg, bot, select_type):
   allWeaps = formatter.organize_by_rarity(u.weapons)
   weaplist = []
   text = ""
+  added = 0
   for i in range(len(allWeaps)):
     weap = allWeaps[i]
-    if weap["rarity"] == 5:
-      text += prefix.fiveStarPrefix
-    elif weap["rarity"] == 4:
-      text += prefix.fourStarPrefix
-    elif weap["rarity"] == 3:
-      text += prefix.threeStarPrefix
-    elif weap["rarity"] == 2:
-      text += prefix.twoStarPrefix
-    else:
-      text += prefix.oneStarPrefix
-    text += "{n} **R{r}** x{c}\n".format(n = weap["name"], r=weap["refinement"] ,c = weap["total"])
-    if i % 10 == 0 and i != 0:
-      weaplist.append(text)
-      text = ""
+    if select_type == "" or weap["weapon_type"].lower() == select_type.lower():
+      if weap["rarity"] == 5:
+        text += prefix.fiveStarPrefix
+      elif weap["rarity"] == 4:
+        text += prefix.fourStarPrefix
+      elif weap["rarity"] == 3:
+        text += prefix.threeStarPrefix
+      elif weap["rarity"] == 2:
+        text += prefix.twoStarPrefix
+      else:
+        text += prefix.oneStarPrefix
+    
+      text += "{n} **R{r}** x{c}\n".format(n = weap["name"], r=weap["refinement"] ,c = weap["total"])
+      added += 1
+      if added % 10 == 0 and added != 0:
+        weaplist.append(text)
+        text = ""
   if(len(weaplist) == 0 and text == ""):
     text = "none\n"
   if(text != ""):

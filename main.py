@@ -280,12 +280,12 @@ async def test(ctx, mention):
         locks = locks_copy
       async with locks[str(receiver_id)]:
         receiver = user.get_user(receiver_id)
-        asyncio.get_event_loop().create_task(user.embed_char_list(ctx, u, 1, bot))
+        asyncio.get_event_loop().create_task(user.embed_char_list(ctx, u, 1, bot, ""))
         confirm, char1_name = await formatter.request_character_name(ctx, bot, u)
         if not confirm:
           await ctx.send("Trade Cancelled.")
           return
-        asyncio.get_event_loop().create_task(user.embed_char_list(ctx, receiver, 1, bot))
+        asyncio.get_event_loop().create_task(user.embed_char_list(ctx, receiver, 1, bot, ""))
         confirm, char2_name = await formatter.request_character_name(ctx, bot, receiver)
         if not confirm:
           await ctx.send("Trade Cancelled.")
@@ -595,64 +595,64 @@ async def resin(ctx):
 @commands.check(user_exists)
 @commands.check(lock_exists)
 async def listc(ctx, *args):
-      u = user.get_user(ctx.author.id)
-      pg = 1
-      if len(args) > 0:
-        if args[0].isdigit():
-          pg = int(args[0])
-          if len(args) > 1:
-            mention_ID = formatter.get_id_from_mention(str(args[1]))
-            if user.does_exist(mention_ID):
-              u = user.get_user(mention_ID)
-
-        elif user.does_exist(formatter.get_id_from_mention(str(args[0]))):
-          u = user.get_user(formatter.get_id_from_mention(str(args[0])))
-          if len(args) > 1:
-            if args[1].isdigit():
-              pg = int(args[1])
-
-        else:
-          #show specific character info
-          name = formatter.separate_commands(args)[0].lower()
-          if u.does_character_exist(name):
-            await user.embed_show_char_info(ctx, u, u.characters[formatter.name_formatter(name)])
-            return
-          else:
-            await error.embed_get_character_suggestions(ctx, u, name)
-            return
-      await user.embed_char_list(ctx, u, pg, bot)
+  u = user.get_user(ctx.author.id)
+  pg = 1
+  select_type = ""
+  weap_types = ["catalyst", "sword", "claymore", "bow", "polearm"]
+  spec = False
+  if len(args) > 0:
+    for i in range(len(args)):
+      if args[i].isdigit():
+        pg = int(args[i])
+      elif user.does_exist(formatter.get_id_from_mention(str(args[i]))):
+        u = user.get_user(formatter.get_id_from_mention(str(args[i])))
+      elif args[i].lower() in weap_types:
+        select_type = args[i]
+      else:
+        spec = True
+        break
+    if spec:
+      #show specific character info
+      name = formatter.separate_commands(args)[0].lower()
+      if u.does_character_exist(name):
+        await user.embed_show_char_info(ctx, u, u.characters[formatter.name_formatter(name)])
+        return
+      else:
+        await error.embed_get_character_suggestions(ctx, u, name)
+        return
+  await user.embed_char_list(ctx, u, pg, bot, select_type)
 
 @bot.command(name="listWeapons", aliases=["listw", "lw"])
 @commands.check(not_DM)
 @commands.check(user_exists)
 @commands.check(lock_exists)
 async def listw(ctx, *args):
-    u = user.get_user(ctx.author.id)
-    pg = 1
-    if len(args) > 0:
-      if args[0].isdigit():
-        pg = int(args[0])
-        if len(args) > 1:
-          mention_ID = formatter.get_id_from_mention(str(args[1]))
-          if user.does_exist(mention_ID):
-            u = user.get_user(mention_ID)
-
-      elif user.does_exist(formatter.get_id_from_mention(str(args[0]))):
-        u = user.get_user(formatter.get_id_from_mention(str(args[0])))
-        if len(args) > 1:
-          if args[1].isdigit():
-            pg = int(args[1])
-
+  u = user.get_user(ctx.author.id)
+  pg = 1
+  weap_types = ["catalyst", "sword", "claymore", "bow", "polearm"]
+  select_type = ""
+  spec = False
+  if len(args) > 0:
+    for i in range(len(args)):
+      if args[i].isdigit():
+        pg = int(args[i])
+      elif user.does_exist(formatter.get_id_from_mention(str(args[i]))):
+        u = user.get_user(formatter.get_id_from_mention(str(args[i])))
+      elif args[i].lower() in weap_types:
+        select_type = args[i]
       else:
-        #show specific weapon info
-        name = formatter.separate_commands(args)[0]
-        if u.does_weapon_exist(name):
-          await user.embed_show_weap_info(ctx, u, u.weapons[formatter.name_formatter(name)])
-          return
-        else:
-          await error.embed_get_weapon_suggestions(ctx, u, name)
-          return
-    await user.embed_weap_list(ctx, u, pg, bot)
+        spec = True
+        break
+    if spec:
+      #show specific weapon info
+      name = formatter.separate_commands(args)[0]
+      if u.does_weapon_exist(name):
+        await user.embed_show_weap_info(ctx, u, u.weapons[formatter.name_formatter(name)])
+        return
+      else:
+        await error.embed_get_weapon_suggestions(ctx, u, name)
+        return
+  await user.embed_weap_list(ctx, u, pg, bot, select_type)
 
 
 @bot.command(name="equip", aliases=["e", "eq"])
@@ -922,12 +922,12 @@ async def trade(ctx, _type, mention):
           await error.embed_world_level_requirement_error(ctx, 5, receiver)
           return
         if _type == "c":
-          asyncio.get_event_loop().create_task(user.embed_char_list(ctx, u, 1, bot))
+          asyncio.get_event_loop().create_task(user.embed_char_list(ctx, u, 1, bot, ""))
           confirm, char1_name = await formatter.request_character_name(ctx, bot, u)
           if not confirm:
             await ctx.send("Trade Cancelled.")
             return
-          asyncio.get_event_loop().create_task(user.embed_char_list(ctx, receiver, 1, bot))
+          asyncio.get_event_loop().create_task(user.embed_char_list(ctx, receiver, 1, bot, ""))
           confirm, char2_name = await formatter.request_character_name(ctx, bot, receiver)
           if not confirm:
             await ctx.send("Trade Cancelled.")
@@ -938,12 +938,12 @@ async def trade(ctx, _type, mention):
           else:
             await user.embed_exchange_character(ctx, bot, u, char1_name, receiver, char2_name)
         elif _type == "w":
-          asyncio.get_event_loop().create_task(user.embed_weap_list(ctx, u, 1, bot))
+          asyncio.get_event_loop().create_task(user.embed_weap_list(ctx, u, 1, bot, ""))
           confirm, weap1_name = await formatter.request_weapon_name(ctx, bot, u)
           if not confirm:
             await ctx.send("Trade Cancelled.")
             return
-          asyncio.get_event_loop().create_task(user.embed_weap_list(ctx, receiver, 1, bot))
+          asyncio.get_event_loop().create_task(user.embed_weap_list(ctx, receiver, 1, bot, ""))
           confirm, weap2_name = await formatter.request_weapon_name(ctx, bot, receiver)
           if not confirm:
             await ctx.send("Trade Cancelled.")
@@ -1025,41 +1025,41 @@ async def help(ctx, arg1=None):
       await ctx.send(embed=embed)
   elif arg1.lower() == "p":
     await ctx.send(embed=embed)
-  elif arg1.lower() == "start":
+  elif arg1.lower() == "start" or arg1.lower() in bot.get_command("start").aliases:
     await embed_help_summary(ctx, f"{pre}start", bot.get_command("start").aliases, "Allows you to start your Yapa Experience.")
-  elif arg1.lower() == "server":
+  elif arg1.lower() == "server" or arg1.lower() in bot.get_command("server").aliases:
     await embed_help_summary(ctx, f"{pre}server", bot.get_command("server").aliases, "Sends the invite link to the official Yapa-Bot support server.")
-  elif arg1.lower() == "daily":
+  elif arg1.lower() == "daily" or arg1.lower() in bot.get_command("daily").aliases:
     await embed_help_summary(ctx, f"{pre}daily", bot.get_command("daily").aliases, "Allows you to claim daily rewards.")
-  elif arg1.lower() == "weekly":
+  elif arg1.lower() == "weekly" or arg1.lower() in bot.get_command("weekly").aliases:
     await embed_help_summary(ctx, f"{pre}weekly", bot.get_command("weekly").aliases, "Allows you to claim weekly rewards.")
-  elif arg1.lower() == "vote":
+  elif arg1.lower() == "vote" or arg1.lower() in bot.get_command("vote").aliases:
     await embed_help_summary(ctx, f"{pre}vote", bot.get_command("vote").aliases, "Allows you to vote for the bot on top.gg and earn another daily claim.", 
     {f"`{pre}vote` `toggle`":"Allows you to toggle the vote DM confirmation."})
-  elif arg1.lower() == "adventure":
+  elif arg1.lower() == "adventure" or arg1.lower() in bot.get_command("adventure").aliases:
     await embed_help_summary(ctx, f"{pre}adventure", bot.get_command("adventure").aliases, "Allows you to adventure with characters for experience and loot at the cost of 20 resin.",
     {f"`{pre}adventure` `char_name` *`{pre}char_name`* *`{pre}char_name`* *`{pre}char_name`*":"Allows you to go on an adventure with up to 4 of your characters. You must have atleast 1 character to adventure.",
     f"`{pre}adventure` `t#`":"Allows you to go on an adventure with a preassigned party."})
-  elif arg1.lower() == "teams":
+  elif arg1.lower() == "teams" or arg1.lower() in bot.get_command("teams").aliases:
     await embed_help_summary(ctx, f"{pre}teams", bot.get_command("teams").aliases, "_ _",
     {f"`{pre}teams`":"Allows you to look at all of your teams at once.",
     f"`{pre}teams` `#`":"Allows you to look at who is in a specific team.",
     f"`{pre}teams` `#` `char_name` *`{pre}char_name`* *`{pre}char_name`* *`{pre}char_name`*":"Allows you to put up to 4 characters you own into a team.\nDoing this on an existing team will replace the team that is currently there."})
-  elif arg1.lower() == "resin":
+  elif arg1.lower() == "resin" or arg1.lower() in bot.get_command("resin").aliases:
     await embed_help_summary(ctx, f"{pre}resin", bot.get_command("resin").aliases, "Allows you to look at your resin related information.")
-  elif arg1.lower() == "condense":
+  elif arg1.lower() == "condense" or arg1.lower() in bot.get_command("condense").aliases:
     await embed_help_summary(ctx, f"{pre}condense", bot.get_command("condense").aliases, "_ _",
      {f"`{pre}condense` *`#`*":"Allows you to store resin in 40 resin capsules. You can only make up to 10 condensed.",
      f"`{pre}condense` `use` *`#`*":"Allows you use stored resin."})
-  elif arg1.lower() == "wish":
+  elif arg1.lower() == "wish" or arg1.lower() in bot.get_command("wish").aliases:
     await embed_help_summary(ctx, f"{pre}wish", bot.get_command("wish").aliases, "_ _",
     {f"`{pre}wish` *`10`*":"Allows you to wish for your favorite genshin wishes at the cost of 160 primogems per wish."})
-  elif arg1.lower() == "free":
+  elif arg1.lower() == "free" or arg1.lower() in bot.get_command("free").aliases:
     await embed_help_summary(ctx, f"{pre}free", bot.get_command("free").aliases, "_ _",
     {f"`{pre}free` *`10`*":"Allows you to wish for your favorite genshin wishes for free. These wishes will not be added to your collection."})
-  elif arg1.lower() == "balance":
+  elif arg1.lower() == "balance" or arg1.lower() in bot.get_command("balance").aliases:
     await embed_help_summary(ctx, f"{pre}balance", bot.get_command("balance").aliases, "Allows you to look at your collected currencies.")
-  elif arg1.lower() == "shop":
+  elif arg1.lower() == "shop" or arg1.lower() in bot.get_command("shop").aliases:
     await embed_help_summary(ctx, f"{pre}shop", bot.get_command("shop").aliases, "Allows you see your shop.",
     {f"`{pre}shop`":"Allows you to see your entire shop.",
     f"`{pre}shop` `p`":"Allows you to see your Primogems shop.",
@@ -1067,52 +1067,52 @@ async def help(ctx, arg1=None):
     f"`{pre}shop` `sd`":"Allows you to see your Stardust shop.",
     f"`{pre}shop` `sg`":"Allows you to see your StarGlitter shop.",
     })
-  elif arg1.lower() == "buy":
+  elif arg1.lower() == "buy" or arg1.lower() in bot.get_command("buy").aliases:
     await embed_help_summary(ctx, f"{pre}buy", bot.get_command("buy").aliases, "_ _",
     {f"`{pre}buy` `item_name` `#`":"Allows user to buy from the shop as long as they have enough of the right currency."})
-  elif arg1.lower() == "gamble":
+  elif arg1.lower() == "gamble" or arg1.lower() in bot.get_command("gamble").aliases:
     await embed_help_summary(ctx, f"{pre}gamble", bot.get_command("gamble").aliases, "Roll all 6's to get the jackpot.",
     {f"`{pre}gamble` `p` `#`":"Allows you to use your primogems to gamble in a game of dices. Must bid at least 160 primogems for a chance to earn the jackpot.",
     f"`{pre}gamble` `m` `#`":"Allows you to use your mora to gamble in a game of dices. Must bid at least 10,000 mora for a chance to win the jackpot."})
-  elif arg1.lower() == "blackjack":
+  elif arg1.lower() == "blackjack" or arg1.lower() in bot.get_command("blackjack").aliases:
     await embed_help_summary(ctx, f"{pre}blackjack", bot.get_command("blackjack").aliases, "Play a nice game of blackjack against Yapa. Win to double your money.",
     {f"`{pre}blackjack` `p` `#`":"Allows you to bid primogems in a game of blackjack.",
     f"`{pre}blackjack` `m` `#`":"Allows you to bid mora in a game of blackjack."})
-  elif arg1.lower() == "jackpot":
+  elif arg1.lower() == "jackpot" or arg1.lower() in bot.get_command("jackpot").aliases:
     await embed_help_summary(ctx, f"{pre}jackpot", bot.get_command("jackpot").aliases, "Allows you to see the current total jackpots.")
-  elif arg1.lower() == "givemora":
+  elif arg1.lower() == "givemora" or arg1.lower() in bot.get_command("givemora").aliases:
     await embed_help_summary(ctx, f"{pre}givemora", bot.get_command("givemora").aliases, "A lovely donation of mora. Must be World Level 5 or above to use.",
     {f"`{pre}givemora` `@user` `#`":"Allows you to donate mora to another user."})
-  elif arg1.lower() == "giveprimo":
+  elif arg1.lower() == "giveprimo" or arg1.lower() in bot.get_command("giveprimo").aliases:
     await embed_help_summary(ctx, f"{pre}giveprimo", bot.get_command("giveprimo").aliases, "A lovely donation of primogems. Must be World Level 5 or above to use.",
     {f"`{pre}giveprimo` `@user` `#`":"Allows you to donate primogems to another user."})
-  elif arg1.lower() == "profile":
+  elif arg1.lower() == "profile" or arg1.lower() in bot.get_command("profile").aliases:
     await embed_help_summary(ctx, f"{pre}profile", bot.get_command("profile").aliases, "_ _",
     {f"`{pre}profile` *`@user`*":"Allows you to look at your or other user data.",
     f"`{pre}profile` `favorite` `char_name`":"Allows you to set your favorite character. Character must be owned before favoriting.",
     f"`{pre}profile` `description` `desc...`":"Allows you set your profile description.",
     f"`{pre}profile` `nickname` `nick...`":"Allows you set your profile description."})
-  elif arg1.lower() == "listcharacters":
+  elif arg1.lower() == "listcharacters" or arg1.lower() in bot.get_command("listcharacters").aliases:
     await embed_help_summary(ctx, f"{pre}listcharacters", bot.get_command("listcharacters").aliases, "_ _",
-    {f"`{pre}listcharacters` *`#`*":"Allows you to look at your personal character collection.",
+    {f"`{pre}listcharacters`*`weap_type`* *`#`* *`@user`*":"Allows you to look at your personal character collection.",
     f"`{pre}listcharacters` `char_name`":"Allows you to look at a specific character in your collection."})
-  elif arg1.lower() == "equip":
+  elif arg1.lower() == "equip" or arg1.lower() in bot.get_command("equip").aliases:
     await embed_help_summary(ctx, f"{pre}equip", bot.get_command("equip").aliases, "_ _",
     {f"`{pre}equip` `char_name` `{pre}weap_name`":"Allows you to equip a weapon to a chracter. You can only equip things you own. Put none into weap_name to unequip a weapon."})
-  elif arg1.lower() == "listweapons":
+  elif arg1.lower() == "listweapons" or arg1.lower() in bot.get_command("listweapons").aliases:
     await embed_help_summary(ctx, f"{pre}listweapons", bot.get_command("listweapons").aliases, "_ _",
-    {f"`{pre}listweapons` *`#`*":"Allows you to look at your personal weapon collection.",
+    {f"`{pre}listweapons` *`weap_type`* *`#`* *`@user`*":"Allows you to look at your personal weapon collection.",
     f"`{pre}listweapons` `weap_name`":"Allows you to look at a specific weapon in your collection."})
-  elif arg1.lower() == "commissions":
+  elif arg1.lower() == "commissions" or arg1.lower() in bot.get_command("commissions").aliases:
     await embed_help_summary(ctx, f"{pre}commissions", bot.get_command("commissions").aliases, "Allows you to look at your commissions and their descriptions.")
-  elif arg1.lower() == "trivia":
+  elif arg1.lower() == "trivia" or arg1.lower() in bot.get_command("trivia").aliases:
     await embed_help_summary(ctx, f"{pre}trivia", bot.get_command("trivia").aliases, "_ _",
     {f"`{pre}trivia` `trivia_ID` `answer...`":"Allows you to answer your trivia commissions. Trivia_id can be found in the () before the name of every trivia commission."})
-  elif arg1.lower() == "trade":
+  elif arg1.lower() == "trade" or arg1.lower() in bot.get_command("trade").aliases:
     await embed_help_summary(ctx, f"{pre}trade", bot.get_command("trade").aliases, "Allows trading with other users. Requires World Level 5 or higher to use.",
     {f"`{pre}trade` `c` `@user`":"Allows you to trade characters with another user.",
     f"`{pre}trade` `w` `@user`":"Allows you to trade weapons with another user."})
-  elif arg1.lower() == "leaderboards":
+  elif arg1.lower() == "leaderboards" or arg1.lower() in bot.get_command("leaderboards").aliases:
     await embed_help_summary(ctx, f"{pre}leaderboards", bot.get_command("leaderboards").aliases, "Gets the top 10 players of Yapa-Bot.")
   else:
     await error.embed_command_does_not_exist(ctx)
