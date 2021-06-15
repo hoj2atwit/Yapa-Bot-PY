@@ -349,7 +349,7 @@ async def display_pull(ctx, embed:discord.Embed, f:discord.File, rarity:int, sin
   await ctx.send(ctx.author.mention, embed=embed, file=f)
 
 async def embed_gamble(ctx, u, amnt, _type, channel):
-  if u.resin < 5:
+  if u.resin < 10:
       await error.embed_not_enough_resin(ctx)
       return
   if _type == "m":
@@ -468,18 +468,18 @@ async def embed_gamble(ctx, u, amnt, _type, channel):
 
 
   embed.add_field(name="Rolls", value=f"{rolls[0]}, {rolls[1]}, {rolls[2]}, {rolls[3]}, {rolls[4]}, {rolls[5]}")
-  u.resin -= 5
+  u.resin -= 10
   await commission.check_target_complete(ctx, u, "gamble", 1)
   if _type == "p":
     can, timeLeft = u.can_vote()
     userXPReward = int((amnt / 5)*(1.5**(not can)))
-    if userXPReward > (u.world_level+1)*100:
-        userXPReward = int((u.world_level+1)*100*(1.5**(not can)))
+    if userXPReward > int((u.world_level+1)*12.5):
+        userXPReward = int(((u.world_level+1)*50)/2*(1.5**(not can)))
   else:
     can, timeLeft = u.can_vote()
     userXPReward = int((amnt / 1000) * (1.5**(not can)))
-    if userXPReward > (u.world_level+1)*50:
-        userXPReward = int((u.world_level+1)*50*(1.5**(not can)))
+    if userXPReward > int((u.world_level+1)*6.25):
+        userXPReward = int(((u.world_level+1)*25)/2*(1.5**(not can)))
   if userXPReward > 0:
     await u.add_experience(userXPReward, ctx)
     embed.add_field(name="Experience Gained", value=f"**{userXPReward}** Adventure Experience")

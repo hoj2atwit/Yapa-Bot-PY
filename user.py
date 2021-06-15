@@ -153,7 +153,7 @@ class User:
     return amnt_made, reason
 
   def get_max_experience(self):
-    return int(30 + (100*(self.adventure_rank-1)*(self.world_level+1)) + (20**int(self.world_level/2)))
+    return int((100 + (3**(int(self.world_level/2)+1)) * self.adventure_rank))
   
   def get_resin_cap(self):
     return int(120 + (20 * self.world_level))
@@ -872,6 +872,21 @@ def replace_weapon_name(old_URL_name, correct_URL_name, correct_name):
         if char.weapon_equiped["URL_name"] == old_URL_name:
           char.weapon_equiped = u.weapons[correct_URL_name]
           u.characters[c] = char.get_dict()
+    database_mongo.save_user(u)
+
+def clear_user_xp():
+  users_ids = database_mongo.get_all_users_list_ids()
+  for i in range(len(users_ids)):
+    u = get_user(users_ids[i])
+    u.reset_level()
+    for char_key in u.characters.keys():
+      char = character.get_character_from_dict(u.characters, char_key)
+      char.xp = 0
+      u.characters[char_key] = char.get_dict()
+    for weap_key in u.weapons.keys():
+      weap = weapon.get_weapon_from_dict(u.weapons, weap_key)
+      weap.xp = 0
+      u.weapons[weap_key] = weap.get_dict()
     database_mongo.save_user(u)
 
 def update_users():

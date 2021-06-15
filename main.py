@@ -347,6 +347,13 @@ async def reset(ctx, arg1, arg2):
               database_mongo.save_user(u)
           else:
             await ctx.send("Action Cancelled.")
+        elif arg2 == "all":
+          confirm = await formatter.confirmation(ctx, bot, "")
+          if confirm:
+              user.clear_user_xp()
+              await ctx.send(f"{ctx.author.mention}: All adventure rank and world levels have been reset.")
+          else:
+            await ctx.send("Action Cancelled.")
         else:
           await error.embed_user_does_not_exist(ctx)
 

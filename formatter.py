@@ -97,7 +97,7 @@ def organize_by_rarity(d):
   return orgAr[::-1]
 
 def get_xp_to_next_level(level):
-    return int((30 + (100*(level-1)*(int(level/5)+1)) + (20**int(level/10)))/2)
+    return int((100 + (3**(int(level/10)+1)) * level)/2)
 
 def get_id_from_mention(text):
   _id = ""
