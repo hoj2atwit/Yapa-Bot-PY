@@ -432,7 +432,7 @@ async def embed_char_list(ctx, u, pg, bot, select_type):
   added = 0
   for i in range(len(allChars)):
     char = allChars[i]
-    if select_type == "" or select_type.lower() == char["weapon_type"].lower():
+    if select_type == "" or select_type.lower() == char["weapon_type"].lower() or select_type.lower() == char["element"].lower():
       if char["rarity"] == 5:
         text += prefix.fiveStarPrefix
       else:

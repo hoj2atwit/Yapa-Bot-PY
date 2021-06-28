@@ -10,6 +10,10 @@ def get_time_collection():
   db_mongo = get_cluster().Yapa
   return db_mongo["Time"]
 
+def get_prefix_collection():
+  db_mongo = get_cluster().Yapa
+  return db_mongo["Prefix"]
+
 def get_leaderboards_collection():
   db_mongo = get_cluster().Yapa
   return db_mongo["Leaderboards"]
@@ -84,6 +88,10 @@ def save_user(u):
   user_collection = get_user_collection()
   user_collection.replace_one({"_id" : u._id}, u.get_dict(), upsert=True)
 
+def save_prefix(guild_id,pre):
+  prefix_collection = get_prefix_collection()
+  prefix_collection.replace_one({"guild_id": guild_id}, {"guild_id": guild_id, "prefix":pre}, upsert=True)
+
 def save_character(c):
   character_collection = get_character_collection()
   character_collection.replace_one({"URL_name" : c.URL_name}, c.get_dict(), upsert=True)
@@ -118,6 +126,10 @@ def setup_leaderboard():
 def get_user_dict(_id):
   user_collection = get_user_collection()
   return user_collection.find_one({"_id": int(_id)})
+
+def get_prefix(guild_id):
+  prefix_collection = get_prefix_collection()
+  return prefix_collection.find_one({"guild_id":guild_id})
 
 def get_shop_dict(_id):
   shop_collection = get_shop_collection()

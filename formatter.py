@@ -1,6 +1,4 @@
-import math
 import discord
-import prefix
 import datetime
 import asyncio
 import error
@@ -115,11 +113,11 @@ def remove_extra_spaces(command):
     command = command[::-1]
   return command
 
-def split_information(command):
+def split_information(command, pre):
   info = []
   text = ""
   for c in command:
-    if c != prefix.commandPrefix:
+    if c != pre:
       text += c
     else:
       if text != "":
@@ -143,11 +141,11 @@ def get_DateTime(timeString):
   
   return datetime.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]), int(t[5]))
 
-def separate_commands(commandsPointer):
+def separate_commands(commandsPointer, pre):
   commands = []
   text = ""
   for x in commandsPointer:
-    if x.startswith(prefix.commandPrefix):
+    if x.startswith(pre):
       if text != "":
         commands.append(remove_extra_spaces(text))
         text = x
