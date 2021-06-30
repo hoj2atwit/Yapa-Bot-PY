@@ -14,7 +14,8 @@ oneStarPrefix = ":sparkles: "
 commandPrefix = "?"
 
 def get_prefix(ctx):
-  ser_pref = database_mongo.get_prefix(ctx.message.guild.id)
-  if bool(ser_pref):
-    return ser_pref["prefix"]
+  if ctx.message.guild != None:
+    ser_pref = database_mongo.get_prefix(ctx.message.guild.id)
+    if bool(ser_pref):
+      return ser_pref["prefix"]
   return commandPrefix

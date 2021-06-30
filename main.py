@@ -28,9 +28,10 @@ pre = prefix.commandPrefix
 load_dotenv()
 
 def get_prefix_bot(bot, msg):
-  ser_pref = database_mongo.get_prefix(msg.guild.id)
-  if bool(ser_pref):
-    return commands.when_mentioned_or(*[ser_pref["prefix"]])(bot, msg)
+  if msg.guild != None:
+    ser_pref = database_mongo.get_prefix(msg.guild.id)
+    if bool(ser_pref):
+      return commands.when_mentioned_or(*[ser_pref["prefix"]])(bot, msg)
   return commands.when_mentioned_or(*[pre])(bot, msg)
 
 bot = commands.Bot(command_prefix=get_prefix_bot, case_insensitive=True, owner_id=int(os.getenv('OWNER_ID')))
