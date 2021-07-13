@@ -893,13 +893,16 @@ async def user_shop(ctx, _type=None):
 @commands.check(user_exists)
 @commands.check(lock_exists)
 @commands.check(shop_exists)
-async def buy(ctx, name, amnt=None):
+async def buy(ctx, *name):
   async with locks[str(ctx.author.id)]:
     u = user.get_user(ctx.author.id)
-    if amnt == None:
-      await shop.shop_buy(ctx, u, name, 1)
-    elif amnt.isdigit():
-      await shop.shop_buy(ctx, u, name, int(amnt))
+    amnt = 1;
+    if name[len(name)-1].isdigit():
+      amnt = int(name[len(name)-1])
+      name = formatter.separate_commands(name[:len(name)-1], prefix.get_prefix(ctx))[0].lower();
+    else:
+      name = formatter.separate_commands(name, prefix.get_prefix(ctx))[0].lower();
+    await shop.shop_buy(ctx, u, name, amnt)
 
 @bot.command(name="vote", aliases=["v"])
 @commands.check(not_DM)

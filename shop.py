@@ -26,7 +26,7 @@ class Shop:
     if formatter.name_formatter(name) in self.inventory.keys():
       return get_shop_item(self.inventory[formatter.name_formatter(name)])
     else:
-      await error.embed_unknown_item(ctx)
+      await error.embed_unknown_item(ctx, name)
       return None
 
   def get_dict(self):

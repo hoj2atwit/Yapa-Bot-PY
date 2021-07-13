@@ -153,9 +153,9 @@ async def embed_dublicate_characters(ctx):
   embed.add_field(name="Character Error", value="You cannot input the same character multiple times.")
   await ctx.send(ctx.author.mention, embed=embed)
 
-async def embed_unknown_item(ctx):
+async def embed_unknown_item(ctx, name):
   embed = discord.Embed()
-  embed.add_field(name="Item Error", value="Item could not be found.")
+  embed.add_field(name="Item Error", value=f"Item could not be found \"{name}\".")
   await ctx.send(ctx.author.mention, embed=embed)
 
 async def embed_not_enough_items_to_purchase(ctx, item_name):
