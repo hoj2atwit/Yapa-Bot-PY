@@ -28,6 +28,24 @@ fourStarWishGifTen = "Images/Gifs/TenFourStar.gif"
 
 wishDelayTime = 7.8
 
+def refresh_rolls():
+  global sixStarChars
+  global fiveStarChars
+  global fourStarChars
+  global fiveStarWeaps
+  global fourStarWeaps
+  global threeStarWeaps
+  global twoStarWeaps
+  global oneStarWeaps
+  sixStarChars = character.get_six_star_characters()
+  fiveStarChars = character.get_five_star_characters()
+  fourStarChars = character.get_four_star_characters()
+  fiveStarWeaps = weapon.get_five_star_weapons()
+  fourStarWeaps = weapon.get_four_star_weapons()
+  threeStarWeaps = weapon.get_three_star_weapons()
+  twoStarWeaps = weapon.get_two_star_weapons()
+  oneStarWeaps = weapon.get_one_star_weapons()
+
 #types
 #A = artifact
 #W = weapon

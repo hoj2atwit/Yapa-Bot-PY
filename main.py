@@ -176,77 +176,86 @@ async def on_command_error(ctx, error):
 @commands.check(lock_exists)
 async def update(ctx, arg1, arg2=None):
     async with locks[str(ctx.author.id)]:
-        if arg1.lower() == "c":
-          if arg2 == None:
-            await ctx.send(f"{ctx.author.mention}, Searching new character data.")
-            updater.update_all_characters_DB()
-            await ctx.send(f"{ctx.author.mention}, New character data downloaded.")
-          elif arg2.lower() == "i":
-            await ctx.send(f"{ctx.author.mention}, Searching for new character images.")
-            await updater.get_all_character_images_API(ctx)
-            await ctx.send(f"{ctx.author.mention}, New character images have been downloaded.")
-            
-        elif arg1.lower() == "w":
-          if arg2 == None:
-            await ctx.send(f"{ctx.author.mention}, Searching for new weapon data.")
-            updater.update_weapons_DB()
-            await ctx.send(f"{ctx.author.mention}, New weapon data downloaded.")
-          elif arg2.lower() == "i":
-            await ctx.send(f"{ctx.author.mention}, Searching for new weapon images.")
-            await updater.get_all_weap_images_API(ctx)
-            await ctx.send(f"{ctx.author.mention}, Weapon images have been downloaded.")
-            
-        elif arg1.lower() == "u":
-          if arg2 == None:
-            await ctx.send(f"{ctx.author.mention}, Updating All Users.")
-            user.update_users()
-            await ctx.send(f"{ctx.author.mention}, All users have been updated.")
-          elif arg2.lower() == "c":
-            await ctx.send(f"{ctx.author.mention}, Updating All User Characters.")
-            updater.update_user_characters()
-            await ctx.send(f"{ctx.author.mention}, All User Characters have been updated.")
-          elif arg2.lower() == "w":
-            await ctx.send(f"{ctx.author.mention}, Updating All User Weapons.")
-            updater.update_user_weapons()
-            await ctx.send(f"{ctx.author.mention}, All User Weapons have been updated.")
-        elif arg1.lower() == "com":
-          await ctx.send(f"{ctx.author.mention}, Updating All Commissions.")
-          commission.generate_all_commissions()
-          await ctx.send(f"{ctx.author.mention}, All commissions have been updated.")
-        elif arg1.lower() == "shop":
-          if arg2 == None:
-            await ctx.send(f"{ctx.author.mention}, Updating All Shops.")
-            shop.generate_all_shops()
-            await ctx.send(f"{ctx.author.mention}, All Shops have been updated.")
-          elif arg2.lower() == "i":
-            await ctx.send(f"{ctx.author.mention}, Updating All Shop Items.")
-            shop.generate_shop_items()
-            await ctx.send(f"{ctx.author.mention}, All Shop Items have been updated.")
-        elif arg1.lower() == "jp":
-          if arg2 == None:
-            await ctx.send(f"{ctx.author.mention}, Resetting All Jackpots.")
-            database_mongo.setup_jackpot()
-            await ctx.send(f"{ctx.author.mention}, All jackpots have been reset.")
-          if arg2.lower() == "m":
-            await ctx.send(f"{ctx.author.mention}, Resetting Mora Jackpots.")
-            database_mongo.reset_jackpot_mora()
-            await ctx.send(f"{ctx.author.mention}, Mora jackpot have been reset.")
-          if arg2.lower() == "p":
-            await ctx.send(f"{ctx.author.mention}, Resetting Primo Jackpots.")
-            database_mongo.reset_jackpot_primo()
-            await ctx.send(f"{ctx.author.mention}, Primo jackpot have been reset.")
-        elif arg1.lower() == "lb":
-          await ctx.send(f"{ctx.author.mention}, Updating Leader Boards")
-          database_mongo.setup_leaderboard()
-          user.update_leaderboards()
-          await ctx.send(f"{ctx.author.mention}, All leader Boards have been updated.")
-        elif arg1.lower() == "replace":
-          await ctx.send(f"{ctx.author.mention}, Replacing with correct thing.")
-          try:
-            user.replace_weapon_name("prototype-grudge", "prototype-starglitter", "Prototype Starglitter")
-          except Exception as e:
-            print(e)
-          await ctx.send(f"{ctx.author.mention}, Replacing with correct thing.")
+      mention = ctx.author.mention
+      if arg1.lower() == "c":
+        if arg2 == None:
+          await ctx.send(f"{mention}, Searching new character data.")
+          updater.update_all_characters_DB()
+          await ctx.send(f"{mention}, New character data downloaded.")
+        elif arg2.lower() == "i":
+          await ctx.send(f"{mention}, Searching for new character images.")
+          await updater.get_all_character_images_API(ctx)
+          await ctx.send(f"{mention}, New character images have been downloaded.")
+          
+      elif arg1.lower() == "w":
+        if arg2 == None:
+          await ctx.send(f"{mention}, Searching for new weapon data.")
+          updater.update_weapons_DB()
+          await ctx.send(f"{mention}, New weapon data downloaded.")
+        elif arg2.lower() == "i":
+          await ctx.send(f"{mention}, Searching for new weapon images.")
+          await updater.get_all_weap_images_API(ctx)
+          await ctx.send(f"{mention}, Weapon images have been downloaded.")
+          
+      elif arg1.lower() == "u":
+        if arg2 == None:
+          await ctx.send(f"{mention}, Updating All Users.")
+          user.update_users()
+          await ctx.send(f"{mention}, All users have been updated.")
+        elif arg2.lower() == "c":
+          await ctx.send(f"{mention}, Updating All User Characters.")
+          updater.update_user_characters()
+          await ctx.send(f"{mention}, All User Characters have been updated.")
+        elif arg2.lower() == "w":
+          await ctx.send(f"{mention}, Updating All User Weapons.")
+          updater.update_user_weapons()
+          await ctx.send(f"{mention}, All User Weapons have been updated.")
+      elif arg1.lower() == "com":
+        await ctx.send(f"{mention}, Updating All Commissions.")
+        commission.generate_all_commissions()
+        await ctx.send(f"{mention}, All commissions have been updated.")
+      elif arg1.lower() == "shop":
+        if arg2 == None:
+          await ctx.send(f"{mention}, Updating All Shops.")
+          shop.generate_all_shops()
+          await ctx.send(f"{mention}, All Shops have been updated.")
+        elif arg2.lower() == "i":
+          await ctx.send(f"{mention}, Updating All Shop Items.")
+          shop.generate_shop_items()
+          await ctx.send(f"{mention}, All Shop Items have been updated.")
+      elif arg1.lower() == "jp":
+        if arg2 == None:
+          await ctx.send(f"{mention}, Resetting All Jackpots.")
+          database_mongo.setup_jackpot()
+          await ctx.send(f"{mention}, All jackpots have been reset.")
+        if arg2.lower() == "m":
+          await ctx.send(f"{mention}, Resetting Mora Jackpots.")
+          database_mongo.reset_jackpot_mora()
+          await ctx.send(f"{mention}, Mora jackpot have been reset.")
+        if arg2.lower() == "p":
+          await ctx.send(f"{mention}, Resetting Primo Jackpots.")
+          database_mongo.reset_jackpot_primo()
+          await ctx.send(f"{mention}, Primo jackpot have been reset.")
+      elif arg1.lower() == "lb":
+        await ctx.send(f"{mention}, Updating Leader Boards")
+        database_mongo.setup_leaderboard()
+        user.update_leaderboards()
+        await ctx.send(f"{mention}, All leader Boards have been updated.")
+      elif arg1.lower() == "replace":
+        old_name = "prototype-malice"
+        new_name = "prototype-amber"
+        new_true_name = "Prototype Amber"
+        await ctx.send(f"{mention}, Replacing {old_name} with {new_name} for all users.")
+        try:
+          user.replace_weapon_name(old_name, new_name, new_true_name)
+        except Exception as e:
+          print(e)
+        await ctx.send(f"{mention}, Replaced {old_name} with {new_name} for all users.")
+      elif arg1.lower() == "wishes":
+        await ctx.send(f"{mention}, Updating Gatcha Pool.")
+        pull.refresh_rolls()
+        await ctx.send(f"{mention}, Fully Updated Gatcha Pool.")
+          
 
 @bot.command(name="clear")
 @commands.check(not_DM)
