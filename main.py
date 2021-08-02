@@ -553,10 +553,12 @@ async def profile(ctx, arg2=None, *arg3):
               await error.embed_long_description(ctx, len(desc[0]))
             else:
               u.change_description(desc[0])
+              await ctx.send(f"{ctx.author.mention}\'s description has been changed.")
+              database_mongo.save_user(u)
           else:
             u.change_description("No Description")
-          await ctx.send(f"{ctx.author.mention}\'s description has been changed.")
-          database_mongo.save_user(u)
+            await ctx.send(f"{ctx.author.mention}\'s description has been changed.")
+            database_mongo.save_user(u)
         elif arg2.lower().startswith("nickname") or arg2.lower().startswith("nick"):
           if arg3[0] != "":
             nickname = formatter.separate_commands(arg3, pref)
