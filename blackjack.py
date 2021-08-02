@@ -142,12 +142,14 @@ async def embed_blackjack(ctx, bot, u, amount, _type):
     try:
         reaction, user = await bot.wait_for("reaction_add", timeout=30, check=check)
         if str(reaction.emoji) == "💥":
+          player_hand.append(deck.pop())
           win, total = check_21(player_hand)
           if win or (total < 21 and len(player_hand) == 5):
             bot_go = True
             while bot_go:
               bot_go = bot_decision(bot_hand, deck)
             bot_win, bot_total = check_21(bot_hand)
+            
             if bot_win or (bot_total < 21 and len(bot_hand) == 5):
               await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "b", amount, _type))
             else:
@@ -160,7 +162,6 @@ async def embed_blackjack(ctx, bot, u, amount, _type):
             await game.clear_reactions()
             break
           else:
-            player_hand.append(deck.pop())
             bot_go = bot_decision(bot_hand, deck)
             await game.edit(embed=embed_create_blackjack(u, bot_hand, player_hand))
             await game.remove_reaction(reaction, user)
