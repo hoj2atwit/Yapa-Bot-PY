@@ -365,6 +365,11 @@ def get_user(_id):
   u = database_mongo.get_user_dict(_id)
   return User(u["_id"], u["name"], u["nickname"], u["description"], u["favorite_character"], u["adventure_rank"], u["experience"], u["world_level"], u["resin"], u["five_pity"], u["four_pity"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["star_glitter"], u["star_dust"], u["condensed"], u["last_daily"], u["last_weekly"], u["last_vote"], u["bag"], u["gear"], u["commissions"], u["teams"], u["vote_toggle"])
 
+def dict_to_user(u_dict):
+  u = u_dict
+  return User(u["_id"], u["name"], u["nickname"], u["description"], u["favorite_character"], u["adventure_rank"], u["experience"], u["world_level"], u["resin"], u["five_pity"], u["four_pity"], u["characters"], u["weapons"], u["artifacts"], u["mora"], u["primogems"], u["star_glitter"], u["star_dust"], u["condensed"], u["last_daily"], u["last_weekly"], u["last_vote"], u["bag"], u["gear"], u["commissions"], u["teams"], u["vote_toggle"])
+ 
+
 def does_exist(_id):
   u = database_mongo.get_user_dict(_id)
   if u == None:
@@ -805,10 +810,10 @@ async def embed_leader_boards(ctx):
   await ctx.send(embed=embed)
 
 def update_leaderboards():
-  users_ids = database_mongo.get_all_users_list_ids()
+  users = database_mongo.get_all_users()
   top10Users = []
-  for i in range(len(users_ids)):
-    u = get_user(users_ids[i])
+  for key, user in enumerate(users):
+    u = dict_to_user(user)
     if len(top10Users) < 1:
       top10Users.append(u)
     else:
@@ -887,6 +892,13 @@ def clear_user_xp():
       weap = weapon.get_weapon_from_dict(u.weapons, weap_key)
       weap.xp = 0
       u.weapons[weap_key] = weap.get_dict()
+    database_mongo.save_user(u)
+
+def clear_user_desc():
+  users_ids = database_mongo.get_all_users_list_ids()
+  for i in range(len(users_ids)):
+    u = get_user(users_ids[i])
+    u.change_description("No Description")
     database_mongo.save_user(u)
 
 def update_users():

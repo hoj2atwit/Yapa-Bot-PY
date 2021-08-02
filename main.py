@@ -374,6 +374,28 @@ async def reset(ctx, arg1, arg2):
             await ctx.send("Action Cancelled.")
         else:
           await error.embed_user_does_not_exist(ctx)
+          
+      elif arg1.lower() == "desc":
+        mention_id = formatter.get_id_from_mention(arg2)
+        if user.does_exist(mention_id):
+          confirm = await formatter.confirmation(ctx, bot, "")
+          if confirm:
+              u = user.get_user(mention_id)
+              member = await ctx.guild.fetch_member(str(mention_id))
+              u.change_description("No Desciption")
+              await ctx.send(f"{member.mention}\'s description has been reset.")
+              database_mongo.save_user(u)
+          else:
+            await ctx.send("Action Cancelled.")
+        elif arg2 == "all":
+          confirm = await formatter.confirmation(ctx, bot, "")
+          if confirm:
+              user.clear_user_desc()
+              await ctx.send(f"{ctx.author.mention}: All descriptions have been reset.")
+          else:
+            await ctx.send("Action Cancelled.")
+        else:
+          await error.embed_user_does_not_exist(ctx)
 
 
 #Command to delete a user's data
@@ -527,7 +549,10 @@ async def profile(ctx, arg2=None, *arg3):
         if arg2.lower().startswith("description") or arg2.lower().startswith("bio") or arg2.lower().startswith("desc"):
           if arg3[0] != "":
             desc = formatter.separate_commands(arg3, pref)
-            u.change_description(desc[0])
+            if len(desc[0]) > 100:
+              await error.embed_long_description(ctx, len(desc[0]))
+            else:
+              u.change_description(desc[0])
           else:
             u.change_description("No Description")
           await ctx.send(f"{ctx.author.mention}\'s description has been changed.")

@@ -150,10 +150,13 @@ def get_weapon_dict(name):
 def get_all_users_list_ids():
   user_collection = get_user_collection()
   users = user_collection.find({})
-  users_list = []
-  for user in users:
-    users_list.append(user['_id'])
+  users_list = [user['_id'] for user in users]
   return users_list
+
+def get_all_users():
+  user_collection = get_user_collection()
+  users = user_collection.find({})
+  return users
 
 def get_all_shop_items_list():
   shop_item_collection = get_shop_item_collection()

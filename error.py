@@ -87,6 +87,11 @@ async def embed_failed_donation_primo_tax(ctx):
   embed.add_field(name = "Donation Error", value = "You did not give the minimum amount of primogems to cover transfer tax. (100 Primo)")
   await ctx.send(ctx.author.mention, embed=embed)
 
+async def embed_long_description(ctx, length):
+  embed = discord.Embed(color=discord.Color.red())
+  embed.add_field(name = "Too Long", value = f"Your Description was too long.\nInputed Length: **{formatter.number_format(length)}**\nExpected Length: **100**")
+  await ctx.send(ctx.author.mention, embed=embed)
+
 async def embed_too_early(ctx, waitTime):
   embed = discord.Embed(color=discord.Color.red())
   embed.add_field(name = "Too Early", value = f"You cannot use that command for **{waitTime}**.")
