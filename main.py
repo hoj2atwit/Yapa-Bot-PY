@@ -549,7 +549,7 @@ async def profile(ctx, arg2=None, *arg3):
         if arg2.lower().startswith("description") or arg2.lower().startswith("bio") or arg2.lower().startswith("desc"):
           if arg3[0] != "":
             desc = formatter.separate_commands(arg3, pref)
-            if len(desc[0]) > 100:
+            if len(desc[0]) > 400:
               await error.embed_long_description(ctx, len(desc[0]))
             else:
               u.change_description(desc[0])
