@@ -109,7 +109,30 @@ def bot_decision(hand, deck):
     return True
   else:
     return False
-    
+
+def check_winner(user_win, bot_win, user_total, bot_total):
+  if bot_win and user_win:
+    return "b"
+  elif user_win:
+    return "u"
+  elif bot_win:
+    return "y"
+  else:
+    if user_total >= 21 or bot_total >= 21:
+      if user_total > 21 and bot_total > 21:
+        return "b"
+      elif user_total > 21 and bot_total <= 21:
+        return "y"
+      elif bot_total > 21 and user_total <= 21:
+        return "u"
+    else:
+      if user_total > bot_total:
+        return "u"
+      elif bot_total > user_total:
+        return "y"
+      else:
+        return "b"
+
 async def embed_blackjack(ctx, bot, u, amount, _type):
   if _type == "p":
     if u.primogems < amount:
@@ -138,16 +161,19 @@ async def embed_blackjack(ctx, bot, u, amount, _type):
 
   def check(reaction, user):
         return str(reaction.emoji) in ["💥", "🤚"] and reaction.message == game and user == ctx.author
+
   while True:
     try:
         reaction, user = await bot.wait_for("reaction_add", timeout=30, check=check)
         if str(reaction.emoji) == "💥":
+          player_hand.append(deck.pop())
           win, total = check_21(player_hand)
           if win or (total < 21 and len(player_hand) == 5):
             bot_go = True
             while bot_go:
               bot_go = bot_decision(bot_hand, deck)
             bot_win, bot_total = check_21(bot_hand)
+            
             if bot_win or (bot_total < 21 and len(bot_hand) == 5):
               await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "b", amount, _type))
             else:
@@ -160,7 +186,6 @@ async def embed_blackjack(ctx, bot, u, amount, _type):
             await game.clear_reactions()
             break
           else:
-            player_hand.append(deck.pop())
             bot_go = bot_decision(bot_hand, deck)
             await game.edit(embed=embed_create_blackjack(u, bot_hand, player_hand))
             await game.remove_reaction(reaction, user)
@@ -170,33 +195,32 @@ async def embed_blackjack(ctx, bot, u, amount, _type):
           while bot_go:
             bot_go = bot_decision(bot_hand, deck)
           bot_win, bot_total = check_21(bot_hand)
-
-          if bot_win and win:
-            await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "b", amount, _type))
-          elif win:
-            await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "u", amount, _type))
-          elif bot_win:
-            await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "y", amount, _type))
-          else:
-            if total >= 21 or bot_total >= 21:
-              if total > 21 and bot_total > 21:
-                await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "b", amount, _type))
-              elif total > 21 and bot_total <= 21:
-                await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "y", amount, _type))
-              elif bot_total > 21 and total <= 21:
-                await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "u", amount, _type))
-            else:
-              if total > bot_total:
-                await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "u", amount, _type))
-              elif bot_total > total:
-                await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "y", amount, _type))
-              else:
-                await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, "b", amount, _type))
+          
+          await game.edit(embed=await embed_create_blackjack_final(ctx, u, bot_hand, player_hand, check_winner(win, bot_win, total, bot_total), amount, _type))
+          
           await game.clear_reactions()
           break
         else:
           await game.remove_reaction(reaction, user)
     except asyncio.TimeoutError:
         await ctx.send(f"{ctx.author.mention}, You took too long, Now the game is cancelled.")
+        tax_amount = 0
+        if _type == "p":
+          if amount < 160:
+            tax_amount = amount//2
+          else:
+            tax_amount = amount//5
+          u.primogems -= tax_amount
+          database_mongo.add_to_jackpot_primo(tax_amount)
+          await ctx.send(f"{ctx.author.mention}, {formatter.number_format(tax_amount)} Primogems has been taxed to prevent abuse.")
+        else:
+          if amount < 10000:
+            tax_amount = amount//2
+          else:
+            tax_amount = amount//5
+          u.mora -= tax_amount
+          database_mongo.add_to_jackpot_mora(tax_amount)
+          await ctx.send(f"{ctx.author.mention}, {formatter.number_format(tax_amount)} Mora has been taxed to prevent abuse.")
+        database_mongo.save_user(u)
         await game.clear_reactions()
         break
