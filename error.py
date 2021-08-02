@@ -89,7 +89,7 @@ async def embed_failed_donation_primo_tax(ctx):
 
 async def embed_long_description(ctx, length):
   embed = discord.Embed(color=discord.Color.red())
-  embed.add_field(name = "Too Long", value = f"Your Description was too long.\nInputed Length: **{formatter.number_format(length)}**\nExpected Length: **100**")
+  embed.add_field(name = "Too Long", value = f"Your Description was too long.\nInputed Length: **{formatter.number_format(length)}**\nExpected Length: **400**")
   await ctx.send(ctx.author.mention, embed=embed)
 
 async def embed_too_early(ctx, waitTime):
