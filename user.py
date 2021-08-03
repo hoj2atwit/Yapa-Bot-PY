@@ -560,26 +560,27 @@ async def embed_donate_mora(ctx, giver, u, mora, member):
 #Shows user owned character info
 async def embed_show_char_info(ctx, u, c):
   color = discord.Color.red()
-  if c["element"] == "Anemo":
+  char_DB = character.get_character(c["name"])
+  if char_DB.element == "Anemo":
     color = discord.Color.green()
-  elif c["element"] == "Dendro":
+  elif char_DB.element == "Dendro":
     color = discord.Color.dark_green()
-  elif c["element"] == "Electro":
+  elif char_DB.element == "Electro":
     color = discord.Color.purple()
-  elif c["element"] == "Hydro":
+  elif char_DB.element == "Hydro":
     color = discord.Color.dark_blue()
-  elif c["element"] == "Geo":
+  elif char_DB.element == "Geo":
     color = discord.Color.orange()
-  elif c["element"] == "Cryo":
+  elif char_DB.element == "Cryo":
     color = discord.Color.blue()
-  const_names_dict = c["constellation_name"]
+  const_names_dict = char_DB.constellation_name
   const_names = ""
   for key in const_names_dict.keys():
     if const_names == "":
       const_names += const_names_dict[key]
     else:
       const_names += " or " + const_names_dict[key]
-  embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = c["name"]), color=color, description=c["description"])
+  embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = char_DB.name), color=color, description=char_DB.description)
   level = formatter.number_format(c["level"])
   currXP = formatter.number_format(c["xp"])
   maxXP = formatter.number_format(formatter.get_xp_to_next_level(c["level"]))
@@ -590,7 +591,7 @@ async def embed_show_char_info(ctx, u, c):
   else:
     text = c["weapon_equiped"]["name"]
   embed.add_field(name="Equiped Weapon", value=text)
-  embed.add_field(name="Trivia Info", value="**Element:** {e}\n**Constellation:** {c}\n**Weapon Type:** {w}".format(e = c["element"], c = const_names, w=formatter.name_unformatter(formatter.name_formatter(c["weapon_type"]))))
+  embed.add_field(name="Trivia Info", value="**Element:** {e}\n**Constellation:** {c}\n**Weapon Type:** {w}".format(e = char_DB.element, c = const_names, w=formatter.name_unformatter(formatter.name_formatter(char_DB.weapon_type))))
   f = []
   f.append(discord.File(c["URL_icon"], "{}-icon.png".format(c["URL_name"])))
   f.append(discord.File(c["URL_portrait"], "{}-portrait.png".format(c["URL_name"])))
@@ -601,9 +602,10 @@ async def embed_show_char_info(ctx, u, c):
 
 #Show user owned weapon info
 async def embed_show_weap_info(ctx, u, w):
-  embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = w["name"]))
+  weap_DB = weapon.get_weapon(w["name"])
+  embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = weap_DB.name))
   embed.add_field(name="Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Refinement:** {cu}\n**Total Wished:** {tr}".format(l = formatter.number_format(w["level"]), cu = w["refinement"], tr = formatter.number_format(w["total"]), x = formatter.number_format(w["xp"]), xm = formatter.number_format(formatter.get_xp_to_next_level(w["level"]))))
-  embed.add_field(name="Type", value = "{}".format(w["weapon_type"]))
+  embed.add_field(name="Type", value = "{}".format(weap_DB.weapon_type))
   f = discord.File(w["URL_icon"], "{}-icon.png".format(w["URL_name"]))
   embed.set_thumbnail(url="attachment://{}-icon.png".format(w["URL_name"]))
 
