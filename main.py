@@ -1,3 +1,5 @@
+from character import Character, get_character, does_char_exist
+from weapon import Weapon, get_weapon, does_weap_exist
 from logging import exception
 from random import randint
 import discord
@@ -457,6 +459,50 @@ async def giftxp(ctx, memberMention, amnt=None):
           database_mongo.save_user(u)
       else:
           await error.embed_user_does_not_exist(ctx)
+
+@bot.command(name="giftc")
+@commands.check(not_DM)
+@commands.check(user_is_me)
+@commands.check(lock_exists)
+async def giftc(ctx, memberMention, *args):
+  async with locks[str(ctx.author.id)]:
+    mention_id = formatter.get_id_from_mention(str(memberMention))
+    if user.does_exist(mention_id):
+      name = formatter.separate_commands(args, prefix.get_prefix(ctx))[0].lower()
+      if does_char_exist(name):
+        u = user.get_user(mention_id)
+        char = get_character(name)
+        u.add_character(char)
+        database_mongo.save_user(u)
+        member = await ctx.guild.fetch_member(str(mention_id))
+        await ctx.send(f"{member.mention} has been gifted {char.name}!")
+      else:
+        await error.embed_char_does_not_exist(ctx)
+    else:
+      await error.embed_user_does_not_exist(ctx)
+          
+      
+@bot.command(name="giftw")
+@commands.check(not_DM)
+@commands.check(user_is_me)
+@commands.check(lock_exists)
+async def giftw(ctx, memberMention, *args):
+  async with locks[str(ctx.author.id)]:
+    mention_id = formatter.get_id_from_mention(str(memberMention))
+    if user.does_exist(mention_id):
+      name = formatter.separate_commands(args, prefix.get_prefix(ctx))[0].lower()
+      if does_weap_exist(name):
+        u = user.get_user(mention_id)
+        weap = get_weapon(name)
+        u.add_weapon(weap)
+        database_mongo.save_user(u)
+        member = await ctx.guild.fetch_member(str(mention_id))
+        await ctx.send(f"{member.mention} has been gifted {weap.name}!")
+      else:
+        await error.embed_weap_does_not_exist(ctx)
+    else:
+      await error.embed_user_does_not_exist(ctx)
+      
 
 #Command to give primo
 @bot.command(name="giftprimo", aliases=["giftp"])
@@ -1102,6 +1148,8 @@ async def help(ctx, arg1=None):
       text += f"**`{pref}delete` `@user`**\n"
       text += f"**`{pref}rob` `@user`**\n"
       text += f"**`{pref}giftxp` `@user` `amnt`**\n"
+      text += f"**`{pref}giftc` `@user` `name`**\n"
+      text += f"**`{pref}giftw` `@user` `name`**\n"
       text += f"**`{pref}giftp` `@user` `amnt`**\n"
       text += f"**`{pref}giftm` `@user` `amnt`**\n"
       embed.add_field(name="Admin Commands", value=text)

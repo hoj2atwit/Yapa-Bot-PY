@@ -95,3 +95,9 @@ def get_two_star_weapons():
 
 def get_one_star_weapons():
   return get_weap_list_from_dict_list(database_mongo.get_all_weapons_of_criteria("rarity", 1))
+
+def does_weap_exist(name):
+  real_weap = database_mongo.get_all_weapons_of_criteria("URL_name", formatter.name_formatter(name))
+  if real_weap == []:
+    return False
+  return True

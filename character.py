@@ -69,27 +69,21 @@ class Character:
   def get_dict(self):
     return self.__dict__
 
-def get_character_from_dict(charsDict, name):
-  n = formatter.name_formatter(name)
-  c = charsDict[n]
-  if isinstance(c["constellation_name"], str):
-    return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], {"1":c["constellation_name"]}, c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
-  else:
-    return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], c["constellation_name"], c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
-
-def get_character(name):
-  c = database_mongo.get_character_dict(name)
-  if isinstance(c["constellation_name"], str):
-    return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], {"1":c["constellation_name"]}, c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
-  else:
-    return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], c["constellation_name"], c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
-
 def dict_to_char(charDict):
   c = charDict
   if isinstance(c["constellation_name"], str):
     return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], {"1":c["constellation_name"]}, c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
   else:
     return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], c["constellation_name"], c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
+
+def get_character_from_dict(charsDict, name):
+  n = formatter.name_formatter(name)
+  c = charsDict[n]
+  return dict_to_char(c)
+
+def get_character(name):
+  c = database_mongo.get_character_dict(name)
+  return dict_to_char(c)
 
 def get_all_characters():
   allChars = []
@@ -119,6 +113,12 @@ def get_four_star_characters():
     chars.append(dict_to_char(c))
   return chars
 
+def does_char_exist(name):
+  real_char = database_mongo.get_all_characters_of_criteria("URL_name", formatter.name_formatter(name))
+  if real_char == []:
+    return False
+  return True
+    
 async def embed_level_up_character(ctx, char, old_level):
   embed = discord.Embed(title="Character Level Up!", color=discord.Color.gold(),description = f"{char.name} has leveled up! **Lvl {old_level} ➟ Lvl {char.level}**")
   f = discord.File(char.URL_icon, f"{char.URL_name}-icon.png")

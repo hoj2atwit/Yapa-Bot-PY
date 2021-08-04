@@ -44,7 +44,7 @@ async def embed_weap_is_not_compatible(ctx):
 
 async def embed_weap_does_not_exist(ctx):
   embed = discord.Embed(color=discord.Color.red())
-  embed.add_field(name = "Character not found", value = "This weapon does not exist.")
+  embed.add_field(name = "Weapon not found", value = "This weapon does not exist.")
   await ctx.send(ctx.author.mention, embed=embed)
 
 async def embed_art_is_not_owned(ctx):
