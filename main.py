@@ -1140,7 +1140,7 @@ async def help(ctx, arg1=None):
   elif arg1.lower() == "a":
     if await user_is_me(ctx):
       embed = discord.Embed(title="Admin Commands", color=discord.Color.dark_red())
-      text = f"**`{pref}update` `w, c, u, com, shop, jp, lb` `i, p, m`**\n"
+      text = f"**`{pref}update` `w, c, u, com, shop, jp, lb, wishes, replace` `i, p, m`**\n"
       text += f"**`{pref}stats`**\n"
       text += f"**`{pref}clear` `shop_items`**\n"
       text += f"**`{pref}test` `?`**\n"
