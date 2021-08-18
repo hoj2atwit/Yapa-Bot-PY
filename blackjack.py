@@ -15,7 +15,7 @@ def check_21(hand):
       total += int(val)
     else:
       if val == "J" or val == "Q" or val == "K":
-        total += 11
+        total += 10
       else:
         aces += 1
   for i in range(aces):
