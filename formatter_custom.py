@@ -247,16 +247,34 @@ def get_suggestions(_dict, attempt):
   return name_list_string
 
 async def pages(ctx, bot, embedList):
-  left_button = create_button(style=ButtonStyle.gray, emoji="◀️", custom_id= "left_page")
-  right_button = create_button(style=ButtonStyle.gray, emoji="▶️", custom_id = "right_page")
-  buttons = [left_button, right_button]
-  action_row = create_actionrow(*buttons)
-  pages = await ctx.send(embed=embedList[0], components=[action_row])
-  global page_dicts
-  temp_dicts = page_dicts
-  temp_dicts[str(pages)] = PagesInfoObject(embedList, len(embedList)-1, 0)
-  page_dicts = temp_dicts
-  print(page_dicts)
+  pages = await ctx.send(embed=embedList[0])
+  cur_index = 0
+  await pages.add_reaction("◀️")
+  await pages.add_reaction("▶️")
+  def check(reaction, user):
+    return str(reaction.emoji) in ["◀️", "▶️"] and reaction.message == pages and (not user.bot)
+  while True:
+    try:
+      reaction, user = await bot.wait_for("reaction_add", timeout=30, check=check)
+
+      if str(reaction.emoji) == "▶️":
+          cur_index += 1
+          if cur_index >= len(embedList):
+            cur_index = 0
+          await pages.edit(embed=embedList[cur_index])
+          await pages.remove_reaction(reaction, user)
+
+      elif str(reaction.emoji) == "◀️":
+        cur_index -= 1
+        if cur_index < 0:
+          cur_index = len(embedList)-1
+        await pages.edit(embed=embedList[cur_index])
+        await pages.remove_reaction(reaction, user)
+
+      else:
+        await pages.remove_reaction(reaction, user)
+    except asyncio.TimeoutError:
+      break
 
 async def confirmation(ctx, bot, disclaimer):
   await ctx.send(f"{ctx.author.mention}, Are you sure you want to do this?(y/n)\n**Disclaimer:** {disclaimer}")
