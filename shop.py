@@ -2,7 +2,7 @@ from logging import exception
 import discord
 import error
 import database_mongo
-import formatter
+import formatter_custom
 import item
 import character
 import weapon
@@ -19,12 +19,12 @@ class Shop:
       self.inventory[shop_item.item["URL_name"]] = shop_item.get_dict()
 
   def remove_item(self, name):
-    if formatter.name_formatter(name) not in self.inventory.keys():
-      del self.inventory[formatter.name_formatter(name)]
+    if formatter_custom.name_formatter(name) not in self.inventory.keys():
+      del self.inventory[formatter_custom.name_formatter(name)]
 
   async def get_item(self, ctx, name):
-    if formatter.name_formatter(name) in self.inventory.keys():
-      return get_shop_item(self.inventory[formatter.name_formatter(name)])
+    if formatter_custom.name_formatter(name) in self.inventory.keys():
+      return get_shop_item(self.inventory[formatter_custom.name_formatter(name)])
     else:
       await error.embed_unknown_item(ctx, name)
       return None
@@ -98,7 +98,7 @@ class Shop_Item:
     
     database_mongo.save_user(u)
 
-    embed = discord.Embed(title="Purchase Successful", description=f"{u.nickname} purchased {formatter.number_format(int(my_item.count * amount))} {my_item.name}.", color=discord.Color.green())
+    embed = discord.Embed(title="Purchase Successful", description=f"{u.nickname} purchased {formatter_custom.number_format(int(my_item.count * amount))} {my_item.name}.", color=discord.Color.green())
     await ctx.send(embed=embed)
 
   def get_dict(self):
@@ -131,9 +131,9 @@ async def embed_show_shop(ctx, u, _type):
     if shop.inventory[i]["amount"] > 0:
       textList.append("({}) ".format(shop.inventory[i]["amount"]))
       spacer_amnt -= len(textList[0])
-    x=formatter.number_format(shop.inventory[i]["item"]["count"])
+    x=formatter_custom.number_format(shop.inventory[i]["item"]["count"])
     y=shop.inventory[i]["item"]["name"]
-    z=formatter.number_format(shop.inventory[i]["cost"])
+    z=formatter_custom.number_format(shop.inventory[i]["cost"])
     ct=shop.inventory[i]["cost_type"].upper()
     spacer_amnt -= (len(str(x)) + len(str(y)) + len(str(z)) + len(str(ct)))
     textList.append(f"{x}x {y} ")
@@ -144,7 +144,7 @@ async def embed_show_shop(ctx, u, _type):
     text = "".join(textList)
 
     if shop.inventory[i]["amount"] == 0:
-      textList = [formatter.strike(text), " SOLDOUT"]
+      textList = [formatter_custom.strike(text), " SOLDOUT"]
       text = "".join(textList)
 
     if shop.inventory[i]["cost_type"] == "p":

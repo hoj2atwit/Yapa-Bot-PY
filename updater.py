@@ -5,7 +5,7 @@ from character import Character, get_character, get_character_from_dict
 from enemy import Enemy, get_enemy
 from user import get_user
 import database_mongo
-import formatter
+import formatter_custom
 import sys
 import constellation
 
@@ -33,7 +33,7 @@ def get_all_weaps_API():
       response = requests.get(apiURL + "weapons/" + i)
       json_data = response.json()
 
-      name = formatter.name_unformatter("{}".format(i))
+      name = formatter_custom.name_unformatter("{}".format(i))
       URL_icon = f"Images/Weapons/{URL_name}-icon.png"
 
       rarity = int("{}".format(json_data['rarity']))
@@ -105,14 +105,14 @@ def get_all_characters_API():
       print("getting {} data".format(i))
       response = requests.get(apiURL + "characters/" + i)
       json_data = response.json()
-      name = formatter.name_unformatter("{}".format(i))
+      name = formatter_custom.name_unformatter("{}".format(i))
   
       iconURL = f"Images/Characters/{URL_name}-icon.png"
       portraitURL = f"Images/Characters/{URL_name}-portrait.png"
 
-      description = formatter.text_formatter("{}".format(json_data['description']))
+      description = formatter_custom.text_formatter("{}".format(json_data['description']))
       rarity = int("{}".format(json_data['rarity']), base = 10)
-      element = formatter.name_unformatter("{}".format(json_data['vision']))
+      element = formatter_custom.name_unformatter("{}".format(json_data['vision']))
       weaponType = "{}".format(json_data['weapon_type'])
       constName = {"1":"{}".format(json_data['constellation'])}
       constellations = constellation.get_all_constillations(rarity, json_data)

@@ -1,5 +1,5 @@
 import constellation
-import formatter
+import formatter_custom
 import math
 import discord
 import database_mongo
@@ -77,7 +77,7 @@ def dict_to_char(charDict):
     return Character(c["name"], c["URL_name"], c["URL_icon"], c["URL_portrait"], c["description"], c["rarity"], c["element"], c["weapon_equiped"], c["weapon_type"], c["constellation_name"], c["constellations"], c["artifacts_equiped"], c["level"], c["xp"], c["const_amnt"], c["total"], c["attack"], c["health"], c["defense"], c["crit_rate"], c["crit_dmg"], c["elemental_mastery"])
 
 def get_character_from_dict(charsDict, name):
-  n = formatter.name_formatter(name)
+  n = formatter_custom.name_formatter(name)
   c = charsDict[n]
   return dict_to_char(c)
 
@@ -114,7 +114,7 @@ def get_four_star_characters():
   return chars
 
 def does_char_exist(name):
-  real_char = database_mongo.get_all_characters_of_criteria("URL_name", formatter.name_formatter(name))
+  real_char = database_mongo.get_all_characters_of_criteria("URL_name", formatter_custom.name_formatter(name))
   if real_char == []:
     return False
   return True

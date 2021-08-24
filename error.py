@@ -1,6 +1,6 @@
 from user import User
 import discord
-import formatter
+import formatter_custom
 
 async def embed_not_enough_primo(ctx):
   embed = discord.Embed(color=discord.Color.red())
@@ -89,7 +89,7 @@ async def embed_failed_donation_primo_tax(ctx):
 
 async def embed_long_description(ctx, length):
   embed = discord.Embed(color=discord.Color.red())
-  embed.add_field(name = "Too Long", value = f"Your Description was too long.\nInputed Length: **{formatter.number_format(length)}**\nExpected Length: **400**")
+  embed.add_field(name = "Too Long", value = f"Your Description was too long.\nInputed Length: **{formatter_custom.number_format(length)}**\nExpected Length: **400**")
   await ctx.send(ctx.author.mention, embed=embed)
 
 async def embed_too_early(ctx, waitTime):
@@ -128,7 +128,7 @@ async def embed_too_much_condensed(ctx):
   await ctx.send(ctx.author.mention, embed=embed)
 
 async def embed_get_character_suggestions(ctx, u, attempt):
-  name_list_string = formatter.get_suggestions(u.characters, attempt)
+  name_list_string = formatter_custom.get_suggestions(u.characters, attempt)
   if name_list_string != "":
     embed = discord.Embed()
     embed.add_field(name="Suggestions", value=f"Did you mean: {name_list_string}?")
@@ -137,7 +137,7 @@ async def embed_get_character_suggestions(ctx, u, attempt):
     await embed_char_is_not_owned(ctx, attempt)
 
 async def embed_get_weapon_suggestions(ctx, u, attempt):
-  name_list_string = formatter.get_suggestions(u.weapons, attempt)
+  name_list_string = formatter_custom.get_suggestions(u.weapons, attempt)
   if name_list_string != "":
     embed = discord.Embed()
     embed.add_field(name="Suggestions", value=f"Did you mean: {name_list_string}?")

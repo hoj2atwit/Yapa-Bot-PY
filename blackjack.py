@@ -1,5 +1,5 @@
 import discord
-import formatter
+import formatter_custom
 import error
 import database_mongo
 import card
@@ -61,10 +61,10 @@ async def embed_create_blackjack_final(ctx, u, bot_hand, player_hand, winner, am
     text = ""
     if _type == "p":
       u.primogems += amount*2
-      text = f"You won {formatter.number_format(amount*2)}x Primogems"
+      text = f"You won {formatter_custom.number_format(amount*2)}x Primogems"
     else:
       u.mora += amount*2
-      text = f"You won {formatter.number_format(amount*2)}x Mora"
+      text = f"You won {formatter_custom.number_format(amount*2)}x Mora"
     embed.add_field(name="You Won!", value=text)
   elif winner == "b":
     embed = discord.Embed(title=f"{u.nickname}'s BlackJack Game")
@@ -76,10 +76,10 @@ async def embed_create_blackjack_final(ctx, u, bot_hand, player_hand, winner, am
   else:
     embed = discord.Embed(title=f"{u.nickname}'s BlackJack Game", color=discord.Color.red())
     if _type == "p":
-      text = f"You lost {formatter.number_format(amount)}x Primogems"
+      text = f"You lost {formatter_custom.number_format(amount)}x Primogems"
       database_mongo.add_to_jackpot_primo(amount)
     else:
-      text = f"You lost {formatter.number_format(amount)}x Mora"
+      text = f"You lost {formatter_custom.number_format(amount)}x Mora"
       database_mongo.add_to_jackpot_mora(amount)
     embed.add_field(name="You lost.", value=text)
   await commission.check_target_complete(ctx, u, "gamble", 1)
@@ -212,7 +212,7 @@ async def embed_blackjack(ctx, bot, u, amount, _type):
             tax_amount = amount//5
           u.primogems -= tax_amount
           database_mongo.add_to_jackpot_primo(tax_amount)
-          await ctx.send(f"{ctx.author.mention}, {formatter.number_format(tax_amount)} Primogems has been taxed to prevent abuse.")
+          await ctx.send(f"{ctx.author.mention}, {formatter_custom.number_format(tax_amount)} Primogems has been taxed to prevent abuse.")
         else:
           if amount < 10000:
             tax_amount = amount//2
@@ -220,7 +220,7 @@ async def embed_blackjack(ctx, bot, u, amount, _type):
             tax_amount = amount//5
           u.mora -= tax_amount
           database_mongo.add_to_jackpot_mora(tax_amount)
-          await ctx.send(f"{ctx.author.mention}, {formatter.number_format(tax_amount)} Mora has been taxed to prevent abuse.")
+          await ctx.send(f"{ctx.author.mention}, {formatter_custom.number_format(tax_amount)} Mora has been taxed to prevent abuse.")
         database_mongo.save_user(u)
         await game.clear_reactions()
         break
