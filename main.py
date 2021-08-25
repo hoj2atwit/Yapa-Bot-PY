@@ -411,25 +411,6 @@ async def reset(ctx, arg1, arg2):
         else:
           await error.embed_user_does_not_exist(ctx)
 
-
-#Command to delete a user's data
-@bot.command(name="delete", aliases=["del"])
-@commands.check(not_DM)
-@commands.check(user_is_me)
-@commands.check(lock_exists)
-async def delete(ctx, memberMention):
-    async with locks[str(ctx.author.id)]:
-      mention_id = formatter_custom.get_id_from_mention(str(memberMention))
-      if user.does_exist(mention_id):
-        confirm = await formatter_custom.confirmation(ctx, bot,"")
-        if confirm:
-            database_mongo.delete_user(mention_id)
-            await ctx.send(f"<@{mention_id}>\'s User data deleted")
-        else:
-            await ctx.send("Action Cancelled.")
-      else:
-        await error.embed_user_does_not_exist(ctx)
-
 #Command to Rob people
 @bot.command(name="rob")
 @commands.check(not_DM)
@@ -594,6 +575,39 @@ async def start(ctx):
 @commands.check(not_DM)
 async def server(ctx):
   await ctx.send(f"{ctx.author.mention}, https://discord.gg//WRBbgP4q3V \nFeel free to join this server for developments or to submit suggestions.")
+
+@bot.command(name="topgg")
+@commands.check(not_DM)
+async def topgg(ctx):
+  await ctx.send(f"{ctx.author.mention}, https://top.gg/bot/827279423321276457 \nHave a gander upon the Yapa top.gg page. You can invite the bot to other servers from here.")
+
+#Command to delete a user's data
+@bot.command(name="delete", aliases=["del"])
+@commands.check(not_DM)
+@commands.check(user_exists)
+@commands.check(lock_exists)
+async def delete(ctx, memberMention=None):
+    async with locks[str(ctx.author.id)]:
+      mention_id = ctx.author.id
+      disclaimer_text = "You will be permanently removing all of your data and progress from the bot."
+      if(await user_is_me(ctx)):
+        if(memberMention != None):
+          mention_id = formatter_custom.get_id_from_mention(str(memberMention))
+          disclaimer_text = f"You will Permanently Delete the data of user of ID: {mention_id}."
+      
+      if user.does_exist(mention_id):
+        confirm = await formatter_custom.confirmation(ctx, bot, disclaimer_text)
+        if confirm:
+            confirm2 = await formatter_custom.confirmation_custom(ctx, bot, "Are you sure you're sure?(This isn't a joke right?)", disclaimer_text + " This is the FINAL confirmation.")
+            if confirm2:
+              database_mongo.delete_user(mention_id)
+              await ctx.send(f"<@{mention_id}>\'s User data deleted")
+            else:
+              await ctx.send("Action Cancelled.")
+        else:
+            await ctx.send("Action Cancelled.")
+      else:
+        await error.embed_user_does_not_exist(ctx)
 
 @bot.command(name="profile", aliases=["prof","p"])
 @commands.check(not_DM)
@@ -1120,7 +1134,7 @@ async def embed_help_summary(ctx, command, aliases, description, usage={}):
 @bot.command(name="help", aliases=["h"])
 async def help(ctx, arg1=None):
   embed = discord.Embed(title = "Yapa Bot Commands", color=discord.Color.greyple(), description="Use `?help command` to see more details about a particular command.")
-  text = "`start`, `server`, `daily`, `weekly`, `vote`"
+  text = "`start`, `server`, `topgg`, `daily`, `weekly`, `vote`, `delete`"
   embed.add_field(name="**Basic Commands**", value = text)
   text = "`adventure`"
   embed.add_field(name=":sunrise_over_mountains: **Adventure Commands**", value = text)
@@ -1172,6 +1186,8 @@ async def help(ctx, arg1=None):
     await embed_help_summary(ctx, f"{pref}start", bot.get_command("start").aliases, "Allows you to start your Yapa Experience.")
   elif arg1.lower() == "server" or arg1.lower() in bot.get_command("server").aliases:
     await embed_help_summary(ctx, f"{pref}server", bot.get_command("server").aliases, "Sends the invite link to the official Yapa-Bot support server.")
+  elif arg1.lower() == "topgg" or arg1.lower() in bot.get_command("topgg").aliases:
+    await embed_help_summary(ctx, f"{pref}topgg", bot.get_command("topgg").aliases, "Sends the link to the official Yapa-Bot Top.gg page. You can invite the bot from here.")
   elif arg1.lower() == "daily" or arg1.lower() in bot.get_command("daily").aliases:
     await embed_help_summary(ctx, f"{pref}daily", bot.get_command("daily").aliases, "Allows you to claim daily rewards.")
   elif arg1.lower() == "weekly" or arg1.lower() in bot.get_command("weekly").aliases:
@@ -1179,6 +1195,8 @@ async def help(ctx, arg1=None):
   elif arg1.lower() == "vote" or arg1.lower() in bot.get_command("vote").aliases:
     await embed_help_summary(ctx, f"{pref}vote", bot.get_command("vote").aliases, "Allows you to vote for the bot on top.gg and earn another daily claim.", 
     {f"`{pref}vote` `toggle`":"Allows you to toggle the vote DM confirmation."})
+  elif arg1.lower() == "delete" or arg1.lower() in bot.get_command("delete").aliases:
+    await embed_help_summary(ctx, f"{pref}delete", bot.get_command("delete").aliases, "Allows you to permenently remove your user data from Yapa-Bot and it's database.")
   elif arg1.lower() == "adventure" or arg1.lower() in bot.get_command("adventure").aliases:
     await embed_help_summary(ctx, f"{pref}adventure", bot.get_command("adventure").aliases, "Allows you to adventure with characters for experience and loot at the cost of 20 resin.",
     {f"`{pref}adventure` `char_name` *`{pref}char_name`* *`{pref}char_name`* *`{pref}char_name`*":"Allows you to go on an adventure with up to 4 of your characters. You must have atleast 1 character to adventure.",

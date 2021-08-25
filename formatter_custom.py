@@ -277,7 +277,31 @@ async def pages(ctx, bot, embedList):
       break
 
 async def confirmation(ctx, bot, disclaimer):
-  await ctx.send(f"{ctx.author.mention}, Are you sure you want to do this?(y/n)\n**Disclaimer:** {disclaimer}")
+  text = f"{ctx.author.mention}, Are you sure you want to do this?(y/n)\n"
+  if(disclaimer != ""):
+    text += f"**Disclaimer:** {disclaimer}"
+  await ctx.send(text)
+  def check(response):
+        confirmation = ["yes","no","y","n"]
+        return response.author == ctx.author and str(response.content.lower()) in confirmation
+  while True:
+        try:
+            response = await bot.wait_for(event = 'message', timeout=30, check=check)
+
+            if str(response.content.lower()) == "yes" or str(response.content.lower()) == "y":
+                return True
+
+            elif str(response.content.lower()) == "no" or str(response.content.lower()) == "n":
+                return False
+        except asyncio.TimeoutError:
+            await ctx.send("Response timeout.")
+            return False
+
+async def confirmation_custom(ctx, bot, prompt, disclaimer=""):
+  text = f"{ctx.author.mention}, {prompt}(y/n)\n"
+  if(disclaimer != ""):
+    text += f"**Disclaimer:** {disclaimer}"
+  await ctx.send(text)
   def check(response):
         confirmation = ["yes","no","y","n"]
         return response.author == ctx.author and str(response.content.lower()) in confirmation
@@ -295,7 +319,10 @@ async def confirmation(ctx, bot, disclaimer):
             return False
 
 async def confirmation_specific(ctx, bot, u:discord.User, disclaimer):
-  await ctx.send(f"{u.mention}, Are you sure you want to do this?(y/n)\n**Disclaimer:** {disclaimer}")
+  text = f"{u.mention}, Are you sure you want to do this?(y/n)\n"
+  if(disclaimer != ""):
+    text += f"**Disclaimer:** {disclaimer}"
+  await ctx.send(text)
   def check(response):
         confirmation = ["yes","no","y","n"]
         return response.author == u and str(response.content.lower()) in confirmation
@@ -312,8 +339,11 @@ async def confirmation_specific(ctx, bot, u:discord.User, disclaimer):
             await ctx.send("Response timeout.")
             return False
 
-async def confirmation_custom(ctx, bot, u:discord.User, custom_prompt):
-  await ctx.send(f"{u.mention}, {custom_prompt}")
+async def confirmation_custom_specific(ctx, bot, u:discord.User, prompt, disclaimer=""):
+  text = f"{u.mention}, {prompt}(y/n)\n"
+  if(disclaimer != ""):
+    text += f"**Disclaimer:** {disclaimer}"
+  await ctx.send(text)
   def check(response):
     confirmation = ["yes","no","y","n"]
     return response.author == u and str(response.content.lower()) in confirmation
