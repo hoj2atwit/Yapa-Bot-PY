@@ -2,7 +2,7 @@ from typing import List
 import card
 import discord
 from discord.ext import commands
-import formatter
+import formatter_custom
 
 class uno_deck():
     def __init__(self):

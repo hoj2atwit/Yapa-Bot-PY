@@ -3,6 +3,8 @@ from weapon import Weapon, get_weapon, does_weap_exist
 from logging import exception
 from random import randint
 import discord
+import discord_slash
+from discord_buttons_plugin import *
 from discord.ext.commands.core import command, is_owner
 import database_mongo
 from discord.ext import commands
@@ -12,7 +14,7 @@ import user
 import pull
 import error
 import prefix
-import formatter
+import formatter_custom
 import adventure
 import commission
 import updater
@@ -40,6 +42,7 @@ bot = commands.Bot(command_prefix=get_prefix_bot, case_insensitive=True, owner_i
 bot.remove_command("help") # Removing the default help command
 dbl_token = os.getenv('TOP_TOKEN')  # set this to your bot's top.gg token
 bot.dblpy = dbl.DBLClient(bot, dbl_token, webhook_path='/dblwebhook', webhook_auth="yapa_pass", webhook_port=5000)
+buttons=ButtonsClient(bot)
 
 locks = {}
 
@@ -67,7 +70,7 @@ def update_counter():
     if database_mongo.get_last_resin_time() == "":
       update_last_resin_time()
       user.recharge_all_resin()
-    old = tz.localize(formatter.get_DateTime(database_mongo.get_last_resin_time()), is_dst=None)
+    old = tz.localize(formatter_custom.get_DateTime(database_mongo.get_last_resin_time()), is_dst=None)
     difference = now-old
     minutes, seconds = divmod(difference.seconds, 60)
     hours, minutes = divmod(minutes, 60)
@@ -91,7 +94,7 @@ def update_counter():
 def get_next_resin_time():
   utc_now = pytz.utc.localize(datetime.utcnow())
   now = utc_now.astimezone(tz)
-  old = tz.localize(formatter.get_DateTime(database_mongo.get_last_resin_time()), is_dst=None)
+  old = tz.localize(formatter_custom.get_DateTime(database_mongo.get_last_resin_time()), is_dst=None)
   differenceDate = old + timedelta(minutes=20)
   difference = differenceDate-now
   minutes, seconds = divmod(difference.seconds, 60)
@@ -164,12 +167,21 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
         await ctx.send(f"{ctx.author.mention}This command is on cooldown, you can use it in {round(error.retry_after, 2)} seconds.")
 
+@buttons.click
+async def right_page(ctx):
+  try:
+    formatter_custom.page_dicts[str(ctx.message)].increment()
+    await ctx.message.edit(embed=formatter_custom.page_dicts[str(ctx.message)].getPage())
+  except(Exception):
+    pass
 
-
-
-
-
-
+@buttons.click
+async def left_page(ctx):
+  try:
+    formatter_custom.page_dicts[str(ctx.message)].decrement()
+    await ctx.message.edit(embed=formatter_custom.page_dicts[str(ctx.message)].getPage())
+  except(Exception):
+    pass
 
 ###OWNER COMMANDS###
 
@@ -292,7 +304,7 @@ async def test(ctx, mention):
   global locks
   async with locks[str(ctx.author.id)]:
     u = user.get_user(ctx.author.id)
-    receiver_id = formatter.get_id_from_mention(mention)
+    receiver_id = formatter_custom.get_id_from_mention(mention)
     if user.does_exist(receiver_id) and receiver_id != u._id:
       if str(receiver_id) not in locks.keys():
         locks_copy = locks
@@ -301,12 +313,12 @@ async def test(ctx, mention):
       async with locks[str(receiver_id)]:
         receiver = user.get_user(receiver_id)
         asyncio.get_event_loop().create_task(user.embed_char_list(ctx, u, 1, bot, ""))
-        confirm, char1_name = await formatter.request_character_name(ctx, bot, u)
+        confirm, char1_name = await formatter_custom.request_character_name(ctx, bot, u)
         if not confirm:
           await ctx.send("Trade Cancelled.")
           return
         asyncio.get_event_loop().create_task(user.embed_char_list(ctx, receiver, 1, bot, ""))
-        confirm, char2_name = await formatter.request_character_name(ctx, bot, receiver)
+        confirm, char2_name = await formatter_custom.request_character_name(ctx, bot, receiver)
         if not confirm:
           await ctx.send("Trade Cancelled.")
           return
@@ -320,9 +332,9 @@ async def test(ctx, mention):
 async def reset(ctx, arg1, arg2):
     async with locks[str(ctx.author.id)]:
       if arg1.lower() == "timers" or arg1.lower() == "t":
-        mention_id = formatter.get_id_from_mention(arg2)
+        mention_id = formatter_custom.get_id_from_mention(arg2)
         if user.does_exist(mention_id):
-          confirm = await formatter.confirmation(ctx, bot, "")
+          confirm = await formatter_custom.confirmation(ctx, bot, "")
           if confirm:
               user.reset_timers(mention_id)
               await ctx.send(f"<@{mention_id}>\'s User timers reset.")
@@ -334,7 +346,7 @@ async def reset(ctx, arg1, arg2):
 
       elif arg1.lower() == "commissions" or arg1.lower() == "c" or arg1.lower() == "coms" or arg1.lower() == "com":
         if arg2.lower() == "all":
-          confirm = await formatter.confirmation(ctx, bot, "")
+          confirm = await formatter_custom.confirmation(ctx, bot, "")
           if confirm:
             user.generate_all_user_commissions()
             await ctx.send(f"{ctx.author.mention}, All commissions have been reset.")
@@ -343,9 +355,9 @@ async def reset(ctx, arg1, arg2):
             await ctx.send("Action Cancelled.")
             return
 
-        mention_id = formatter.get_id_from_mention(arg2)
+        mention_id = formatter_custom.get_id_from_mention(arg2)
         if user.does_exist(mention_id):
-          confirm = await formatter.confirmation(ctx, bot, "")
+          confirm = await formatter_custom.confirmation(ctx, bot, "")
           if confirm:
             user.reset_daily_commissions(mention_id)
             await ctx.send(f"<@{mention_id}>\'s commissions reset.")
@@ -356,9 +368,9 @@ async def reset(ctx, arg1, arg2):
 
 
       elif arg1.lower() == "level" or arg1.lower() == "l":
-        mention_id = formatter.get_id_from_mention(arg2)
+        mention_id = formatter_custom.get_id_from_mention(arg2)
         if user.does_exist(mention_id):
-          confirm = await formatter.confirmation(ctx, bot, "")
+          confirm = await formatter_custom.confirmation(ctx, bot, "")
           if confirm:
               u = user.get_user(mention_id)
               member = await ctx.guild.fetch_member(str(mention_id))
@@ -368,7 +380,7 @@ async def reset(ctx, arg1, arg2):
           else:
             await ctx.send("Action Cancelled.")
         elif arg2 == "all":
-          confirm = await formatter.confirmation(ctx, bot, "")
+          confirm = await formatter_custom.confirmation(ctx, bot, "")
           if confirm:
               user.clear_user_xp()
               await ctx.send(f"{ctx.author.mention}: All adventure rank and world levels have been reset.")
@@ -378,9 +390,9 @@ async def reset(ctx, arg1, arg2):
           await error.embed_user_does_not_exist(ctx)
           
       elif arg1.lower() == "desc":
-        mention_id = formatter.get_id_from_mention(arg2)
+        mention_id = formatter_custom.get_id_from_mention(arg2)
         if user.does_exist(mention_id):
-          confirm = await formatter.confirmation(ctx, bot, "")
+          confirm = await formatter_custom.confirmation(ctx, bot, "")
           if confirm:
               u = user.get_user(mention_id)
               member = await ctx.guild.fetch_member(str(mention_id))
@@ -390,7 +402,7 @@ async def reset(ctx, arg1, arg2):
           else:
             await ctx.send("Action Cancelled.")
         elif arg2 == "all":
-          confirm = await formatter.confirmation(ctx, bot, "")
+          confirm = await formatter_custom.confirmation(ctx, bot, "")
           if confirm:
               user.clear_user_desc()
               await ctx.send(f"{ctx.author.mention}: All descriptions have been reset.")
@@ -399,25 +411,6 @@ async def reset(ctx, arg1, arg2):
         else:
           await error.embed_user_does_not_exist(ctx)
 
-
-#Command to delete a user's data
-@bot.command(name="delete", aliases=["del"])
-@commands.check(not_DM)
-@commands.check(user_is_me)
-@commands.check(lock_exists)
-async def delete(ctx, memberMention):
-    async with locks[str(ctx.author.id)]:
-      mention_id = formatter.get_id_from_mention(str(memberMention))
-      if user.does_exist(mention_id):
-        confirm = await formatter.confirmation(ctx, bot,"")
-        if confirm:
-            database_mongo.delete_user(mention_id)
-            await ctx.send(f"<@{mention_id}>\'s User data deleted")
-        else:
-            await ctx.send("Action Cancelled.")
-      else:
-        await error.embed_user_does_not_exist(ctx)
-
 #Command to Rob people
 @bot.command(name="rob")
 @commands.check(not_DM)
@@ -425,14 +418,14 @@ async def delete(ctx, memberMention):
 @commands.check(lock_exists)
 async def rob(ctx, memberMention):
     async with locks[str(ctx.author.id)]:
-      mention_id = formatter.get_id_from_mention(str(memberMention))
+      mention_id = formatter_custom.get_id_from_mention(str(memberMention))
       if user.does_exist(mention_id) and user.does_exist(ctx.author.id):
         u = user.get_user(ctx.author.id)
         user_robbed = user.get_user(mention_id)
         robbedAmnt, robbed = u.rob(user_robbed)
         if robbed:
           e=discord.Embed(title=f"{user.get_user(mention_id).nickname} has been Robbed!",color=discord.Color.red())
-          e.add_field(name="_ _", value=f"{u.nickname} stole **{formatter.number_format(robbedAmnt)}** Mora from your account.")
+          e.add_field(name="_ _", value=f"{u.nickname} stole **{formatter_custom.number_format(robbedAmnt)}** Mora from your account.")
           await ctx.send(f"<@{mention_id}>",embed=e)
           database_mongo.save_user(user_robbed)
           database_mongo.save_user(u)
@@ -447,7 +440,7 @@ async def rob(ctx, memberMention):
 @commands.check(lock_exists)
 async def giftxp(ctx, memberMention, amnt=None):
     async with locks[str(ctx.author.id)]:
-      mention_id = formatter.get_id_from_mention(str(memberMention))
+      mention_id = formatter_custom.get_id_from_mention(str(memberMention))
       if user.does_exist(mention_id):
           exp = 10000
           if str(amnt).isdigit() and amnt != None:
@@ -455,7 +448,7 @@ async def giftxp(ctx, memberMention, amnt=None):
           u = user.get_user(mention_id)
           member = await ctx.guild.fetch_member(str(mention_id))
           await u.add_experience(exp, ctx)
-          await ctx.send(f"{member.mention} has been gifted {formatter.number_format(exp)} Adventurer's Experience.")
+          await ctx.send(f"{member.mention} has been gifted {formatter_custom.number_format(exp)} Adventurer's Experience.")
           database_mongo.save_user(u)
       else:
           await error.embed_user_does_not_exist(ctx)
@@ -466,9 +459,9 @@ async def giftxp(ctx, memberMention, amnt=None):
 @commands.check(lock_exists)
 async def giftc(ctx, memberMention, *args):
   async with locks[str(ctx.author.id)]:
-    mention_id = formatter.get_id_from_mention(str(memberMention))
+    mention_id = formatter_custom.get_id_from_mention(str(memberMention))
     if user.does_exist(mention_id):
-      name = formatter.separate_commands(args, prefix.get_prefix(ctx))[0].lower()
+      name = formatter_custom.separate_commands(args, prefix.get_prefix(ctx))[0].lower()
       if does_char_exist(name):
         u = user.get_user(mention_id)
         char = get_character(name)
@@ -488,9 +481,9 @@ async def giftc(ctx, memberMention, *args):
 @commands.check(lock_exists)
 async def giftw(ctx, memberMention, *args):
   async with locks[str(ctx.author.id)]:
-    mention_id = formatter.get_id_from_mention(str(memberMention))
+    mention_id = formatter_custom.get_id_from_mention(str(memberMention))
     if user.does_exist(mention_id):
-      name = formatter.separate_commands(args, prefix.get_prefix(ctx))[0].lower()
+      name = formatter_custom.separate_commands(args, prefix.get_prefix(ctx))[0].lower()
       if does_weap_exist(name):
         u = user.get_user(mention_id)
         weap = get_weapon(name)
@@ -511,7 +504,7 @@ async def giftw(ctx, memberMention, *args):
 @commands.check(lock_exists)
 async def giftp(ctx, memberMention, amnt=None):
     async with locks[str(ctx.author.id)]:
-      mention_id = formatter.get_id_from_mention(str(memberMention))
+      mention_id = formatter_custom.get_id_from_mention(str(memberMention))
       if user.does_exist(mention_id):
         primo = 16000
         if str(amnt).isdigit() and amnt != None:
@@ -530,7 +523,7 @@ async def giftp(ctx, memberMention, amnt=None):
 @commands.check(lock_exists)
 async def giftm(ctx, memberMention, amnt=None):
     async with locks[str(ctx.author.id)]:
-      mention_id = formatter.get_id_from_mention(str(memberMention))
+      mention_id = formatter_custom.get_id_from_mention(str(memberMention))
       if user.does_exist(mention_id):
         mora = 1000000
         if str(amnt).isdigit() and amnt != None:
@@ -553,7 +546,7 @@ async def giftm(ctx, memberMention, amnt=None):
 @commands.check(not_DM)
 async def prefix_set(ctx, new_prefix):
   async with locks[str(ctx.author.id)]:
-    confirm = await formatter.confirmation(ctx, bot,f"You will be setting the new prefix for this bot as [{new_prefix}].")
+    confirm = await formatter_custom.confirmation(ctx, bot,f"You will be setting the new prefix for this bot as [{new_prefix}].")
     if confirm:
       database_mongo.save_prefix(ctx.message.guild.id, new_prefix)  
       await ctx.send(f"<@{ctx.author.id}>\'s Prefix set as {new_prefix}")
@@ -583,6 +576,39 @@ async def start(ctx):
 async def server(ctx):
   await ctx.send(f"{ctx.author.mention}, https://discord.gg//WRBbgP4q3V \nFeel free to join this server for developments or to submit suggestions.")
 
+@bot.command(name="topgg")
+@commands.check(not_DM)
+async def topgg(ctx):
+  await ctx.send(f"{ctx.author.mention}, https://top.gg/bot/827279423321276457 \nHave a gander upon the Yapa top.gg page. You can invite the bot to other servers from here.")
+
+#Command to delete a user's data
+@bot.command(name="delete", aliases=["del"])
+@commands.check(not_DM)
+@commands.check(user_exists)
+@commands.check(lock_exists)
+async def delete(ctx, memberMention=None):
+    async with locks[str(ctx.author.id)]:
+      mention_id = ctx.author.id
+      disclaimer_text = "You will be permanently removing all of your data and progress from the bot."
+      if(await user_is_me(ctx)):
+        if(memberMention != None):
+          mention_id = formatter_custom.get_id_from_mention(str(memberMention))
+          disclaimer_text = f"You will Permanently Delete the data of user of ID: {mention_id}."
+      
+      if user.does_exist(mention_id):
+        confirm = await formatter_custom.confirmation(ctx, bot, disclaimer_text)
+        if confirm:
+            confirm2 = await formatter_custom.confirmation_custom(ctx, bot, "Are you sure you're sure?(This isn't a joke right?)", disclaimer_text + " This is the FINAL confirmation.")
+            if confirm2:
+              database_mongo.delete_user(mention_id)
+              await ctx.send(f"<@{mention_id}>\'s User data deleted")
+            else:
+              await ctx.send("Action Cancelled.")
+        else:
+            await ctx.send("Action Cancelled.")
+      else:
+        await error.embed_user_does_not_exist(ctx)
+
 @bot.command(name="profile", aliases=["prof","p"])
 @commands.check(not_DM)
 @commands.check(user_exists)
@@ -594,7 +620,7 @@ async def profile(ctx, arg2=None, *arg3):
       if arg2 != None:
         if arg2.lower().startswith("description") or arg2.lower().startswith("bio") or arg2.lower().startswith("desc"):
           if arg3[0] != "":
-            desc = formatter.separate_commands(arg3, pref)
+            desc = formatter_custom.separate_commands(arg3, pref)
             if len(desc[0]) > 400:
               await error.embed_long_description(ctx, len(desc[0]))
             else:
@@ -607,7 +633,7 @@ async def profile(ctx, arg2=None, *arg3):
             database_mongo.save_user(u)
         elif arg2.lower().startswith("nickname") or arg2.lower().startswith("nick"):
           if arg3[0] != "":
-            nickname = formatter.separate_commands(arg3, pref)
+            nickname = formatter_custom.separate_commands(arg3, pref)
             u.change_nickname(nickname[0])
           else:
             u.change_nickname(u.name)
@@ -615,15 +641,15 @@ async def profile(ctx, arg2=None, *arg3):
           database_mongo.save_user(u)
         elif arg2.lower().startswith("favorite") or arg2.lower().startswith("fav"):
           if arg3[0] != "":
-            char = formatter.separate_commands(arg3, pref)
+            char = formatter_custom.separate_commands(arg3, pref)
             have = u.change_favorite_character(char[0])
             if have:
-              await ctx.send(f"{ctx.author.mention}\'s favorite Character has been set to: {formatter.name_unformatter(formatter.name_formatter(char[0]))}")
+              await ctx.send(f"{ctx.author.mention}\'s favorite Character has been set to: {formatter_custom.name_unformatter_custom(formatter_custom.name_formatter_custom(char[0]))}")
               database_mongo.save_user(u)
             else:
               await error.embed_get_character_suggestions(ctx, u, char[0])
         else:
-          mention_id = formatter.get_id_from_mention(str(arg2))
+          mention_id = formatter_custom.get_id_from_mention(str(arg2))
           if user.does_exist(mention_id):
             member = await ctx.guild.fetch_member(mention_id)
             u = user.get_user(mention_id)
@@ -722,8 +748,8 @@ async def listc(ctx, *args):
     for i in range(len(args)):
       if args[i].isdigit():
         pg = int(args[i])
-      elif user.does_exist(formatter.get_id_from_mention(str(args[i]))):
-        u = user.get_user(formatter.get_id_from_mention(str(args[i])))
+      elif user.does_exist(formatter_custom.get_id_from_mention(str(args[i]))):
+        u = user.get_user(formatter_custom.get_id_from_mention(str(args[i])))
       elif args[i].lower() in weap_types or args[i].lower() in elem_types:
         select_type = args[i]
       else:
@@ -731,9 +757,9 @@ async def listc(ctx, *args):
         break
     if spec:
       #show specific character info
-      name = formatter.separate_commands(args, pref)[0].lower()
+      name = formatter_custom.separate_commands(args, pref)[0].lower()
       if u.does_character_exist(name):
-        await user.embed_show_char_info(ctx, u, u.characters[formatter.name_formatter(name)])
+        await user.embed_show_char_info(ctx, u, u.characters[formatter_custom.name_formatter(name)])
         return
       else:
         await error.embed_get_character_suggestions(ctx, u, name)
@@ -755,8 +781,8 @@ async def listw(ctx, *args):
     for i in range(len(args)):
       if args[i].isdigit():
         pg = int(args[i])
-      elif user.does_exist(formatter.get_id_from_mention(str(args[i]))):
-        u = user.get_user(formatter.get_id_from_mention(str(args[i])))
+      elif user.does_exist(formatter_custom.get_id_from_mention(str(args[i]))):
+        u = user.get_user(formatter_custom.get_id_from_mention(str(args[i])))
       elif args[i].lower() in weap_types:
         select_type = args[i]
       else:
@@ -764,9 +790,9 @@ async def listw(ctx, *args):
         break
     if spec:
       #show specific weapon info
-      name = formatter.separate_commands(args, pref)[0]
+      name = formatter_custom.separate_commands(args, pref)[0]
       if u.does_weapon_exist(name):
-        await user.embed_show_weap_info(ctx, u, u.weapons[formatter.name_formatter(name)])
+        await user.embed_show_weap_info(ctx, u, u.weapons[formatter_custom.name_formatter(name)])
         return
       else:
         await error.embed_get_weapon_suggestions(ctx, u, name)
@@ -782,10 +808,10 @@ async def equip(ctx, *args):
   async with locks[str(ctx.author.id)]:
       u = user.get_user(ctx.author.id)
       pref = prefix.get_prefix(ctx)
-      commands = formatter.separate_commands(args, pref)
+      commands = formatter_custom.separate_commands(args, pref)
       if len(commands) == 2:
-        characterName = formatter.split_information(commands[0], pref)[0]
-        weaponName = formatter.split_information(commands[1], pref)[0]
+        characterName = formatter_custom.split_information(commands[0], pref)[0]
+        weaponName = formatter_custom.split_information(commands[1], pref)[0]
         worked, reason = u.equip_weapon(characterName, weaponName)
         if not worked:
           if reason == "c":
@@ -807,7 +833,7 @@ async def equip(ctx, *args):
 async def givem(ctx, mention, amnt):
   async with locks[str(ctx.author.id)]:
       giver = user.get_user(ctx.author.id)
-      taker_ID = formatter.get_id_from_mention(str(mention))
+      taker_ID = formatter_custom.get_id_from_mention(str(mention))
       if user.does_exist(taker_ID) and str(taker_ID) != giver._id:
         if amnt.isdigit():
           member = await ctx.guild.fetch_member(taker_ID)
@@ -828,7 +854,7 @@ async def givem(ctx, mention, amnt):
 async def givep(ctx, mention, amnt):
   async with locks[str(ctx.author.id)]:
       giver = user.get_user(ctx.author.id)
-      taker_ID = formatter.get_id_from_mention(str(mention))
+      taker_ID = formatter_custom.get_id_from_mention(str(mention))
       if user.does_exist(taker_ID) and str(taker_ID) != giver._id:
         if amnt.isdigit():
           member = await ctx.guild.fetch_member(taker_ID)
@@ -871,7 +897,7 @@ async def _adventure(ctx, *args):
   async with locks[str(ctx.author.id)]:
     u = user.get_user(ctx.author.id)
     pref = prefix.get_prefix(ctx)
-    commands = formatter.separate_commands(args, pref)
+    commands = formatter_custom.separate_commands(args, pref)
     charList = []
     if len(args) >= 1 and len(args) <= 2 and (args[0].lower().startswith("team") or args[0].lower().startswith("party") or (args[0].lower().startswith("t") and len(args[0]) <= 2) or (args[0].lower().startswith("p") and len(args[0]) <= 2)):
       if len(args) == 2 and args[1].isdigit():
@@ -886,7 +912,7 @@ async def _adventure(ctx, *args):
               charList.append(u.teams[num][i])
     else:
       for i in range(len(commands)):
-        charList.append(formatter.split_information(commands[i], pref)[0].lower())
+        charList.append(formatter_custom.split_information(commands[i], pref)[0].lower())
     await adventure.embed_adventure(ctx, u, charList)
     database_mongo.save_user(u)
     
@@ -898,7 +924,7 @@ async def _adventure(ctx, *args):
 async def trivia(ctx, TID, *answer):
   async with locks[str(ctx.author.id)]:
       u = user.get_user(ctx.author.id)  
-      answerString = formatter.separate_commands(answer, prefix.get_prefix(ctx))[0]
+      answerString = formatter_custom.separate_commands(answer, prefix.get_prefix(ctx))[0]
       await commission.answer_trivia(ctx, u, TID.upper(), answerString)
       database_mongo.save_user(u)
 
@@ -916,10 +942,10 @@ async def teams(ctx, arg1=None, *args):
               if len(args) == 0:
                 await user.embed_show_team(ctx, u, int(arg1))
               else:
-                commands = formatter.separate_commands(args, pref)
+                commands = formatter_custom.separate_commands(args, pref)
                 charList = []
                 for i in range(len(commands)):
-                    charList.append(formatter.split_information(commands[i], pref)[0].lower())
+                    charList.append(formatter_custom.split_information(commands[i], pref)[0].lower())
                 if len(charList) > 4:
                     await error.embed_too_many_characters(ctx)
                 else:
@@ -981,9 +1007,9 @@ async def buy(ctx, *name):
     amnt = 1;
     if name[len(name)-1].isdigit():
       amnt = int(name[len(name)-1])
-      name = formatter.separate_commands(name[:len(name)-1], prefix.get_prefix(ctx))[0].lower();
+      name = formatter_custom.separate_commands(name[:len(name)-1], prefix.get_prefix(ctx))[0].lower();
     else:
-      name = formatter.separate_commands(name, prefix.get_prefix(ctx))[0].lower();
+      name = formatter_custom.separate_commands(name, prefix.get_prefix(ctx))[0].lower();
     await shop.shop_buy(ctx, u, name, amnt)
 
 @bot.command(name="vote", aliases=["v"])
@@ -1035,7 +1061,7 @@ async def trade(ctx, _type, mention):
   responses = ["What are you doin that for? Those are the same you buffoons.", "Yea? You both think thats funny don't you. Get a life.", "Alright, I'm gettin me mallet! You'd better stop that before something happens."]
   async with locks[str(ctx.author.id)]:
     u = user.get_user(ctx.author.id)
-    receiver_id = formatter.get_id_from_mention(mention)
+    receiver_id = formatter_custom.get_id_from_mention(mention)
     if user.does_exist(receiver_id) and receiver_id != u._id:
       if str(receiver_id) not in locks.keys():
         locks_copy = locks
@@ -1048,32 +1074,32 @@ async def trade(ctx, _type, mention):
           return
         if _type == "c":
           asyncio.get_event_loop().create_task(user.embed_char_list(ctx, u, 1, bot, ""))
-          confirm, char1_name = await formatter.request_character_name(ctx, bot, u)
+          confirm, char1_name = await formatter_custom.request_character_name(ctx, bot, u)
           if not confirm:
             await ctx.send("Trade Cancelled.")
             return
           asyncio.get_event_loop().create_task(user.embed_char_list(ctx, receiver, 1, bot, ""))
-          confirm, char2_name = await formatter.request_character_name(ctx, bot, receiver)
+          confirm, char2_name = await formatter_custom.request_character_name(ctx, bot, receiver)
           if not confirm:
             await ctx.send("Trade Cancelled.")
             return
-          if formatter.name_formatter(char1_name) == formatter.name_formatter(char2_name):
+          if formatter_custom.name_formatter(char1_name) == formatter_custom.name_formatter(char2_name):
             await ctx.send(f"{ctx.author.mention}<@{receiver._id}>\n{responses[randint(0, len(responses)-1)]}")
             await ctx.send("Trade Cancelled.")
           else:
             await user.embed_exchange_character(ctx, bot, u, char1_name, receiver, char2_name)
         elif _type == "w":
           asyncio.get_event_loop().create_task(user.embed_weap_list(ctx, u, 1, bot, ""))
-          confirm, weap1_name = await formatter.request_weapon_name(ctx, bot, u)
+          confirm, weap1_name = await formatter_custom.request_weapon_name(ctx, bot, u)
           if not confirm:
             await ctx.send("Trade Cancelled.")
             return
           asyncio.get_event_loop().create_task(user.embed_weap_list(ctx, receiver, 1, bot, ""))
-          confirm, weap2_name = await formatter.request_weapon_name(ctx, bot, receiver)
+          confirm, weap2_name = await formatter_custom.request_weapon_name(ctx, bot, receiver)
           if not confirm:
             await ctx.send("Trade Cancelled.")
             return
-          if formatter.name_formatter(weap1_name) == formatter.name_formatter(weap2_name):
+          if formatter_custom.name_formatter(weap1_name) == formatter_custom.name_formatter(weap2_name):
             await ctx.send(f"{ctx.author.mention}<@{receiver._id}>\n{responses[randint(0, len(responses)-1)]}")
             await ctx.send("Trade Cancelled.")
           else:
@@ -1108,7 +1134,7 @@ async def embed_help_summary(ctx, command, aliases, description, usage={}):
 @bot.command(name="help", aliases=["h"])
 async def help(ctx, arg1=None):
   embed = discord.Embed(title = "Yapa Bot Commands", color=discord.Color.greyple(), description="Use `?help command` to see more details about a particular command.")
-  text = "`start`, `server`, `daily`, `weekly`, `vote`"
+  text = "`start`, `server`, `topgg`, `daily`, `weekly`, `vote`, `delete`"
   embed.add_field(name="**Basic Commands**", value = text)
   text = "`adventure`"
   embed.add_field(name=":sunrise_over_mountains: **Adventure Commands**", value = text)
@@ -1160,6 +1186,8 @@ async def help(ctx, arg1=None):
     await embed_help_summary(ctx, f"{pref}start", bot.get_command("start").aliases, "Allows you to start your Yapa Experience.")
   elif arg1.lower() == "server" or arg1.lower() in bot.get_command("server").aliases:
     await embed_help_summary(ctx, f"{pref}server", bot.get_command("server").aliases, "Sends the invite link to the official Yapa-Bot support server.")
+  elif arg1.lower() == "topgg" or arg1.lower() in bot.get_command("topgg").aliases:
+    await embed_help_summary(ctx, f"{pref}topgg", bot.get_command("topgg").aliases, "Sends the link to the official Yapa-Bot Top.gg page. You can invite the bot from here.")
   elif arg1.lower() == "daily" or arg1.lower() in bot.get_command("daily").aliases:
     await embed_help_summary(ctx, f"{pref}daily", bot.get_command("daily").aliases, "Allows you to claim daily rewards.")
   elif arg1.lower() == "weekly" or arg1.lower() in bot.get_command("weekly").aliases:
@@ -1167,6 +1195,8 @@ async def help(ctx, arg1=None):
   elif arg1.lower() == "vote" or arg1.lower() in bot.get_command("vote").aliases:
     await embed_help_summary(ctx, f"{pref}vote", bot.get_command("vote").aliases, "Allows you to vote for the bot on top.gg and earn another daily claim.", 
     {f"`{pref}vote` `toggle`":"Allows you to toggle the vote DM confirmation."})
+  elif arg1.lower() == "delete" or arg1.lower() in bot.get_command("delete").aliases:
+    await embed_help_summary(ctx, f"{pref}delete", bot.get_command("delete").aliases, "Allows you to permenently remove your user data from Yapa-Bot and it's database.")
   elif arg1.lower() == "adventure" or arg1.lower() in bot.get_command("adventure").aliases:
     await embed_help_summary(ctx, f"{pref}adventure", bot.get_command("adventure").aliases, "Allows you to adventure with characters for experience and loot at the cost of 20 resin.",
     {f"`{pref}adventure` `char_name` *`{pref}char_name`* *`{pref}char_name`* *`{pref}char_name`*":"Allows you to go on an adventure with up to 4 of your characters. You must have atleast 1 character to adventure.",

@@ -1,5 +1,5 @@
 import discord
-import formatter
+import formatter_custom
 
 from discord.embeds import Embed
 import prefix
@@ -51,7 +51,7 @@ class User:
     now = utc_now.astimezone(tz)
     if self.last_daily == "":
       return True, "Now"
-    old = tz.localize(formatter.get_DateTime(self.last_daily), is_dst=None)
+    old = tz.localize(formatter_custom.get_DateTime(self.last_daily), is_dst=None)
     difference = now-old
     if difference.days >= 1:
       return True, "Now"
@@ -68,7 +68,7 @@ class User:
               return False, name
       self.teams[str(teamNum)] = {}
       for i in range(len(characters)):
-          self.teams[str(teamNum)][str(i+1)] = formatter.name_unformatter(formatter.name_formatter(characters[i]))
+          self.teams[str(teamNum)][str(i+1)] = formatter_custom.name_unformatter(formatter_custom.name_formatter(characters[i]))
       return True, "None"
 
   def update_daily(self):
@@ -91,7 +91,7 @@ class User:
     now = utc_now.astimezone(tz)
     if self.last_vote == "":
       return True, "Now"
-    old = tz.localize(formatter.get_DateTime(self.last_vote), is_dst=None)
+    old = tz.localize(formatter_custom.get_DateTime(self.last_vote), is_dst=None)
     difference = now-old
     minutes, seconds = divmod(difference.seconds, 60)
     hours, minutes = divmod(minutes, 60)
@@ -109,7 +109,7 @@ class User:
     now = utc_now.astimezone(tz)
     if self.last_weekly == "":
       return True, "Now"
-    old = tz.localize(formatter.get_DateTime(self.last_weekly), is_dst=None)
+    old = tz.localize(formatter_custom.get_DateTime(self.last_weekly), is_dst=None)
     difference = now-old
     if difference.days >= 7:
       return True, "Now"
@@ -232,28 +232,28 @@ class User:
       self.experience = 0
 
   def get_character(self, charName):
-    c = character.get_character_from_dict(self.characters, formatter.name_formatter(charName))
+    c = character.get_character_from_dict(self.characters, formatter_custom.name_formatter(charName))
     return c
   
   def remove_character(self, charName):
-    c = character.get_character_from_dict(self.characters, formatter.name_formatter(charName))
+    c = character.get_character_from_dict(self.characters, formatter_custom.name_formatter(charName))
     if c.total > 1:
       if c.total <= 7:
         c.const_amnt -= 1
       c.total -= 1
-      self.characters[formatter.name_formatter(charName)] = c.get_dict()
+      self.characters[formatter_custom.name_formatter(charName)] = c.get_dict()
     else:
-      del self.characters[formatter.name_formatter(charName)]
+      del self.characters[formatter_custom.name_formatter(charName)]
 
   def remove_weapon(self, weapName):
-    w = weapon.get_weapon_from_dict(self.weapons, formatter.name_formatter(weapName))
+    w = weapon.get_weapon_from_dict(self.weapons, formatter_custom.name_formatter(weapName))
     if w.total > 1:
       if w.total <= 5:
         w.refinement -= 1
       w.total -= 1
-      self.weapons[formatter.name_formatter(weapName)] = w.get_dict()
+      self.weapons[formatter_custom.name_formatter(weapName)] = w.get_dict()
     else:
-      del self.weapons[formatter.name_formatter(weapName)]
+      del self.weapons[formatter_custom.name_formatter(weapName)]
     self.update_equiped_weapons()
       
   def equip_weapon(self, charName, weapName):
@@ -291,8 +291,8 @@ class User:
     self.description = description
 
   def change_favorite_character(self, name):
-    if formatter.name_formatter(name) in self.characters.keys():
-      self.favorite_character = formatter.name_unformatter(formatter.name_formatter(name))
+    if formatter_custom.name_formatter(name) in self.characters.keys():
+      self.favorite_character = formatter_custom.name_unformatter(formatter_custom.name_formatter(name))
       return True
     elif name.lower() == "none":
       self.favorite_character = "None"
@@ -301,19 +301,19 @@ class User:
       return False
 
   def does_character_exist(self, charName):
-    if formatter.name_formatter(charName) in self.characters.keys():
+    if formatter_custom.name_formatter(charName) in self.characters.keys():
       return True
     else:
       return False
 
   def does_weapon_exist(self, weapName):
-    if formatter.name_formatter(weapName) in self.weapons.keys():
+    if formatter_custom.name_formatter(weapName) in self.weapons.keys():
       return True
     else:
       return False
 
   def does_item_exist(self, item_name):
-    if formatter.name_formatter(item_name) in self.bag.keys():
+    if formatter_custom.name_formatter(item_name) in self.bag.keys():
       return True
     else:
       return False
@@ -386,17 +386,17 @@ def create_user(name, ID):
 
 async def embed_balance(ctx, u):
   embed = discord.Embed(title=f"{u.nickname}\'s Balance", color=discord.Color.dark_orange())
-  embed.add_field(name="Primogems", value=formatter.number_format(u.primogems))
-  embed.add_field(name="Mora", value=formatter.number_format(u.mora))
-  embed.add_field(name="Star Glitter", value=formatter.number_format(u.star_glitter))
-  embed.add_field(name="Star Dust", value=formatter.number_format(u.star_dust))
+  embed.add_field(name="Primogems", value=formatter_custom.number_format(u.primogems))
+  embed.add_field(name="Mora", value=formatter_custom.number_format(u.mora))
+  embed.add_field(name="Star Glitter", value=formatter_custom.number_format(u.star_glitter))
+  embed.add_field(name="Star Dust", value=formatter_custom.number_format(u.star_dust))
   f = discord.File("Images/Other/Balance.png", "Balance.png")
   embed.set_thumbnail(url="attachment://Balance.png")
   await ctx.send(embed=embed, file=f)
 
 def embed_resin(u):
   embed = discord.Embed(title=f"{u.nickname}\'s Resin", color=discord.Color.blue())
-  embed.add_field(name="_ _", value=f"**{formatter.number_format(u.resin)}/{formatter.number_format(u.get_resin_cap())}**\nCondensed: {formatter.number_format(u.condensed)}")
+  embed.add_field(name="_ _", value=f"**{formatter_custom.number_format(u.resin)}/{formatter_custom.number_format(u.get_resin_cap())}**\nCondensed: {formatter_custom.number_format(u.condensed)}")
   f = discord.File("Images/Other/Resin.png", "Resin.png")
   embed.set_thumbnail(url="attachment://Resin.png")
   return embed, f
@@ -404,12 +404,12 @@ def embed_resin(u):
 async def embed_profile(ctx, u, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Profile", color=discord.Color.dark_gold(), description=u.description)
   embed.add_field(name="Favorite Character", value=f"{u.favorite_character}", inline=False)
-  embed.add_field(name="Adventure Rank", value=f"{formatter.number_format(u.adventure_rank)}", inline=True)
-  embed.add_field(name="World Level", value=f"{formatter.number_format(u.world_level)}", inline=True)
-  embed.add_field(name="Current XP:", value=f"**{formatter.number_format(u.experience)}**/{formatter.number_format(u.get_max_experience())}", inline=False)
+  embed.add_field(name="Adventure Rank", value=f"{formatter_custom.number_format(u.adventure_rank)}", inline=True)
+  embed.add_field(name="World Level", value=f"{formatter_custom.number_format(u.world_level)}", inline=True)
+  embed.add_field(name="Current XP:", value=f"**{formatter_custom.number_format(u.experience)}**/{formatter_custom.number_format(u.get_max_experience())}", inline=False)
   embed.add_field(name="Pity:", value=f"5:star: | **{u.five_pity}/90**\n4:star: | **{u.four_pity}/10**", inline=False)
-  embed.add_field(name="Currency:", value=f"Primogems: {formatter.number_format(u.primogems)}\nMora: {formatter.number_format(u.mora)}\nStar Glitter: {formatter.number_format(u.star_glitter)}\nStar Dust: {formatter.number_format(u.star_dust)}", inline=True)
-  embed.add_field(name="Resin", value = f"{formatter.number_format(u.resin)}/{formatter.number_format(u.get_resin_cap())}\nCondensed: {formatter.number_format(u.condensed)}")
+  embed.add_field(name="Currency:", value=f"Primogems: {formatter_custom.number_format(u.primogems)}\nMora: {formatter_custom.number_format(u.mora)}\nStar Glitter: {formatter_custom.number_format(u.star_glitter)}\nStar Dust: {formatter_custom.number_format(u.star_dust)}", inline=True)
+  embed.add_field(name="Resin", value = f"{formatter_custom.number_format(u.resin)}/{formatter_custom.number_format(u.get_resin_cap())}\nCondensed: {formatter_custom.number_format(u.condensed)}")
   text = ""
   for comID in u.commissions.keys():
     commissionName = u.commissions[comID]["commission"]["title"]
@@ -424,14 +424,14 @@ async def embed_profile(ctx, u, member):
   can, voteString = u.can_vote()
   embed.add_field(name="Recharge Times", value=f"Daily: {dailyString}\nWeekly: {weeklyString}\nVote: {voteString}", inline=False)
 
-  url = formatter.get_avatar(member)
+  url = formatter_custom.get_avatar(member)
   embed.set_thumbnail(url=url)
   if not can:
     embed.set_footer(text=f"🔥 Boost Active")
   await ctx.send(embed=embed)
 
 async def embed_char_list(ctx, u, pg, bot, select_type):
-  allChars = formatter.organize_by_rarity(u.characters)
+  allChars = formatter_custom.organize_by_rarity(u.characters)
   charlist = []
   text = ""
   added = 0
@@ -463,10 +463,10 @@ async def embed_char_list(ctx, u, pg, bot, select_type):
       embed.add_field(name="_ _", value=f"{charlist[pageNum-1]}")
       embed.set_footer(text=f"Page {pageNum}/{len(charlist)}")
       charListPages.append(embed)
-  await formatter.pages(ctx, bot,  charListPages)
+  await formatter_custom.pages(ctx, bot,  charListPages)
 
 async def embed_weap_list(ctx, u, pg, bot, select_type):
-  allWeaps = formatter.organize_by_rarity(u.weapons)
+  allWeaps = formatter_custom.organize_by_rarity(u.weapons)
   weaplist = []
   text = ""
   added = 0
@@ -507,7 +507,7 @@ async def embed_weap_list(ctx, u, pg, bot, select_type):
       embed.set_footer(text=f"Page {pageNum}/{len(weaplist)}")
       weapListPages.append(embed)
 
-  await formatter.pages(ctx, bot,  weapListPages)
+  await formatter_custom.pages(ctx, bot,  weapListPages)
 
 #Shows gift of primo to user
 async def embed_give_primo(ctx, u, primo, member):
@@ -523,7 +523,7 @@ async def embed_donate_primo(ctx, giver, u, primo, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift from {giver.nickname}", color=discord.Color.blurple())
   amnt, tax, given, reason = giver.give_primo(u, primo)
   if given:
-    embed.add_field(name = f"Primogems x{formatter.number_format(amnt)}", value = f"{formatter.number_format(tax)} Primogems has been taxed.")
+    embed.add_field(name = f"Primogems x{formatter_custom.number_format(amnt)}", value = f"{formatter_custom.number_format(tax)} Primogems has been taxed.")
     f = discord.File("Images/Other/Primogem.png", "Primogem.png")
     embed.set_thumbnail(url="attachment://Primogem.png")
     await ctx.send(member.mention, embed=embed, file=f)
@@ -537,7 +537,7 @@ async def embed_donate_primo(ctx, giver, u, primo, member):
 async def embed_give_mora(ctx, u, mora, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift", color=discord.Color.gold())
   u.mora += mora
-  embed.add_field(name = f"Mora x{formatter.number_format(mora)}", value = "_ _")
+  embed.add_field(name = f"Mora x{formatter_custom.number_format(mora)}", value = "_ _")
   f = discord.File("Images/Other/Mora.png", "Mora.png")
   embed.set_thumbnail(url="attachment://Mora.png")
   await ctx.send(member.mention, embed=embed, file=f)
@@ -547,7 +547,7 @@ async def embed_donate_mora(ctx, giver, u, mora, member):
   embed = discord.Embed(title=f"{u.nickname}\'s Gift from {giver.nickname}", color=discord.Color.gold())
   amnt, tax, given, reason = giver.give_mora(u, mora)
   if given:
-    embed.add_field(name = f"Mora x{formatter.number_format(amnt)}", value = f"{formatter.number_format(tax)} Mora has been taxed")
+    embed.add_field(name = f"Mora x{formatter_custom.number_format(amnt)}", value = f"{formatter_custom.number_format(tax)} Mora has been taxed")
     f = discord.File("Images/Other/Mora.png", "Mora.png")
     embed.set_thumbnail(url="attachment://Mora.png")
     await ctx.send(member.mention, embed=embed, file=f)
@@ -581,17 +581,17 @@ async def embed_show_char_info(ctx, u, c):
     else:
       const_names += " or " + const_names_dict[key]
   embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = char_DB.name), color=color, description=char_DB.description)
-  level = formatter.number_format(c["level"])
-  currXP = formatter.number_format(c["xp"])
-  maxXP = formatter.number_format(formatter.get_xp_to_next_level(c["level"]))
+  level = formatter_custom.number_format(c["level"])
+  currXP = formatter_custom.number_format(c["xp"])
+  maxXP = formatter_custom.number_format(formatter_custom.get_xp_to_next_level(c["level"]))
   embed.add_field(name="Level {l}".format(l = level), value = "**XP:** {x}/{xm}".format(x=currXP, xm=maxXP))
-  embed.add_field(name="Amount Info", value="**Constellations Unlocked:** {cu}\n**Total Wished:** {tr}".format(cu = c["const_amnt"], tr = formatter.number_format(c["total"])))
+  embed.add_field(name="Amount Info", value="**Constellations Unlocked:** {cu}\n**Total Wished:** {tr}".format(cu = c["const_amnt"], tr = formatter_custom.number_format(c["total"])))
   if len(c["weapon_equiped"]) == 0:
     text = "None"
   else:
     text = c["weapon_equiped"]["name"]
   embed.add_field(name="Equiped Weapon", value=text)
-  embed.add_field(name="Trivia Info", value="**Element:** {e}\n**Constellation:** {c}\n**Weapon Type:** {w}".format(e = char_DB.element, c = const_names, w=formatter.name_unformatter(formatter.name_formatter(char_DB.weapon_type))))
+  embed.add_field(name="Trivia Info", value="**Element:** {e}\n**Constellation:** {c}\n**Weapon Type:** {w}".format(e = char_DB.element, c = const_names, w=formatter_custom.name_unformatter(formatter_custom.name_formatter(char_DB.weapon_type))))
   f = []
   f.append(discord.File(c["URL_icon"], "{}-icon.png".format(c["URL_name"])))
   f.append(discord.File(c["URL_portrait"], "{}-portrait.png".format(c["URL_name"])))
@@ -604,7 +604,7 @@ async def embed_show_char_info(ctx, u, c):
 async def embed_show_weap_info(ctx, u, w):
   weap_DB = weapon.get_weapon(w["name"])
   embed = discord.Embed(title = "{un}\'s {cn}".format(un = u.nickname, cn = weap_DB.name))
-  embed.add_field(name="Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Refinement:** {cu}\n**Total Wished:** {tr}".format(l = formatter.number_format(w["level"]), cu = w["refinement"], tr = formatter.number_format(w["total"]), x = formatter.number_format(w["xp"]), xm = formatter.number_format(formatter.get_xp_to_next_level(w["level"]))))
+  embed.add_field(name="Info", value="**Level:** {l}\n**XP:** {x}/{xm}\n**Refinement:** {cu}\n**Total Wished:** {tr}".format(l = formatter_custom.number_format(w["level"]), cu = w["refinement"], tr = formatter_custom.number_format(w["total"]), x = formatter_custom.number_format(w["xp"]), xm = formatter_custom.number_format(formatter_custom.get_xp_to_next_level(w["level"]))))
   embed.add_field(name="Type", value = "{}".format(weap_DB.weapon_type))
   f = discord.File(w["URL_icon"], "{}-icon.png".format(w["URL_name"]))
   embed.set_thumbnail(url="attachment://{}-icon.png".format(w["URL_name"]))
@@ -632,7 +632,7 @@ async def embed_vote(ctx, u, member:discord.Member):
   if can:
     embed = discord.Embed(title="Vote for Yapa-Bot on Top.gg")
     embed.add_field(name="Vote for Yapa-Bot here: https://top.gg/bot/827279423321276457/vote", value="Rewards for voting are:\n**800** Primogems\n**10,000** Mora\n**3** Condensed Resin\n**12hr 1.5x** Experience Boost")
-    url = formatter.get_avatar(member)
+    url = formatter_custom.get_avatar(member)
     embed.set_thumbnail(url=url)
     await ctx.send(f"{ctx.author.mention}", embed=embed)
   else:
@@ -728,7 +728,7 @@ async def embed_show_all_teams(ctx, u):
     await ctx.send(embed=embed)
 
 async def embed_set_team(ctx, u, teamNum, charList):
-    if formatter.has_identicals(charList):
+    if formatter_custom.has_identicals(charList):
         await error.embed_dublicate_characters(ctx)
     else:
         set, failedName = u.set_team(teamNum, charList)
@@ -748,12 +748,12 @@ async def embed_exchange_character(ctx, bot, u:User, char1_name, receiver:User, 
     return
   u_c = u.get_character(char1_name)
   r_c = receiver.get_character(char2_name)
-  confirm = await formatter.confirmation(ctx, bot, disclaimer)
+  confirm = await formatter_custom.confirmation(ctx, bot, disclaimer)
   if not confirm:
     await ctx.send("Trade Cancelled.")
     return
   receiver_user = await bot.fetch_user(receiver._id)
-  confirm = await formatter.confirmation_specific(ctx, bot, receiver_user, disclaimer)
+  confirm = await formatter_custom.confirmation_specific(ctx, bot, receiver_user, disclaimer)
   if not confirm:
     await ctx.send("Trade Cancelled.")
     return
@@ -778,12 +778,12 @@ async def embed_exchange_weapon(ctx, bot, u:User, weap1_name, receiver:User, wea
     return
   u_c = u.get_character(weap1_name)
   r_c = receiver.get_character(weap2_name)
-  confirm = await formatter.confirmation(ctx, bot, disclaimer)
+  confirm = await formatter_custom.confirmation(ctx, bot, disclaimer)
   if not confirm:
     await ctx.send("Trade Cancelled.")
     return
   receiver_user = await bot.fetch_user(receiver._id)
-  confirm = await formatter.confirmation_specific(ctx, bot, receiver_user, disclaimer)
+  confirm = await formatter_custom.confirmation_specific(ctx, bot, receiver_user, disclaimer)
   if not confirm:
     await ctx.send("Trade Cancelled.")
     return
@@ -803,7 +803,7 @@ async def embed_leader_boards(ctx):
   text = ""
   count = 1
   for u_name in top10_user_dicts.keys():
-    text += "**{c}**: **`{n}`** | AR: **`{a}`** | EXP: **`{e}`**\n".format(c=count, n=top10_user_dicts[u_name]["nickname"], a=formatter.number_format(top10_user_dicts[u_name]["adventure_rank"]), e=formatter.number_format(top10_user_dicts[u_name]["experience"]))
+    text += "**{c}**: **`{n}`** | AR: **`{a}`** | EXP: **`{e}`**\n".format(c=count, n=top10_user_dicts[u_name]["nickname"], a=formatter_custom.number_format(top10_user_dicts[u_name]["adventure_rank"]), e=formatter_custom.number_format(top10_user_dicts[u_name]["experience"]))
     count += 1
   if text == "":
     text = "None"

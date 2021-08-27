@@ -1,6 +1,6 @@
 import pymongo
 from pymongo import MongoClient
-import formatter
+import formatter_custom
 
 ###COLLECTION GETTERS###
 def get_cluster():
@@ -137,15 +137,15 @@ def get_shop_dict(_id):
 
 def get_shop_item_dict(name):
   user_collection = get_shop_item_collection()
-  return user_collection.find_one({"item": {"URL_name" : formatter.name_formatter(name)}})
+  return user_collection.find_one({"item": {"URL_name" : formatter_custom.name_formatter(name)}})
 
 def get_character_dict(name):
   user_collection = get_character_collection()
-  return user_collection.find_one({"URL_name": formatter.name_formatter(name)})
+  return user_collection.find_one({"URL_name": formatter_custom.name_formatter(name)})
 
 def get_weapon_dict(name):
   user_collection = get_weapon_collection()
-  return user_collection.find_one({"URL_name": formatter.name_formatter(name)})
+  return user_collection.find_one({"URL_name": formatter_custom.name_formatter(name)})
 
 def get_all_users_list_ids():
   user_collection = get_user_collection()

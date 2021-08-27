@@ -1,5 +1,5 @@
 
-import formatter
+import formatter_custom
 import math
 import database_mongo
 import discord
@@ -56,7 +56,7 @@ class Weapon:
     return self.__dict__
 
 def get_weapon_from_dict(weapDict, name):
-  n = formatter.name_formatter(name)
+  n = formatter_custom.name_formatter(name)
   if n in weapDict.keys():
     w = weapDict[n]
     return Weapon(w["name"], w["URL_name"], w["URL_icon"], w["weapon_type"], w["total"], w["rarity"], w["refinement"], w["attack"], w["substat"], w["substat_value"], w["level"], w["xp"])
@@ -97,7 +97,7 @@ def get_one_star_weapons():
   return get_weap_list_from_dict_list(database_mongo.get_all_weapons_of_criteria("rarity", 1))
 
 def does_weap_exist(name):
-  real_weap = database_mongo.get_all_weapons_of_criteria("URL_name", formatter.name_formatter(name))
+  real_weap = database_mongo.get_all_weapons_of_criteria("URL_name", formatter_custom.name_formatter(name))
   if real_weap == []:
     return False
   return True

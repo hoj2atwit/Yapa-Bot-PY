@@ -2,6 +2,34 @@ import discord
 import datetime
 import asyncio
 import error
+from discord_slash.utils.manage_components import create_button, create_actionrow
+from discord_slash.model import ButtonStyle
+from discord_buttons_plugin import *
+from dataclasses import dataclass
+from expiringdict import ExpiringDict
+
+page_dicts = ExpiringDict(max_len=1000,max_age_seconds=180)
+
+@dataclass
+class PagesInfoObject:
+  pages:list
+  max:int
+  min:int
+  index:int
+
+  def increment(self):
+    self.index += 1
+    if self.index > self.max:
+      self.index = 0
+  
+  def getPage(self):
+    return self.pages[self.index]
+  
+  def decrement(self):
+    self.index -= 1
+    if self.index < self.min:
+      self.index = self.max
+  
 
 def get_avatar(avamember):
   return avamember.avatar_url
@@ -224,32 +252,56 @@ async def pages(ctx, bot, embedList):
   await pages.add_reaction("◀️")
   await pages.add_reaction("▶️")
   def check(reaction, user):
-        return str(reaction.emoji) in ["◀️", "▶️"] and reaction.message == pages and (not user.bot)
+    return str(reaction.emoji) in ["◀️", "▶️"] and reaction.message == pages and (not user.bot)
   while True:
-        try:
-            reaction, user = await bot.wait_for("reaction_add", timeout=30, check=check)
+    try:
+      reaction, user = await bot.wait_for("reaction_add", timeout=30, check=check)
 
-            if str(reaction.emoji) == "▶️":
-                cur_index += 1
-                if cur_index >= len(embedList):
-                    cur_index = 0
-                await pages.edit(embed=embedList[cur_index])
-                await pages.remove_reaction(reaction, user)
+      if str(reaction.emoji) == "▶️":
+          cur_index += 1
+          if cur_index >= len(embedList):
+            cur_index = 0
+          await pages.edit(embed=embedList[cur_index])
+          await pages.remove_reaction(reaction, user)
 
-            elif str(reaction.emoji) == "◀️":
-                cur_index -= 1
-                if cur_index < 0:
-                    cur_index = len(embedList)-1
-                await pages.edit(embed=embedList[cur_index])
-                await pages.remove_reaction(reaction, user)
+      elif str(reaction.emoji) == "◀️":
+        cur_index -= 1
+        if cur_index < 0:
+          cur_index = len(embedList)-1
+        await pages.edit(embed=embedList[cur_index])
+        await pages.remove_reaction(reaction, user)
 
-            else:
-                await pages.remove_reaction(reaction, user)
-        except asyncio.TimeoutError:
-            break
+      else:
+        await pages.remove_reaction(reaction, user)
+    except asyncio.TimeoutError:
+      break
 
 async def confirmation(ctx, bot, disclaimer):
-  await ctx.send(f"{ctx.author.mention}, Are you sure you want to do this?(y/n)\n**Disclaimer:** {disclaimer}")
+  text = f"{ctx.author.mention}, Are you sure you want to do this?(y/n)\n"
+  if(disclaimer != ""):
+    text += f"**Disclaimer:** {disclaimer}"
+  await ctx.send(text)
+  def check(response):
+        confirmation = ["yes","no","y","n"]
+        return response.author == ctx.author and str(response.content.lower()) in confirmation
+  while True:
+        try:
+            response = await bot.wait_for(event = 'message', timeout=30, check=check)
+
+            if str(response.content.lower()) == "yes" or str(response.content.lower()) == "y":
+                return True
+
+            elif str(response.content.lower()) == "no" or str(response.content.lower()) == "n":
+                return False
+        except asyncio.TimeoutError:
+            await ctx.send("Response timeout.")
+            return False
+
+async def confirmation_custom(ctx, bot, prompt, disclaimer=""):
+  text = f"{ctx.author.mention}, {prompt}(y/n)\n"
+  if(disclaimer != ""):
+    text += f"**Disclaimer:** {disclaimer}"
+  await ctx.send(text)
   def check(response):
         confirmation = ["yes","no","y","n"]
         return response.author == ctx.author and str(response.content.lower()) in confirmation
@@ -267,7 +319,10 @@ async def confirmation(ctx, bot, disclaimer):
             return False
 
 async def confirmation_specific(ctx, bot, u:discord.User, disclaimer):
-  await ctx.send(f"{u.mention}, Are you sure you want to do this?(y/n)\n**Disclaimer:** {disclaimer}")
+  text = f"{u.mention}, Are you sure you want to do this?(y/n)\n"
+  if(disclaimer != ""):
+    text += f"**Disclaimer:** {disclaimer}"
+  await ctx.send(text)
   def check(response):
         confirmation = ["yes","no","y","n"]
         return response.author == u and str(response.content.lower()) in confirmation
@@ -284,8 +339,11 @@ async def confirmation_specific(ctx, bot, u:discord.User, disclaimer):
             await ctx.send("Response timeout.")
             return False
 
-async def confirmation_custom(ctx, bot, u:discord.User, custom_prompt):
-  await ctx.send(f"{u.mention}, {custom_prompt}")
+async def confirmation_custom_specific(ctx, bot, u:discord.User, prompt, disclaimer=""):
+  text = f"{u.mention}, {prompt}(y/n)\n"
+  if(disclaimer != ""):
+    text += f"**Disclaimer:** {disclaimer}"
+  await ctx.send(text)
   def check(response):
     confirmation = ["yes","no","y","n"]
     return response.author == u and str(response.content.lower()) in confirmation

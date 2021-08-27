@@ -1,4 +1,4 @@
-import formatter
+import formatter_custom
 import error
 import discord
 import random
@@ -162,9 +162,9 @@ def list_targets(tarDict):
   for tKey in tarDict.keys():
     t = dict_to_target(tarDict[tKey])
     if t.amnt >= t.total:
-      tListStr += f"~~{formatter.name_unformatter(t.name)}   **{t.amnt}/{t.total}**~~\n"
+      tListStr += f"~~{formatter_custom.name_unformatter(t.name)}   **{t.amnt}/{t.total}**~~\n"
     else:
-      tListStr += f"{formatter.name_unformatter(t.name)}   **{t.amnt}/{t.total}**\n"
+      tListStr += f"{formatter_custom.name_unformatter(t.name)}   **{t.amnt}/{t.total}**\n"
   return tListStr
 
 def make_wish_commissions(ID, amnt):
@@ -320,17 +320,17 @@ async def completed_commission(ctx, u, c):
     can, timeLeft = u.can_vote()
     realXP = int(c.xp * (u.world_level+1)*(1.5**(not can)))
     await u.add_experience(realXP, ctx)
-    text += f"**{formatter.number_format(realXP)}** Adventurer\'s Experience\n"
+    text += f"**{formatter_custom.number_format(realXP)}** Adventurer\'s Experience\n"
     if not can:
       e.set_footer(text="🔥 Boost Active")
   if c.moraReward > 0:
     realMora = int(c.moraReward * (u.world_level + 1))
     u.mora += realMora
-    text += f"**{formatter.number_format(realMora)}x** Mora\n"
+    text += f"**{formatter_custom.number_format(realMora)}x** Mora\n"
   if c.primoReward > 0:
     realPrimo = int(c.primoReward)
     u.primogems += realPrimo
-    text += f"**{formatter.number_format(realPrimo)}x** Primogems\n"
+    text += f"**{formatter_custom.number_format(realPrimo)}x** Primogems\n"
   e.add_field(name=f"{c.title} Reward", value=text)
   f = discord.File("Images/Other/Commission.png", "Commission.png")
   e.set_thumbnail(url="attachment://Commission.png")
@@ -362,9 +362,9 @@ async def all_commissions_completed(ctx, u):
   u.mora += realMora
   e = discord.Embed(title="All Commissions Complete!", color=discord.Color.blurple(), description=f"{u.nickname} has completed all of their commissions.")
   text = ""
-  text += f"**{formatter.number_format(realXP)}** Adventurer\'s Experience\n"
-  text += f"**{formatter.number_format(realMora)}x** Mora\n"
-  text += f"**{formatter.number_format(realPrimo)}x** Primogems\n"
+  text += f"**{formatter_custom.number_format(realXP)}** Adventurer\'s Experience\n"
+  text += f"**{formatter_custom.number_format(realMora)}x** Mora\n"
+  text += f"**{formatter_custom.number_format(realPrimo)}x** Primogems\n"
   e.add_field(name=f"Daily Commissions Reward", value=text)
   f = discord.File("Images/Other/Commission.png", "Commission.png")
   e.set_thumbnail(url="attachment://Commission.png")
