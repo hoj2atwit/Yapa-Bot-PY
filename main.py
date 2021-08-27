@@ -928,6 +928,24 @@ async def trivia(ctx, TID, *answer):
       await commission.answer_trivia(ctx, u, TID.upper(), answerString)
       database_mongo.save_user(u)
 
+@bot.command(name="report", aliases=["rep", "bug"])
+@commands.check(not_DM)
+@commands.check(user_exists)
+@commands.check(lock_exists)
+async def report(ctx, *report_desc):
+  async with locks[str(ctx.author.id)]:
+    pref = prefix.get_prefix(ctx)
+    desc = formatter_custom.separate_commands(report_desc, pref)
+    if len(desc[0]) > 400:
+      await error.embed_long_description(ctx, len(desc[0]))
+    else:
+      channel = bot.get_channel(int(os.getenv('REPORT_CHANNEL')))
+      u = user.get_user(ctx.author.id)
+      embed = discord.Embed(title=f"{u.nickname}'s Report", color=discord.Color.red())
+      embed.add_field(name="Report Description", value=f"\"{desc[0]}\"")
+      embed.add_field(name="Report Author", value=f"<@!{ctx.author.id}>")
+      await channel.send(embed=embed)
+      
 
 @bot.command(name="teams", aliases=["team", "party"])
 @commands.check(not_DM)
@@ -1134,7 +1152,7 @@ async def embed_help_summary(ctx, command, aliases, description, usage={}):
 @bot.command(name="help", aliases=["h"])
 async def help(ctx, arg1=None):
   embed = discord.Embed(title = "Yapa Bot Commands", color=discord.Color.greyple(), description="Use `?help command` to see more details about a particular command.")
-  text = "`start`, `server`, `topgg`, `daily`, `weekly`, `vote`, `delete`"
+  text = "`start`, `server`, `topgg`, `daily`, `weekly`, `vote`, `delete`, `report`"
   embed.add_field(name="**Basic Commands**", value = text)
   text = "`adventure`"
   embed.add_field(name=":sunrise_over_mountains: **Adventure Commands**", value = text)
@@ -1196,7 +1214,10 @@ async def help(ctx, arg1=None):
     await embed_help_summary(ctx, f"{pref}vote", bot.get_command("vote").aliases, "Allows you to vote for the bot on top.gg and earn another daily claim.", 
     {f"`{pref}vote` `toggle`":"Allows you to toggle the vote DM confirmation."})
   elif arg1.lower() == "delete" or arg1.lower() in bot.get_command("delete").aliases:
-    await embed_help_summary(ctx, f"{pref}delete", bot.get_command("delete").aliases, "Allows you to permenently remove your user data from Yapa-Bot and it's database.")
+        await embed_help_summary(ctx, f"{pref}delete", bot.get_command("delete").aliases, "Allows you to permenently remove your user data from Yapa-Bot and it's database.")
+  elif arg1.lower() == "report" or arg1.lower() in bot.get_command("report").aliases:
+    await embed_help_summary(ctx, f"{pref}report", bot.get_command("report").aliases, "Allows you to report anything to the developers of the bot.",
+    {f"`{pref}report` `report_desc...`":"Allows you to report any issues with the bot to the developers without being in the official server."})
   elif arg1.lower() == "adventure" or arg1.lower() in bot.get_command("adventure").aliases:
     await embed_help_summary(ctx, f"{pref}adventure", bot.get_command("adventure").aliases, "Allows you to adventure with characters for experience and loot at the cost of 20 resin.",
     {f"`{pref}adventure` `char_name` *`{pref}char_name`* *`{pref}char_name`* *`{pref}char_name`*":"Allows you to go on an adventure with up to 4 of your characters. You must have atleast 1 character to adventure.",

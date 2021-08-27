@@ -462,7 +462,7 @@ async def embed_gamble(ctx, u, amnt, _type, channel):
         u.primogems += amnt*100 + database_mongo.get_jackpot_primo()
         embed = discord.Embed(title="JACKPOT--------JACKPOT", description=f"{u.nickname} won the jackpot!")
         embed.add_field(name="Winnings", value=f"**{formatter_custom.number_format(amnt*100 + database_mongo.get_jackpot_primo())}x** Primogems")
-        embed_jackpot_won_mora(u, (amnt*100+database_mongo.get_jackpot_primo()), channel)
+        embed_jackpot_won_primo(u, (amnt*100+database_mongo.get_jackpot_primo()), channel)
         database_mongo.reset_jackpot_primo()
       elif six:
         u.primogems += amnt*10
