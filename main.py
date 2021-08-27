@@ -945,6 +945,7 @@ async def report(ctx, *report_desc):
       embed.add_field(name="Report Description", value=f"\"{desc[0]}\"")
       embed.add_field(name="Report Author", value=f"<@!{ctx.author.id}>")
       await channel.send(embed=embed)
+      await ctx.send(f"<@!{ctx.author.id}> Report has been sent. Thank you.")
       
 
 @bot.command(name="teams", aliases=["team", "party"])
