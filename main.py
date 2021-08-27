@@ -644,7 +644,7 @@ async def profile(ctx, arg2=None, *arg3):
             char = formatter_custom.separate_commands(arg3, pref)
             have = u.change_favorite_character(char[0])
             if have:
-              await ctx.send(f"{ctx.author.mention}\'s favorite Character has been set to: {formatter_custom.name_unformatter_custom(formatter_custom.name_formatter_custom(char[0]))}")
+              await ctx.send(f"{ctx.author.mention}\'s favorite Character has been set to: {formatter_custom.name_unformatter(formatter_custom.name_formatter(char[0]))}")
               database_mongo.save_user(u)
             else:
               await error.embed_get_character_suggestions(ctx, u, char[0])
