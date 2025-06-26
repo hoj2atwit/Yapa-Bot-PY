@@ -7,7 +7,7 @@ If you're thinkin about taking anything from this, at least ask lol.
 Genshin Sources are pulled from:
 https://github.com/genshindev/api
 https://api.genshin.dev/
-for the most part. Some images that werent found on here were found elsewhere (like saved off some wikis or something.)
+for the most part. Some images that werent found on here were found elsewhere (saved off of some wiki pages, google images, etc.)
 
 The genshin core of this bot currently is based on the "Genshin Card Game" discord bot. Though his bot is made from JS rather than python,
 I felt that remaking his bot with what I felt more comfortable with would prove a good learning opportunity. Of course I've taken a hard focus on polishing 
