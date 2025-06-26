@@ -13,5 +13,5 @@ The genshin core of this bot currently is based on the "Genshin Card Game" disco
 I felt that remaking his bot with what I felt more comfortable with would prove a good learning opportunity. Of course I've taken a hard focus on polishing 
 simple aspects of the bot before adding large new features so in terms of features it is behind.
 
-Feel free to DM me on discord @[Sonzee {my gf numba 1}#7276] if you have any questions about this bot or idk what else you'd want to ask me about.
-You can also email me at johnniezho@gmail.com, but not sure how often I really check my emails.
+Feel free to DM me on discord @[koigzee] if you have any questions about this bot or idk what else you'd want to ask me about.
+You can also email me at johnniezho@gmail.com if you have any questions.
